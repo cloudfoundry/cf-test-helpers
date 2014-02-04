@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	. "github.com/onsi/gomega"
@@ -20,14 +19,11 @@ type QueryResponse struct {
 }
 
 func ApiRequest(method, endpoint string, response interface{}, data ...string) {
-	config := LoadCfConfig()
-
-	request := Curl(
-		"-k",
-		config.Target+endpoint,
+	request := Cf(
+		"curl",
+		endpoint,
 		"-X", method,
 		"-d", strings.Join(data, ""),
-		"-H", fmt.Sprintf("Authorization: %s", config.AccessToken),
 	)
 
 	Expect(request).To(ExitWith(0))
