@@ -1,4 +1,4 @@
-package helpers
+package generator
 
 import (
 	"github.com/nu7hatch/gouuid"
