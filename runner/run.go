@@ -24,17 +24,17 @@ func Curl(args ...string) *cmdtest.Session {
 	return Run("curl", args...)
 }
 
-func teeStdout(out io.Reader) io.Reader {
+func teeStdout(out io.Writer) io.Writer {
 	if verboseOutputEnabled() {
-		return io.TeeReader(out, os.Stdout)
+		return io.MultiWriter(out, os.Stdout)
 	} else {
 		return out
 	}
 }
 
-func teeStderr(out io.Reader) io.Reader {
+func teeStderr(out io.Writer) io.Writer {
 	if verboseOutputEnabled() {
-		return io.TeeReader(out, os.Stderr)
+		return io.MultiWriter(out, os.Stderr)
 	} else {
 		return out
 	}
