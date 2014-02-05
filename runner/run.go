@@ -8,10 +8,14 @@ import (
 	"github.com/vito/cmdtest"
 )
 
+var SessionStarter = func(cmd *exec.Cmd) (*cmdtest.Session, error) {
+	return cmdtest.StartWrapped(cmd, teeStdout, teeStderr)
+}
+
 func Run(executable string, args ...string) *cmdtest.Session {
 	cmd := exec.Command(executable, args...)
 
-	sess, err := cmdtest.StartWrapped(cmd, teeStdout, teeStderr)
+	sess, err := SessionStarter(cmd)
 	if err != nil {
 		panic(err)
 	}

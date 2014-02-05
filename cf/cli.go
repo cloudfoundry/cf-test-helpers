@@ -4,9 +4,9 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/vito/cmdtest"
 	"github.com/onsi/ginkgo/config"
 	"github.com/pivotal-cf-experimental/cf-test-helpers/runner"
+	"github.com/vito/cmdtest"
 )
 
 func Cf(args ...string) *cmdtest.Session {
