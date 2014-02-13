@@ -1,7 +1,7 @@
 package generator
 
 import (
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/nu7hatch/gouuid"
 )
 
 func RandomName() string {
