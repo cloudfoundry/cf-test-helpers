@@ -9,7 +9,7 @@ import (
 	"github.com/vito/cmdtest"
 )
 
-func Cf(args ...string) *cmdtest.Session {
+var Cf = func(args ...string) *cmdtest.Session {
 	trace_file := os.Getenv("CF_TRACE_BASENAME")
 	if trace_file != "" {
 		os.Setenv("CF_TRACE", trace_file+strconv.Itoa(parallelNode())+".txt")
