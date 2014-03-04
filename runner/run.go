@@ -4,6 +4,8 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
+	"fmt"
 
 	"github.com/vito/cmdtest"
 )
@@ -14,6 +16,10 @@ var SessionStarter = func(cmd *exec.Cmd) (*cmdtest.Session, error) {
 
 func Run(executable string, args ...string) *cmdtest.Session {
 	cmd := exec.Command(executable, args...)
+
+	if verboseOutputEnabled() {
+		fmt.Println("\n", "> ", strings.Join(cmd.Args, " "))
+	}
 
 	sess, err := SessionStarter(cmd)
 	if err != nil {
