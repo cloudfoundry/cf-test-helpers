@@ -21,19 +21,19 @@ var _ = Describe("NewUserContext", func() {
 		Expect(createUser().ApiUrl).To(Equal("http://FAKE_API.example.com"))
 	})
 
-	It("sets UserContext.name", func() {
+	It("sets UserContext.Username", func() {
 		Expect(createUser().Username).To(Equal("FAKE_USERNAME"))
 	})
 
-	It("sets UserContext.password", func() {
+	It("sets UserContext.Password", func() {
 		Expect(createUser().Password).To(Equal("FAKE_PASSWORD"))
 	})
 
-	It("sets UserContext.org", func() {
+	It("sets UserContext.Org", func() {
 		Expect(createUser().Org).To(Equal("FAKE_ORG"))
 	})
 
-	It("sets UserContext.space", func() {
+	It("sets UserContext.Space", func() {
 		Expect(createUser().Space).To(Equal("FAKE_SPACE"))
 	})
 })
