@@ -1,7 +1,6 @@
 package cf_test
 
 import (
-	"errors"
 	"os"
 	"os/exec"
 
@@ -12,7 +11,7 @@ import (
 )
 
 var _ = Describe("AsUser", func() {
-	var FakeThingsToRunAsUser = func() error { return nil }
+	var FakeThingsToRunAsUser = func() {  }
 	var FakeCfCalls = [][]string{}
 
 	var FakeCf = func(args ...string) *cmdtest.Session {
@@ -46,25 +45,19 @@ var _ = Describe("AsUser", func() {
 		Expect(FakeCfCalls[len(FakeCfCalls)-1]).To(Equal([]string{"logout"}))
 	})
 
-	It("logs out even if there's an error", func() {
-		cf.AsUser(user, func() error { return errors.New("_") })
+	It("logs out even if actions contain a failing expectation", func() {
+		RegisterFailHandler(func(message string, callerSkip ...int) { })
+		cf.AsUser(user, func() { Expect(1).To(Equal(2)) })
+		RegisterFailHandler(Fail)
 
 		Expect(FakeCfCalls[len(FakeCfCalls)-1]).To(Equal([]string{"logout"}))
 	})
 
 	It("calls the passed function", func() {
 		called := false
-		cf.AsUser(user, func() error { called = true; return nil })
+		cf.AsUser(user, func() { called = true })
 
 		Expect(called).To(BeTrue())
-	})
-
-	Context("when the passed function returns an error", func() {
-		It("returns the same error", func() {
-			myError := errors.New("fake error")
-
-			Expect(cf.AsUser(user, func() error { return myError })).To(Equal(myError))
-		})
 	})
 
 	It("sets a unique CF_HOME value", func() {
@@ -73,14 +66,12 @@ var _ = Describe("AsUser", func() {
 			secondHome string
 		)
 
-		cf.AsUser(user, func() error {
+		cf.AsUser(user, func() {
 			firstHome = os.Getenv("CF_HOME")
-			return nil
 		})
 
-		cf.AsUser(user, func() error {
+		cf.AsUser(user, func() {
 			secondHome = os.Getenv("CF_HOME")
-			return nil
 		})
 
 		Expect(firstHome).NotTo(Equal(secondHome))
@@ -88,7 +79,7 @@ var _ = Describe("AsUser", func() {
 
 	It("returns CF_HOME to its original value", func() {
 		os.Setenv("CF_HOME", "some-crazy-value")
-		cf.AsUser(user, func() error { return nil })
+		cf.AsUser(user, func() {  })
 
 		Expect(os.Getenv("CF_HOME")).To(Equal("some-crazy-value"))
 	})

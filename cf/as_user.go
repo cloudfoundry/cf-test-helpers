@@ -10,12 +10,12 @@ import (
 	. "github.com/vito/cmdtest/matchers"
 )
 
-func AsUser(user UserContext, actions func() error) error {
+func AsUser(user UserContext, actions func()) {
 	originalCfHomeDir := os.Getenv("CF_HOME")
 	cfHomeDir, err := ioutil.TempDir("", fmt.Sprintf("cf_home_%d", ginkgoconfig.GinkgoConfig.ParallelNode))
 
 	if err != nil {
-		return err
+		panic("Error: could not create temporary home directory: " + err.Error())
 	}
 
 	os.Setenv("CF_HOME", cfHomeDir)
@@ -28,5 +28,5 @@ func AsUser(user UserContext, actions func() error) error {
 
 	Expect(Cf("api", user.ApiUrl)).To(ExitWith(0))
 	Expect(Cf("auth", user.Username, user.Password)).To(ExitWith(0))
-	return actions()
+	actions()
 }
