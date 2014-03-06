@@ -10,7 +10,7 @@ import (
 	. "github.com/vito/cmdtest/matchers"
 )
 
-func AsUser(user User, actions func() error) error {
+func AsUser(user UserContext, actions func() error) error {
 	originalCfHomeDir := os.Getenv("CF_HOME")
 	cfHomeDir, err := ioutil.TempDir("", fmt.Sprintf("cf_home_%d", ginkgoconfig.GinkgoConfig.ParallelNode))
 

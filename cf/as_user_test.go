@@ -20,7 +20,7 @@ var _ = Describe("AsUser", func() {
 		var session, _ = cmdtest.Start(exec.Command("echo", "nothing"))
 		return session
 	}
-	var user = cf.NewUser("FAKE_USERNAME", "FAKE_PASSWORD", "FAKE_ORG", "FAKE_SPACE")
+	var user = cf.NewUserContext("FAKE_USERNAME", "FAKE_PASSWORD", "FAKE_ORG", "FAKE_SPACE")
 
 	BeforeEach(func() {
 		FakeCfCalls = [][]string{}

@@ -1,17 +1,17 @@
 package cf
 
-type User struct {
+type UserContext struct {
 	Username string
 	Password string
 	Org      string
 	Space    string
 }
 
-var NewUser = func(username string, password string, org string, space string) User {
-	u := User{}
-	u.Username = username
-	u.Password = password
-	u.Org = org
-	u.Space = space
-	return u
+var NewUserContext = func(username string, password string, org string, space string) UserContext {
+	uc := UserContext{}
+	uc.Username = username
+	uc.Password = password
+	uc.Org = org
+	uc.Space = space
+	return uc
 }

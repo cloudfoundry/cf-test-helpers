@@ -7,29 +7,29 @@ import (
 	"github.com/pivotal-cf-experimental/cf-test-helpers/cf"
 )
 
-var _ = Describe("NewUser", func() {
+var _ = Describe("NewUserContext", func() {
 
-	var createUser = func() cf.User {
-		return cf.NewUser("FAKE_USERNAME", "FAKE_PASSWORD", "FAKE_ORG", "FAKE_SPACE")
+	var createUser = func() cf.UserContext {
+		return cf.NewUserContext("FAKE_USERNAME", "FAKE_PASSWORD", "FAKE_ORG", "FAKE_SPACE")
 	}
 
-	It("returns a User struct", func() {
-		Expect(createUser()).To(BeAssignableToTypeOf(cf.User{}))
+	It("returns a UserContext struct", func() {
+		Expect(createUser()).To(BeAssignableToTypeOf(cf.UserContext{}))
 	})
 
-	It("sets User.name", func() {
+	It("sets UserContext.name", func() {
 		Expect(createUser().Username).To(Equal("FAKE_USERNAME"))
 	})
 
-	It("sets User.password", func() {
+	It("sets UserContext.password", func() {
 		Expect(createUser().Password).To(Equal("FAKE_PASSWORD"))
 	})
 
-	It("sets User.org", func() {
+	It("sets UserContext.org", func() {
 		Expect(createUser().Org).To(Equal("FAKE_ORG"))
 	})
 
-	It("sets User.space", func() {
+	It("sets UserContext.space", func() {
 		Expect(createUser().Space).To(Equal("FAKE_SPACE"))
 	})
 })
