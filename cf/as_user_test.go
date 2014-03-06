@@ -27,29 +27,36 @@ var _ = Describe("AsUser", func() {
 		cf.Cf = FakeCf
 	})
 
+
+	It("calls cf api", func() {
+		cf.AsUser(user, FakeThingsToRunAsUser)
+
+		Expect(FakeCfCalls[0]).To(Equal([]string{"api", "http://FAKE_API.example.com"}))
+	})
+
 	It("calls cf auth", func() {
 		cf.AsUser(user, FakeThingsToRunAsUser)
 
-		Expect(FakeCfCalls[0]).To(Equal([]string{"auth", "FAKE_USERNAME", "FAKE_PASSWORD"}))
-	})
-
-	It("calls the passed function", func() {
-		called := false
-		cf.AsUser(user, func() error { called = true; return nil })
-
-		Ω(called).To(BeTrue())
+		Expect(FakeCfCalls[1]).To(Equal([]string{"auth", "FAKE_USERNAME", "FAKE_PASSWORD"}))
 	})
 
 	It("calls cf logout", func() {
 		cf.AsUser(user, FakeThingsToRunAsUser)
 
-		Expect(FakeCfCalls[1]).To(Equal([]string{"logout"}))
+		Expect(FakeCfCalls[len(FakeCfCalls)-1]).To(Equal([]string{"logout"}))
 	})
 
 	It("logs out even if there's an error", func() {
 		cf.AsUser(user, func() error { return errors.New("_") })
 
 		Expect(FakeCfCalls[len(FakeCfCalls)-1]).To(Equal([]string{"logout"}))
+	})
+
+	It("calls the passed function", func() {
+		called := false
+		cf.AsUser(user, func() error { called = true; return nil })
+
+		Expect(called).To(BeTrue())
 	})
 
 	Context("when the passed function returns an error", func() {
