@@ -1,11 +1,11 @@
 package runner
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
-	"fmt"
 
 	"github.com/vito/cmdtest"
 )

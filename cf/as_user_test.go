@@ -62,7 +62,7 @@ var _ = Describe("AsUser", func() {
 
 	It("sets a unique CF_HOME value", func() {
 		var (
-			firstHome string
+			firstHome  string
 			secondHome string
 		)
 
