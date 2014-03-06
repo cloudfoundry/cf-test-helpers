@@ -10,11 +10,15 @@ import (
 var _ = Describe("NewUserContext", func() {
 
 	var createUser = func() cf.UserContext {
-		return cf.NewUserContext("FAKE_USERNAME", "FAKE_PASSWORD", "FAKE_ORG", "FAKE_SPACE")
+		return cf.NewUserContext("http://FAKE_API.example.com", "FAKE_USERNAME", "FAKE_PASSWORD", "FAKE_ORG", "FAKE_SPACE")
 	}
 
 	It("returns a UserContext struct", func() {
 		Expect(createUser()).To(BeAssignableToTypeOf(cf.UserContext{}))
+	})
+
+	It("sets UserContext.ApiUrl", func() {
+		Expect(createUser().ApiUrl).To(Equal("http://FAKE_API.example.com"))
 	})
 
 	It("sets UserContext.name", func() {
