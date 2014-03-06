@@ -27,10 +27,10 @@ var _ = Describe("AsUser", func() {
 		cf.Cf = FakeCf
 	})
 
-	It("calls cf login", func() {
+	It("calls cf auth", func() {
 		cf.AsUser(user, FakeThingsToRunAsUser)
 
-		Expect(FakeCfCalls[0]).To(Equal([]string{"login", "FAKE_USERNAME", "FAKE_PASSWORD"}))
+		Expect(FakeCfCalls[0]).To(Equal([]string{"auth", "FAKE_USERNAME", "FAKE_PASSWORD"}))
 	})
 
 	It("calls the passed function", func() {

@@ -26,7 +26,7 @@ func AsUser(user UserContext, actions func() error) error {
 		os.RemoveAll(cfHomeDir)
 	}()
 
-	if Expect(Cf("login", user.Username, user.Password)).To(ExitWith(0)) {
+	if Expect(Cf("auth", user.Username, user.Password)).To(ExitWith(0)) {
 		return actions()
 	}
 
