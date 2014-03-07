@@ -28,5 +28,7 @@ func AsUser(user UserContext, actions func()) {
 
 	Expect(Cf("api", user.ApiUrl)).To(ExitWith(0))
 	Expect(Cf("auth", user.Username, user.Password)).To(ExitWith(0))
+	Expect(Cf("target", "-o", user.Org, "-s", user.Space)).To(ExitWith(0))
+
 	actions()
 }

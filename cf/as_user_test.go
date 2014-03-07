@@ -39,6 +39,12 @@ var _ = Describe("AsUser", func() {
 		Expect(FakeCfCalls[1]).To(Equal([]string{"auth", "FAKE_USERNAME", "FAKE_PASSWORD"}))
 	})
 
+	It("calls cf target", func() {
+		cf.AsUser(user, FakeThingsToRunAsUser)
+
+		Expect(FakeCfCalls[2]).To(Equal([]string{"target", "-o", "FAKE_ORG", "-s", "FAKE_SPACE"}))
+	})
+
 	It("calls cf logout", func() {
 		cf.AsUser(user, FakeThingsToRunAsUser)
 
