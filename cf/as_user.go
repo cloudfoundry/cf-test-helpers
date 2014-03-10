@@ -10,25 +10,35 @@ import (
 	. "github.com/vito/cmdtest/matchers"
 )
 
-func AsUser(user UserContext, actions func()) {
-	originalCfHomeDir := os.Getenv("CF_HOME")
-	cfHomeDir, err := ioutil.TempDir("", fmt.Sprintf("cf_home_%d", ginkgoconfig.GinkgoConfig.ParallelNode))
+func AsUser(userContext UserContext, actions func()) {
+	originalCfHomeDir, currentCfHomeDir := InitiateUserContext(userContext)
+
+	defer func() {
+		RestoreUserContext(userContext, originalCfHomeDir, currentCfHomeDir)
+	}()
+
+	actions()
+}
+
+func InitiateUserContext(userContext UserContext) (originalCfHomeDir, currentCfHomeDir string) {
+	originalCfHomeDir = os.Getenv("CF_HOME")
+	currentCfHomeDir, err := ioutil.TempDir("", fmt.Sprintf("cf_home_%d", ginkgoconfig.GinkgoConfig.ParallelNode))
 
 	if err != nil {
 		panic("Error: could not create temporary home directory: " + err.Error())
 	}
 
-	os.Setenv("CF_HOME", cfHomeDir)
+	os.Setenv("CF_HOME", currentCfHomeDir)
 
-	defer func() {
-		Expect(Cf("logout")).To(ExitWith(0))
-		os.Setenv("CF_HOME", originalCfHomeDir)
-		os.RemoveAll(cfHomeDir)
-	}()
+	Expect(Cf("api", userContext.ApiUrl)).To(ExitWith(0))
+	Expect(Cf("auth", userContext.Username, userContext.Password)).To(ExitWith(0))
+	Expect(Cf("target", "-o", userContext.Org, "-s", userContext.Space)).To(ExitWith(0))
 
-	Expect(Cf("api", user.ApiUrl)).To(ExitWith(0))
-	Expect(Cf("auth", user.Username, user.Password)).To(ExitWith(0))
-	Expect(Cf("target", "-o", user.Org, "-s", user.Space)).To(ExitWith(0))
+	return
+}
 
-	actions()
+func RestoreUserContext(_ UserContext, originalCfHomeDir, currentCfHomeDir string) {
+	Expect(Cf("logout")).To(ExitWith(0))
+	os.Setenv("CF_HOME", originalCfHomeDir)
+	os.RemoveAll(currentCfHomeDir)
 }
