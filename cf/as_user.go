@@ -12,10 +12,11 @@ import (
 
 func AsUser(userContext UserContext, actions func()) {
 	originalCfHomeDir, currentCfHomeDir := InitiateUserContext(userContext)
-
 	defer func() {
 		RestoreUserContext(userContext, originalCfHomeDir, currentCfHomeDir)
 	}()
+
+	TargetSpace(userContext)
 
 	actions()
 }
@@ -32,9 +33,12 @@ func InitiateUserContext(userContext UserContext) (originalCfHomeDir, currentCfH
 
 	Expect(Cf("api", userContext.ApiUrl)).To(ExitWith(0))
 	Expect(Cf("auth", userContext.Username, userContext.Password)).To(ExitWith(0))
-	Expect(Cf("target", "-o", userContext.Org, "-s", userContext.Space)).To(ExitWith(0))
 
 	return
+}
+
+func TargetSpace(userContext UserContext) {
+	Expect(Cf("target", "-o", userContext.Org, "-s", userContext.Space)).To(ExitWith(0))
 }
 
 func RestoreUserContext(_ UserContext, originalCfHomeDir, currentCfHomeDir string) {
