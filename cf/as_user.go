@@ -30,8 +30,13 @@ func InitiateUserContext(userContext UserContext) (originalCfHomeDir, currentCfH
 	}
 
 	os.Setenv("CF_HOME", currentCfHomeDir)
+	
+	if os.Getenv("SKIP_SSL_VALIDATION") == "true" {
+		Expect(Cf("api", userContext.ApiUrl, "--skip-ssl-validation")).To(ExitWith(0))
+	} else {
+		Expect(Cf("api", userContext.ApiUrl)).To(ExitWith(0))
+	}
 
-	Expect(Cf("api", userContext.ApiUrl)).To(ExitWith(0))
 	Expect(Cf("auth", userContext.Username, userContext.Password)).To(ExitWith(0))
 
 	return
