@@ -20,7 +20,13 @@ func Run(executable string, args ...string) *gexec.Session {
 	cmd := exec.Command(executable, args...)
 
 	if config.DefaultReporterConfig.Verbose {
-		fmt.Println("\n", "> ", strings.Join(cmd.Args, " "))
+		startColor := ""
+		endColor := ""
+		if !config.DefaultReporterConfig.NoColor {
+			startColor = "\x1b[32m"
+			endColor = "\x1b[0m"
+		}
+		fmt.Println("\n", startColor, "> ", strings.Join(cmd.Args, " "), endColor)
 	}
 
 	sess, err := gexec.Start(CommandInterceptor(cmd), ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
