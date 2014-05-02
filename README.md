@@ -8,4 +8,4 @@ Included Tools:
   - Isolated user contexts for wrapping CF commands
   - Curl CF endpoints
 - Random user name generator
-- Ginkgo test suite runner
+- Thin wrapper around curl (in runner)
