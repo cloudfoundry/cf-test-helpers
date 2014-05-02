@@ -1,4 +1,11 @@
 cf-test-helpers
 ===============
 
-Helpers for running tests against Cloud Foundry
+Go utilities for running tests against Cloud Foundry
+
+Included Tools:
+- Execute [CF CLI](https://github.com/cloudfoundry/cli) commands
+  - Isolated user contexts for wrapping CF commands
+  - Curl CF endpoints
+- Random user name generator
+- Ginkgo test suite runner
