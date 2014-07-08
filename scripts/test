@@ -3,6 +3,8 @@
 
 set -e -x
 
+export PATH=$GOPATH/bin:$PATH
+
 go get -t -u -v ./...
 go install github.com/onsi/ginkgo/ginkgo
 
