@@ -26,7 +26,6 @@ func AppRootUri(appName string) string {
 func CurlAppWithTimeout(appName, path string, timeout time.Duration) string {
 	uri := AppUri(appName, path)
 	curl := runner.Curl(uri).Wait(timeout)
-	Expect(curl).To(Exit(0))
 	Expect(string(curl.Err.Contents())).To(HaveLen(0))
 	return string(curl.Out.Contents())
 }
