@@ -30,6 +30,8 @@ type Config struct {
 
 	SyslogDrainPort int    `json:"syslog_drain_port"`
 	SyslogIpAddress string `json:"syslog_ip_address"`
+
+	SecureAddress string `json:"secure_address"`
 }
 
 var loadedConfig *Config
