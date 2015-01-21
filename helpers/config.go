@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strconv"
 	"time"
 )
 
@@ -40,6 +42,9 @@ func LoadConfig() Config {
 	if loadedConfig == nil {
 		loadedConfig = loadConfigJsonFromPath()
 	}
+
+	// overwrite config by env
+	readEnv("", reflect.ValueOf(loadedConfig))
 
 	if loadedConfig.ApiEndpoint == "" {
 		panic("missing configuration 'api'")
@@ -89,4 +94,49 @@ func configPath() string {
 	}
 
 	return path
+}
+
+func readEnv(prefix string, v reflect.Value) {
+	if v.Kind() != reflect.Ptr {
+		panic("not ptr")
+	}
+	value := v.Elem()
+	valueType := value.Type()
+	fieldsCount := valueType.NumField()
+	for i := 0; i < fieldsCount; i++ {
+		field := value.Field(i)
+		fieldName := valueType.Field(i).Name
+		fieldKind := field.Kind()
+		env := os.Getenv(prefix + fieldName)
+		switch fieldKind {
+		case reflect.String:
+			if len(env) == 0 {
+				continue
+			}
+			field.SetString(env)
+		case reflect.Int, reflect.Int64:
+			if len(env) == 0 {
+				continue
+			}
+			val, _ := strconv.ParseInt(env, 0, 64)
+			field.SetInt(val)
+		case reflect.Bool:
+			if len(env) == 0 {
+				continue
+			}
+			val, _ := strconv.ParseBool(env)
+			field.SetBool(val)
+		case reflect.Map:
+			for _, key := range field.MapKeys() {
+				new_value := reflect.New(field.MapIndex(key).Type()).Elem()
+				new_value.Set(field.MapIndex(key))
+				readEnv(prefix+fieldName+"_"+key.String()+"_", new_value.Addr())
+				field.SetMapIndex(key, new_value)
+			}
+		case reflect.Struct:
+			readEnv(prefix+fieldName+"_", field.Addr())
+		default:
+			panic("readProcess undefined. type = " + fieldKind.String())
+		}
+	}
 }
