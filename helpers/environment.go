@@ -10,6 +10,7 @@ import (
 type SuiteContext interface {
 	Setup()
 	Teardown()
+	SetRunawayQuota()
 
 	AdminUserContext() cf.UserContext
 	RegularUserContext() cf.UserContext

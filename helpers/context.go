@@ -13,6 +13,7 @@ import (
 )
 
 const CF_API_TIMEOUT = 30 * time.Second
+const RUNAWAY_QUOTA_MEM_LIMIT = "99999G"
 
 type ConfiguredContext struct {
 	config Config
@@ -101,6 +102,12 @@ func (context *ConfiguredContext) Setup() {
 
 		Expect(cf.Cf("create-org", context.organizationName).Wait(CF_API_TIMEOUT)).To(Exit(0))
 		Expect(cf.Cf("set-quota", context.organizationName, definition.Name).Wait(CF_API_TIMEOUT)).To(Exit(0))
+	})
+}
+
+func (context *ConfiguredContext) SetRunawayQuota() {
+	cf.AsUser(context.AdminUserContext(), func() {
+		Expect(cf.Cf("update-quota", context.quotaDefinitionName, "-m", RUNAWAY_QUOTA_MEM_LIMIT, "-i=-1").Wait(CF_API_TIMEOUT)).To(Exit(0))
 	})
 }
 
