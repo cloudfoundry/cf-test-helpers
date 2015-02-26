@@ -3,6 +3,7 @@ package context_setup
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"time"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
@@ -23,6 +24,8 @@ type ConfiguredContext struct {
 
 	regularUserUsername string
 	regularUserPassword string
+
+	securityGroupName string
 
 	isPersistent bool
 }
@@ -52,6 +55,8 @@ func NewContext(config IntegrationConfig, prefix string) *ConfiguredContext {
 
 		regularUserUsername: fmt.Sprintf("%s-USER-%d-%s", prefix, node, timeTag),
 		regularUserPassword: "meow",
+
+		securityGroupName: fmt.Sprintf("%s-SECURITY_GROUP-%d-%s", prefix, node, timeTag),
 
 		isPersistent: false,
 	}
@@ -89,6 +94,12 @@ func (context *ConfiguredContext) Setup() {
 
 		Eventually(cf.Cf("create-org", context.organizationName), ScaledTimeout(60*time.Second)).Should(Exit(0))
 		Eventually(cf.Cf("set-quota", context.organizationName, definition.Name), ScaledTimeout(60*time.Second)).Should(Exit(0))
+
+		setUpSpaceWithUserAccess(context.RegularUserContext())
+
+		if context.config.CreatePermissiveSecurityGroup {
+			context.createPermissiveSecurityGroup()
+		}
 	})
 }
 
@@ -128,4 +139,24 @@ func (context *ConfiguredContext) RegularUserContext() cf.UserContext {
 		context.spaceName,
 		context.config.SkipSSLValidation,
 	)
+}
+
+func (context *ConfiguredContext) createPermissiveSecurityGroup() {
+	rules := []map[string]string{
+		map[string]string{
+			"destination": "0.0.0.0-255.255.255.255",
+			"protocol":    "all",
+		},
+	}
+
+	rulesFile, err := ioutil.TempFile("", fmt.Sprintf("%s-rules.json", context.securityGroupName))
+	Expect(err).ToNot(HaveOccurred())
+	bytes, err := json.Marshal(rules)
+	Expect(err).ToNot(HaveOccurred())
+	_, err = rulesFile.Write(bytes)
+	Expect(err).ToNot(HaveOccurred())
+	rulesFile.Close()
+
+	Eventually(cf.Cf("create-security-group", context.securityGroupName, rulesFile.Name()), ScaledTimeout(60*time.Second)).Should(Exit(0))
+	Eventually(cf.Cf("bind-security-group", context.securityGroupName, context.organizationName, context.spaceName), ScaledTimeout(60*time.Second)).Should(Exit(0))
 }
