@@ -116,6 +116,10 @@ func (context *ConfiguredContext) Teardown() {
 				nil,
 			)
 		}
+
+		if context.config.CreatePermissiveSecurityGroup {
+			Eventually(cf.Cf("delete-security-group", "-f", context.securityGroupName), ScaledTimeout(60*time.Second)).Should(Exit(0))
+		}
 	})
 }
 
