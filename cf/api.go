@@ -21,7 +21,7 @@ type QueryResponse struct {
 	Resources []GenericResource `struct:"resources"`
 }
 
-func ApiRequest(method, endpoint string, response interface{}, data ...string) {
+var ApiRequest = func(method, endpoint string, response interface{}, data ...string) {
 	request := Cf(
 		"curl",
 		endpoint,

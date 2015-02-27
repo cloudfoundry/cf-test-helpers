@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega/gexec"
 )
 
-func AsUser(userContext UserContext, actions func()) {
+var AsUser = func(userContext UserContext, actions func()) {
 	originalCfHomeDir, currentCfHomeDir := InitiateUserContext(userContext)
 	defer func() {
 		RestoreUserContext(userContext, originalCfHomeDir, currentCfHomeDir)
