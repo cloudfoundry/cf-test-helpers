@@ -7,6 +7,5 @@ import (
 var TimeoutScale float64
 
 func ScaledTimeout(timeout time.Duration) time.Duration {
-	scaledTimeoutSeconds := timeout.Seconds() * TimeoutScale
-	return time.Duration(scaledTimeoutSeconds) * time.Second
+	return time.Duration(float64(timeout) * TimeoutScale)
 }

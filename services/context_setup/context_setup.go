@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
+
+	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
+	. "github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 )
 
 type ConfiguredContext struct {
@@ -58,10 +60,8 @@ func NewContext(config IntegrationConfig, prefix string) *ConfiguredContext {
 func (context *ConfiguredContext) Setup() {
 	cf.AsUser(context.AdminUserContext(), func() {
 		shortTimeout := ScaledTimeout(10*time.Second)
-		createUserCmd := cf.Cf("create-user", context.regularUserUsername, context.regularUserPassword).Wait(shortTimeout)
-		exitCode := createUserCmd.ExitCode()
-		Expect(exitCode).ToNot(Equal(-1), "Timed out creating user (%s)", shortTimeout)
-		Expect(exitCode).To(Equal(0), "Failed to create user (exit %d):\n\n[stdout]:\n%s\n\n[stderr]:\n%s", exitCode, string(createUserCmd.Out.Contents()), string(createUserCmd.Err.Contents()))
+
+		ExecWithTimeout(cf.Cf("create-user", context.regularUserUsername, context.regularUserPassword), shortTimeout)
 
 		definition := QuotaDefinition{
 			Name: context.quotaDefinitionName,
@@ -85,31 +85,18 @@ func (context *ConfiguredContext) Setup() {
 
 		longTimeout := ScaledTimeout(60*time.Second)
 
-		createOrgCmd := cf.Cf("create-org", context.organizationName).Wait(longTimeout)
-		exitCode = createOrgCmd.ExitCode()
-		Expect(exitCode).ToNot(Equal(-1), "Timed out creating org (%s)", longTimeout)
-		Expect(exitCode).To(Equal(0), "Failed to create org (exit %d):\n\n[stdout]:\n%s\n\n[stderr]:\n%s", exitCode, string(createOrgCmd.Out.Contents()), string(createOrgCmd.Err.Contents()))
-
-		setQuotaCmd := cf.Cf("set-quota", context.organizationName, context.quotaDefinitionName).Wait(longTimeout)
-		exitCode = setQuotaCmd.ExitCode()
-		Expect(exitCode).ToNot(Equal(-1), "Timed out setting org quota (%s)", longTimeout)
-		Expect(exitCode).To(Equal(0), "Failed to set org quota (exit %d):\n\n[stdout]:\n%s\n\n[stderr]:\n%s", exitCode, string(setQuotaCmd.Out.Contents()), string(setQuotaCmd.Err.Contents()))
+		ExecWithTimeout(cf.Cf("create-org", context.organizationName), longTimeout)
+		ExecWithTimeout(cf.Cf("set-quota", context.organizationName, context.quotaDefinitionName), longTimeout)
 	})
 }
 
 func (context *ConfiguredContext) Teardown() {
 	cf.AsUser(context.AdminUserContext(), func() {
 		longTimeout := ScaledTimeout(60*time.Second)
-		deleteUserCmd := cf.Cf("delete-user", "-f", context.regularUserUsername).Wait(longTimeout)
-		exitCode := deleteUserCmd.ExitCode()
-		Expect(exitCode).ToNot(Equal(-1), "Timed out deleting user (%s)", longTimeout)
-		Expect(exitCode).To(Equal(0), "Failed to delete user (exit %d):\n\n[stdout]:\n%s\n\n[stderr]:\n%s", exitCode, string(deleteUserCmd.Out.Contents()), string(deleteUserCmd.Err.Contents()))
+		ExecWithTimeout(cf.Cf("delete-user", "-f", context.regularUserUsername), longTimeout)
 
 		if !context.isPersistent {
-			deleteOrgCmd := cf.Cf("delete-org", "-f", context.organizationName).Wait(longTimeout)
-			exitCode := deleteOrgCmd.ExitCode()
-			Expect(exitCode).ToNot(Equal(-1), "Timed out deleting org (%s)", longTimeout)
-			Expect(exitCode).To(Equal(0), "Failed to delete org (exit %d):\n\n[stdout]:\n%s\n\n[stderr]:\n%s", exitCode, string(deleteOrgCmd.Out.Contents()), string(deleteOrgCmd.Err.Contents()))
+			ExecWithTimeout(cf.Cf("delete-org", "-f", context.organizationName), longTimeout)
 
 			cf.ApiRequest(
 				"DELETE",

@@ -6,7 +6,8 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
-	. "github.com/onsi/gomega/gexec"
+
+	. "github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 )
 
 var CF_API_TIMEOUT = 30 * time.Second
@@ -27,9 +28,9 @@ var ApiRequest = func(method, endpoint string, response interface{}, data ...str
 		endpoint,
 		"-X", method,
 		"-d", strings.Join(data, ""),
-	).Wait(CF_API_TIMEOUT)
+	)
 
-	Expect(request).To(Exit(0))
+	ExecWithTimeout(request, CF_API_TIMEOUT)
 
 	if response != nil {
 		err := json.Unmarshal(request.Out.Contents(), response)

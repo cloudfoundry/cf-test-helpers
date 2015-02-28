@@ -19,7 +19,9 @@ type apiRequestInputs struct {
 	data []string
 }
 
-var _ = Describe("ConfiguredContext", func() {
+var _ = Describe("ConfiguredContext", describeContext)
+
+func describeContext() {
 	var (
 		FakeCfCalls [][]string
 		FakeCfCallback map[string]func(args ...string) *exec.Cmd
@@ -172,7 +174,12 @@ var _ = Describe("ConfiguredContext", func() {
 				failures := InterceptGomegaFailures(func() {
 					context.Setup()
 				})
-				Expect(failures[0]).To(MatchRegexp("Failed to create user \\(exit 1\\):\n\n\\[stdout\\]:\n.*\n\n\\[stderr\\]:\n.*"))
+				Expect(failures[0]).To(MatchRegexp(
+					"Failed executing command \\(exit 1\\):\nCommand: %s\n\n\\[stdout\\]:\n%s\n\n\\[stderr\\]:\n%s",
+					"false",
+					"",
+					"",
+				))
 			})
 		})
 
@@ -187,7 +194,12 @@ var _ = Describe("ConfiguredContext", func() {
 				failures := InterceptGomegaFailures(func() {
 					context.Setup()
 				})
-				Expect(failures[0]).To(MatchRegexp("Failed to create org \\(exit 1\\):\n\n\\[stdout\\]:\n.*\n\n\\[stderr\\]:\n.*"))
+				Expect(failures[0]).To(MatchRegexp(
+					"Failed executing command \\(exit 1\\):\nCommand: %s\n\n\\[stdout\\]:\n%s\n\n\\[stderr\\]:\n%s",
+					"false",
+					"",
+					"",
+				))
 			})
 		})
 
@@ -202,7 +214,12 @@ var _ = Describe("ConfiguredContext", func() {
 				failures := InterceptGomegaFailures(func() {
 					context.Setup()
 				})
-				Expect(failures[0]).To(MatchRegexp("Failed to set org quota \\(exit 1\\):\n\n\\[stdout\\]:\n.*\n\n\\[stderr\\]:\n.*"))
+				Expect(failures[0]).To(MatchRegexp(
+					"Failed executing command \\(exit 1\\):\nCommand: %s\n\n\\[stdout\\]:\n%s\n\n\\[stderr\\]:\n%s",
+					"false",
+					"",
+					"",
+				))
 			})
 		})
 	})
@@ -225,7 +242,7 @@ var _ = Describe("ConfiguredContext", func() {
 			}
 			context = NewContext(config, prefix)
 
-			FakeApiRequestCallbacks = append(FakeApiRequestCallbacks, func(method, endpoint string, response interface{}, data ...string){
+			FakeApiRequestCallbacks = append(FakeApiRequestCallbacks, func(method, endpoint string, response interface{}, data ...string) {
 				genericResponse, ok := response.(*cf.GenericResource)
 				if !ok {
 					Fail(fmt.Sprintf("Expected response to be of type *cf.GenericResource: %#v", response))
@@ -291,7 +308,12 @@ var _ = Describe("ConfiguredContext", func() {
 				failures := InterceptGomegaFailures(func() {
 					context.Teardown()
 				})
-				Expect(failures[0]).To(MatchRegexp("Failed to delete user \\(exit 1\\):\n\n\\[stdout\\]:\n.*\n\n\\[stderr\\]:\n.*"))
+				Expect(failures[0]).To(MatchRegexp(
+					"Failed executing command \\(exit 1\\):\nCommand: %s\n\n\\[stdout\\]:\n%s\n\n\\[stderr\\]:\n%s",
+					"false",
+					"",
+					"",
+				))
 			})
 		})
 
@@ -306,8 +328,13 @@ var _ = Describe("ConfiguredContext", func() {
 				failures := InterceptGomegaFailures(func() {
 					context.Teardown()
 				})
-				Expect(failures[0]).To(MatchRegexp("Failed to delete org \\(exit 1\\):\n\n\\[stdout\\]:\n.*\n\n\\[stderr\\]:\n.*"))
+				Expect(failures[0]).To(MatchRegexp(
+					"Failed executing command \\(exit 1\\):\nCommand: %s\n\n\\[stdout\\]:\n%s\n\n\\[stderr\\]:\n%s",
+					"false",
+					"",
+					"",
+				))
 			})
 		})
 	})
-})
+}
