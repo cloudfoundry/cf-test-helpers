@@ -50,10 +50,10 @@ func ExecWithTimeoutForExitCode(session *gexec.Session, timeout time.Duration, e
 	select {
 	case <-session.Exited:
 		exitCode := session.ExitCode()
-		Expect(exitCode).To(Equal(exitCode), "Failed executing command (exit %d):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s", exitCode, cmdString, string(session.Out.Contents()), string(session.Err.Contents()))
+		Expect(exitCode).To(Equal(expectedExitCode), "Failed executing command (exit %d):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s", exitCode, cmdString, string(session.Out.Contents()), string(session.Err.Contents()))
 	case <-time.After(timeout):
 		exitCode := session.ExitCode()
-		Expect(exitCode).To(Equal(exitCode), "Timed out executing command (%v):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s", timeout.String(), cmdString, string(session.Out.Contents()), string(session.Err.Contents()))
+		Expect(exitCode).To(Equal(expectedExitCode), "Timed out executing command (%v):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s", timeout.String(), cmdString, string(session.Out.Contents()), string(session.Err.Contents()))
 	}
 	return session
 }

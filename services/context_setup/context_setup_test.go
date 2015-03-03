@@ -1,9 +1,9 @@
 package context_setup_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
-	"encoding/json"
 
 	. "github.com/cloudfoundry-incubator/cf-test-helpers/services/context_setup"
 
@@ -16,17 +16,17 @@ import (
 
 type apiRequestInputs struct {
 	method, endpoint string
-	data []string
+	data             []string
 }
 
 var _ = Describe("ConfiguredContext", describeContext)
 
 func describeContext() {
 	var (
-		FakeCfCalls [][]string
-		FakeCfCallback map[string]func(args ...string) *exec.Cmd
-		FakeAsUserCalls []cf.UserContext
-		FakeApiRequestCalls []apiRequestInputs
+		FakeCfCalls             [][]string
+		FakeCfCallback          map[string]func(args ...string) *exec.Cmd
+		FakeAsUserCalls         []cf.UserContext
+		FakeApiRequestCalls     []apiRequestInputs
 		FakeApiRequestCallbacks []func(method, endpoint string, response interface{}, data ...string)
 	)
 
@@ -49,9 +49,9 @@ func describeContext() {
 
 	var FakeApiRequest = func(method, endpoint string, response interface{}, data ...string) {
 		FakeApiRequestCalls = append(FakeApiRequestCalls, apiRequestInputs{
-			method: method,
+			method:   method,
 			endpoint: endpoint,
-			data: data,
+			data:     data,
 		})
 
 		if len(FakeApiRequestCallbacks) > 0 {
@@ -85,10 +85,10 @@ func describeContext() {
 
 		BeforeEach(func() {
 			config = IntegrationConfig{
-				AppsDomain: "fake-domain",
-				ApiEndpoint: "fake-endpoint",
-				AdminUser: "fake-admin-user",
-				AdminPassword: "fake-admin-password",
+				AppsDomain:        "fake-domain",
+				ApiEndpoint:       "fake-endpoint",
+				AdminUser:         "fake-admin-user",
+				AdminPassword:     "fake-admin-password",
 				SkipSSLValidation: true,
 			}
 			context = NewContext(config, prefix)
@@ -99,9 +99,9 @@ func describeContext() {
 
 			Expect(FakeAsUserCalls).To(Equal([]cf.UserContext{
 				{
-					ApiUrl: "fake-endpoint",
-					Username: "fake-admin-user",
-					Password: "fake-admin-password",
+					ApiUrl:            "fake-endpoint",
+					Username:          "fake-admin-user",
+					Password:          "fake-admin-password",
 					SkipSSLValidation: true,
 				},
 			}))
@@ -117,7 +117,7 @@ func describeContext() {
 		})
 
 		It("creates a new quota with a unique name", func() {
-			FakeApiRequestCallbacks = append(FakeApiRequestCallbacks, func(method, endpoint string, response interface{}, data ...string){
+			FakeApiRequestCallbacks = append(FakeApiRequestCallbacks, func(method, endpoint string, response interface{}, data ...string) {
 				genericResponse, ok := response.(*cf.GenericResource)
 				if !ok {
 					Fail(fmt.Sprintf("Expected response to be of type *cf.GenericResource: %#v", response))
@@ -234,10 +234,10 @@ func describeContext() {
 
 		BeforeEach(func() {
 			config = IntegrationConfig{
-				AppsDomain: "fake-domain",
-				ApiEndpoint: "fake-endpoint",
-				AdminUser: "fake-admin-user",
-				AdminPassword: "fake-admin-password",
+				AppsDomain:        "fake-domain",
+				ApiEndpoint:       "fake-endpoint",
+				AdminUser:         "fake-admin-user",
+				AdminPassword:     "fake-admin-password",
 				SkipSSLValidation: true,
 			}
 			context = NewContext(config, prefix)
@@ -263,9 +263,9 @@ func describeContext() {
 
 			Expect(FakeAsUserCalls).To(Equal([]cf.UserContext{
 				{
-					ApiUrl: "fake-endpoint",
-					Username: "fake-admin-user",
-					Password: "fake-admin-password",
+					ApiUrl:            "fake-endpoint",
+					Username:          "fake-admin-user",
+					Password:          "fake-admin-password",
 					SkipSSLValidation: true,
 				},
 			}))

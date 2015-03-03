@@ -55,7 +55,7 @@ var _ = Describe("ExecWithTimeout", func() {
 	It("expects the command to not time out", func() {
 		failures := InterceptGomegaFailures(func() {
 			session := runner.Run("bash", "-c", "echo hi out; echo hi err 1>&2; sleep 1")
-			runner.ExecWithTimeout(session, 100 * time.Millisecond)
+			runner.ExecWithTimeout(session, 100*time.Millisecond)
 		})
 		Expect(failures[0]).To(MatchRegexp(
 			"Timed out executing command \\(100ms\\):\nCommand: %s\n\n\\[stdout\\]:\n%s\n\n\\[stderr\\]:\n%s",

@@ -59,7 +59,7 @@ func NewContext(config IntegrationConfig, prefix string) *ConfiguredContext {
 
 func (context *ConfiguredContext) Setup() {
 	cf.AsUser(context.AdminUserContext(), func() {
-		shortTimeout := ScaledTimeout(10*time.Second)
+		shortTimeout := ScaledTimeout(10 * time.Second)
 
 		ExecWithTimeout(cf.Cf("create-user", context.regularUserUsername, context.regularUserPassword), shortTimeout)
 
@@ -83,7 +83,7 @@ func (context *ConfiguredContext) Setup() {
 
 		context.quotaDefinitionGUID = response.Metadata.Guid
 
-		longTimeout := ScaledTimeout(60*time.Second)
+		longTimeout := ScaledTimeout(60 * time.Second)
 
 		ExecWithTimeout(cf.Cf("create-org", context.organizationName), longTimeout)
 		ExecWithTimeout(cf.Cf("set-quota", context.organizationName, context.quotaDefinitionName), longTimeout)
@@ -92,7 +92,7 @@ func (context *ConfiguredContext) Setup() {
 
 func (context *ConfiguredContext) Teardown() {
 	cf.AsUser(context.AdminUserContext(), func() {
-		longTimeout := ScaledTimeout(60*time.Second)
+		longTimeout := ScaledTimeout(60 * time.Second)
 		ExecWithTimeout(cf.Cf("delete-user", "-f", context.regularUserUsername), longTimeout)
 
 		if !context.isPersistent {
