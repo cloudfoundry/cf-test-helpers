@@ -45,15 +45,19 @@ func sayCommandWillRun(startTime time.Time, cmd *exec.Cmd) {
 	fmt.Fprintf(ginkgo.GinkgoWriter, "\n%s[%s]> %s %s\n", startColor, startTime.UTC().Format(timeFormat), strings.Join(cmd.Args, " "), endColor)
 }
 
-func ExecWithTimeout(session *gexec.Session, timeout time.Duration) *gexec.Session {
+func ExecWithTimeoutForExitCode(session *gexec.Session, timeout time.Duration, expectedExitCode int) *gexec.Session {
 	cmdString := strings.Join(session.Command.Args, " ")
 	select {
 	case <-session.Exited:
 		exitCode := session.ExitCode()
-		Expect(exitCode).To(BeZero(), "Failed executing command (exit %d):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s", exitCode, cmdString, string(session.Out.Contents()), string(session.Err.Contents()))
+		Expect(exitCode).To(Equal(exitCode), "Failed executing command (exit %d):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s", exitCode, cmdString, string(session.Out.Contents()), string(session.Err.Contents()))
 	case <-time.After(timeout):
 		exitCode := session.ExitCode()
-		Expect(exitCode).To(BeZero(), "Timed out executing command (%v):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s", timeout.String(), cmdString, string(session.Out.Contents()), string(session.Err.Contents()))
+		Expect(exitCode).To(Equal(exitCode), "Timed out executing command (%v):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s", timeout.String(), cmdString, string(session.Out.Contents()), string(session.Err.Contents()))
 	}
 	return session
+}
+
+func ExecWithTimeout(session *gexec.Session, timeout time.Duration) *gexec.Session {
+	return ExecWithTimeoutForExitCode(session, timeout, 0)
 }
