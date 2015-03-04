@@ -7,10 +7,10 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry-incubator/cf-test-helpers/runner"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 )
 
-var CF_API_TIMEOUT = 30 * time.Second
+var CfApiTimeout = 30 * time.Second
 
 type GenericResource struct {
 	Metadata struct {
@@ -30,7 +30,7 @@ var ApiRequest = func(method, endpoint string, response interface{}, data ...str
 		"-d", strings.Join(data, ""),
 	)
 
-	ExecWithTimeout(request, CF_API_TIMEOUT)
+	runner.NewCmdRunner(request, CfApiTimeout).Run()
 
 	if response != nil {
 		err := json.Unmarshal(request.Out.Contents(), response)

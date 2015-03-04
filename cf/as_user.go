@@ -36,9 +36,9 @@ func InitiateUserContext(userContext UserContext) (originalCfHomeDir, currentCfH
 		cfSetApiArgs = append(cfSetApiArgs, "--skip-ssl-validation")
 	}
 
-	Expect(Cf(cfSetApiArgs...).Wait(CF_API_TIMEOUT)).To(Exit(0))
+	Expect(Cf(cfSetApiArgs...).Wait(CfApiTimeout)).To(Exit(0))
 
-	Expect(Cf("auth", userContext.Username, userContext.Password).Wait(CF_API_TIMEOUT)).To(Exit(0))
+	Expect(Cf("auth", userContext.Username, userContext.Password).Wait(CfApiTimeout)).To(Exit(0))
 
 	return
 }
@@ -46,15 +46,15 @@ func InitiateUserContext(userContext UserContext) (originalCfHomeDir, currentCfH
 func TargetSpace(userContext UserContext) {
 	if userContext.Org != "" {
 		if userContext.Space != "" {
-			Expect(Cf("target", "-o", userContext.Org, "-s", userContext.Space).Wait(CF_API_TIMEOUT)).To(Exit(0))
+			Expect(Cf("target", "-o", userContext.Org, "-s", userContext.Space).Wait(CfApiTimeout)).To(Exit(0))
 		} else {
-			Expect(Cf("target", "-o", userContext.Org).Wait(CF_API_TIMEOUT)).To(Exit(0))
+			Expect(Cf("target", "-o", userContext.Org).Wait(CfApiTimeout)).To(Exit(0))
 		}
 	}
 }
 
 func RestoreUserContext(_ UserContext, originalCfHomeDir, currentCfHomeDir string) {
-	Expect(Cf("logout").Wait(CF_API_TIMEOUT)).To(Exit(0))
+	Expect(Cf("logout").Wait(CfApiTimeout)).To(Exit(0))
 	os.Setenv("CF_HOME", originalCfHomeDir)
 	os.RemoveAll(currentCfHomeDir)
 }

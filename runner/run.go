@@ -22,6 +22,10 @@ var CommandInterceptor = func(cmd *exec.Cmd) *exec.Cmd {
 func Run(executable string, args ...string) *gexec.Session {
 	cmd := exec.Command(executable, args...)
 
+	return innerRun(cmd)
+}
+
+func innerRun(cmd *exec.Cmd) *gexec.Session {
 	sayCommandWillRun(time.Now(), cmd)
 
 	sess, err := gexec.Start(CommandInterceptor(cmd), ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
@@ -45,19 +49,74 @@ func sayCommandWillRun(startTime time.Time, cmd *exec.Cmd) {
 	fmt.Fprintf(ginkgo.GinkgoWriter, "\n%s[%s]> %s %s\n", startColor, startTime.UTC().Format(timeFormat), strings.Join(cmd.Args, " "), endColor)
 }
 
-func ExecWithTimeoutForExitCode(session *gexec.Session, timeout time.Duration, expectedExitCode int) *gexec.Session {
-	cmdString := strings.Join(session.Command.Args, " ")
-	select {
-	case <-session.Exited:
-		exitCode := session.ExitCode()
-		Expect(exitCode).To(Equal(expectedExitCode), "Failed executing command (exit %d):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s", exitCode, cmdString, string(session.Out.Contents()), string(session.Err.Contents()))
-	case <-time.After(timeout):
-		exitCode := session.ExitCode()
-		Expect(exitCode).To(Equal(expectedExitCode), "Timed out executing command (%v):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s", timeout.String(), cmdString, string(session.Out.Contents()), string(session.Err.Contents()))
-	}
-	return session
+type cmdRunner struct {
+	session  *gexec.Session
+	timeout  time.Duration
+	attempts int
+	exitCode int
 }
 
-func ExecWithTimeout(session *gexec.Session, timeout time.Duration) *gexec.Session {
-	return ExecWithTimeoutForExitCode(session, timeout, 0)
+// NewCmdRunner has default value of exitCode to be 0, and attempts to be 1.
+// To change these, use the builder methods WithExitCode and WithAttempts.
+func NewCmdRunner(session *gexec.Session, timeout time.Duration) *cmdRunner {
+	return &cmdRunner{
+		exitCode: 0,
+		attempts: 1,
+		timeout:  timeout,
+		session:  session,
+	}
+}
+
+func (c *cmdRunner) Run() *gexec.Session {
+	cmd := c.session.Command
+	cmdString := strings.Join(cmd.Args, " ")
+	var exitCode int
+	var message string
+
+	for i := 0; i < c.attempts; i++ {
+
+		// The first time through this loop we use the command that was provided,
+		// which is already running.
+		// After that we must explicitly start the command
+		if i > 0 {
+			newCmd := exec.Command(cmd.Args[0], cmd.Args[1:]...)
+			c.session = innerRun(newCmd)
+		}
+
+		select {
+		case <-time.After(c.timeout):
+			message = fmt.Sprintf(
+				"Timed out executing command (%v):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s",
+				c.timeout.String(),
+				cmdString,
+				string(c.session.Out.Contents()),
+				string(c.session.Err.Contents()))
+		case <-c.session.Exited:
+			message = fmt.Sprintf(
+				"Failed executing command (exit %d):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s",
+				c.session.ExitCode(),
+				cmdString,
+				string(c.session.Out.Contents()),
+				string(c.session.Err.Contents()))
+		}
+		exitCode = c.session.ExitCode()
+
+		if exitCode == c.exitCode {
+			break
+		}
+	}
+
+	Expect(exitCode).To(Equal(c.exitCode), message)
+
+	return c.session
+}
+
+func (c *cmdRunner) WithAttempts(attempts int) *cmdRunner {
+	c.attempts = attempts
+	return c
+}
+
+func (c *cmdRunner) WithExitCode(exitCode int) *cmdRunner {
+	c.exitCode = exitCode
+	return c
 }

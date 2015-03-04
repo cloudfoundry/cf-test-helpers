@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
-	. "github.com/cloudfoundry-incubator/cf-test-helpers/runner"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 )
 
 type ConfiguredContext struct {
@@ -61,7 +61,7 @@ func (context *ConfiguredContext) Setup() {
 	cf.AsUser(context.AdminUserContext(), func() {
 		shortTimeout := ScaledTimeout(10 * time.Second)
 
-		ExecWithTimeout(cf.Cf("create-user", context.regularUserUsername, context.regularUserPassword), shortTimeout)
+		runner.NewCmdRunner(cf.Cf("create-user", context.regularUserUsername, context.regularUserPassword), shortTimeout).Run()
 
 		definition := QuotaDefinition{
 			Name: context.quotaDefinitionName,
@@ -85,18 +85,18 @@ func (context *ConfiguredContext) Setup() {
 
 		longTimeout := ScaledTimeout(60 * time.Second)
 
-		ExecWithTimeout(cf.Cf("create-org", context.organizationName), longTimeout)
-		ExecWithTimeout(cf.Cf("set-quota", context.organizationName, context.quotaDefinitionName), longTimeout)
+		runner.NewCmdRunner(cf.Cf("create-org", context.organizationName), longTimeout).Run()
+		runner.NewCmdRunner(cf.Cf("set-quota", context.organizationName, context.quotaDefinitionName), longTimeout).Run()
 	})
 }
 
 func (context *ConfiguredContext) Teardown() {
 	cf.AsUser(context.AdminUserContext(), func() {
 		longTimeout := ScaledTimeout(60 * time.Second)
-		ExecWithTimeout(cf.Cf("delete-user", "-f", context.regularUserUsername), longTimeout)
+		runner.NewCmdRunner(cf.Cf("delete-user", "-f", context.regularUserUsername), longTimeout).Run()
 
 		if !context.isPersistent {
-			ExecWithTimeout(cf.Cf("delete-org", "-f", context.organizationName), longTimeout)
+			runner.NewCmdRunner(cf.Cf("delete-org", "-f", context.organizationName), longTimeout).Run()
 
 			cf.ApiRequest(
 				"DELETE",
