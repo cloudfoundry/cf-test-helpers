@@ -81,6 +81,16 @@ var _ = Describe("cmdRunner", func() {
 			})
 		})
 
+		Describe("WithOutput", func() {
+			It("expects output", func() {
+				failures := InterceptGomegaFailures(func() {
+					session := runner.Run("bash", "-c", "echo hi out; echo hi err 1>&2; exit 0")
+					runner.NewCmdRunner(session, cmdTimeout).WithOutput("hi out").Run()
+				})
+				Expect(failures).To(HaveLen(0))
+			})
+		})
+
 		Describe("WithAttempts", func() {
 			It("retries", func() {
 				f, err := ioutil.TempFile("", "tmpFile")

@@ -10,6 +10,7 @@ import (
 	"github.com/onsi/ginkgo/config"
 
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 )
 
@@ -54,6 +55,7 @@ type cmdRunner struct {
 	timeout  time.Duration
 	attempts int
 	exitCode int
+	output   string
 }
 
 // NewCmdRunner has default value of exitCode to be 0, and attempts to be 1.
@@ -64,6 +66,7 @@ func NewCmdRunner(session *gexec.Session, timeout time.Duration) *cmdRunner {
 		attempts: 1,
 		timeout:  timeout,
 		session:  session,
+		output:   "",
 	}
 }
 
@@ -101,14 +104,21 @@ func (c *cmdRunner) Run() *gexec.Session {
 		}
 		exitCode = c.session.ExitCode()
 
-		if exitCode == c.exitCode {
+		outputFound := strings.Contains(string(c.session.Buffer().Contents()), c.output)
+		if exitCode == c.exitCode && outputFound {
 			break
 		}
 	}
 
 	Expect(exitCode).To(Equal(c.exitCode), message)
+	Expect(c.session).To(gbytes.Say(c.output))
 
 	return c.session
+}
+
+func (c *cmdRunner) WithOutput(output string) *cmdRunner {
+	c.output = output
+	return c
 }
 
 func (c *cmdRunner) WithAttempts(attempts int) *cmdRunner {
