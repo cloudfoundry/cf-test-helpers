@@ -43,6 +43,14 @@ func NewContext(config Config) *ConfiguredContext {
 	node := ginkgoconfig.GinkgoConfig.ParallelNode
 	timeTag := time.Now().Format("2006_01_02-15h04m05.999s")
 
+	regUser := fmt.Sprintf("CATS-USER-%d-%s", node, timeTag)
+	regUserPass := "meow"
+
+	if config.UseExistingUser {
+		regUser = config.ExistingUser
+		regUserPass = config.ExistingUserPassword
+	}
+
 	return &ConfiguredContext{
 		config: config,
 
@@ -51,8 +59,8 @@ func NewContext(config Config) *ConfiguredContext {
 		organizationName: fmt.Sprintf("CATS-ORG-%d-%s", node, timeTag),
 		spaceName:        fmt.Sprintf("CATS-SPACE-%d-%s", node, timeTag),
 
-		regularUserUsername: fmt.Sprintf("CATS-USER-%d-%s", node, timeTag),
-		regularUserPassword: "meow",
+		regularUserUsername: regUser,
+		regularUserPassword: regUserPass,
 
 		isPersistent: false,
 	}
@@ -94,10 +102,12 @@ func (context *ConfiguredContext) Setup() {
 
 		Expect(cf.Cf(args...).Wait(CF_API_TIMEOUT)).To(Exit(0))
 
-		createUserSession := cf.Cf("create-user", context.regularUserUsername, context.regularUserPassword)
-		createUserSession.Wait(CF_API_TIMEOUT)
-		if createUserSession.ExitCode() != 0 {
-			Expect(createUserSession.Out).To(Say("scim_resource_already_exists"))
+		if !context.config.UseExistingUser {
+			createUserSession := cf.Cf("create-user", context.regularUserUsername, context.regularUserPassword)
+			createUserSession.Wait(CF_API_TIMEOUT)
+			if createUserSession.ExitCode() != 0 {
+				Expect(createUserSession.Out).To(Say("scim_resource_already_exists"))
+			}
 		}
 
 		Expect(cf.Cf("create-org", context.organizationName).Wait(CF_API_TIMEOUT)).To(Exit(0))
@@ -113,7 +123,10 @@ func (context *ConfiguredContext) SetRunawayQuota() {
 
 func (context *ConfiguredContext) Teardown() {
 	cf.AsUser(context.AdminUserContext(), func() {
-		Expect(cf.Cf("delete-user", "-f", context.regularUserUsername).Wait(CF_API_TIMEOUT)).To(Exit(0))
+
+		if !context.config.ShouldKeepUser {
+			Expect(cf.Cf("delete-user", "-f", context.regularUserUsername).Wait(CF_API_TIMEOUT)).To(Exit(0))
+		}
 
 		if !context.isPersistent {
 			Expect(cf.Cf("delete-org", "-f", context.organizationName).Wait(CF_API_TIMEOUT)).To(Exit(0))
