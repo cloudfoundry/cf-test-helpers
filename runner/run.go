@@ -74,7 +74,7 @@ func (c *cmdRunner) Run() *gexec.Session {
 	cmd := c.session.Command
 	cmdString := strings.Join(cmd.Args, " ")
 	var exitCode int
-	var message string
+	var failureMessage string
 
 	for i := 0; i < c.attempts; i++ {
 
@@ -86,16 +86,22 @@ func (c *cmdRunner) Run() *gexec.Session {
 			c.session = innerRun(newCmd)
 		}
 
+        timer := time.NewTimer(c.timeout)
+
 		select {
-		case <-time.After(c.timeout):
-			message = fmt.Sprintf(
+		case <-timer.C:
+            failureMessage = fmt.Sprintf(
 				"Timed out executing command (%v):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s",
 				c.timeout.String(),
 				cmdString,
 				string(c.session.Out.Contents()),
 				string(c.session.Err.Contents()))
 		case <-c.session.Exited:
-			message = fmt.Sprintf(
+            // immediate kill the timer goroutine
+            timer.Stop()
+
+            // command may not have failed, but pre-construct failure message for final exit code expectation
+            failureMessage = fmt.Sprintf(
 				"Failed executing command (exit %d):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s",
 				c.session.ExitCode(),
 				cmdString,
@@ -110,7 +116,7 @@ func (c *cmdRunner) Run() *gexec.Session {
 		}
 	}
 
-	Expect(exitCode).To(Equal(c.exitCode), message)
+	Expect(exitCode).To(Equal(c.exitCode), failureMessage)
 	Expect(c.session).To(gbytes.Say(c.output))
 
 	return c.session
