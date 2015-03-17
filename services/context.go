@@ -1,4 +1,4 @@
-package context_setup
+package services
 
 import (
 	"encoding/json"
@@ -12,7 +12,7 @@ import (
 	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 )
 
-type SuiteContext interface {
+type Context interface {
     Setup()
     Teardown()
 
@@ -23,8 +23,8 @@ type SuiteContext interface {
     LongTimeout() time.Duration
 }
 
-type ConfiguredContext struct {
-	config IntegrationConfig
+type context struct {
+	config Config
 
     shortTimeout time.Duration
     longTimeout time.Duration
@@ -55,11 +55,11 @@ type QuotaDefinition struct {
 	MemoryLimit int `json:"memory_limit"`
 }
 
-func NewContext(config IntegrationConfig, prefix string) *ConfiguredContext {
+func NewContext(config Config, prefix string) Context {
 	node := ginkgoconfig.GinkgoConfig.ParallelNode
 	timeTag := time.Now().Format("2006_01_02-15h04m05.999s")
 
-	return &ConfiguredContext{
+	return &context{
 		config: config,
 
         shortTimeout: config.ScaledTimeout(1 * time.Minute),
@@ -77,15 +77,15 @@ func NewContext(config IntegrationConfig, prefix string) *ConfiguredContext {
 	}
 }
 
-func (c ConfiguredContext) ShortTimeout() time.Duration {
+func (c context) ShortTimeout() time.Duration {
     return c.shortTimeout
 }
 
-func (c ConfiguredContext) LongTimeout() time.Duration {
+func (c context) LongTimeout() time.Duration {
     return c.longTimeout
 }
 
-func (c *ConfiguredContext) Setup() {
+func (c *context) Setup() {
 	cf.AsUser(c.AdminUserContext(), func() {
 		runner.NewCmdRunner(cf.Cf("create-user", c.regularUserUsername, c.regularUserPassword), c.shortTimeout).Run()
 
@@ -121,7 +121,7 @@ func (c *ConfiguredContext) Setup() {
     cf.TargetSpace(c.RegularUserContext())
 }
 
-func (c *ConfiguredContext) Teardown() {
+func (c *context) Teardown() {
     cf.RestoreUserContext(c.RegularUserContext(), c.originalCfHomeDir, c.currentCfHomeDir)
 
 	cf.AsUser(c.AdminUserContext(), func() {
@@ -139,7 +139,7 @@ func (c *ConfiguredContext) Teardown() {
 	})
 }
 
-func (c ConfiguredContext) AdminUserContext() cf.UserContext {
+func (c context) AdminUserContext() cf.UserContext {
 	return cf.NewUserContext(
 		c.config.ApiEndpoint,
 		c.config.AdminUser,
@@ -150,7 +150,7 @@ func (c ConfiguredContext) AdminUserContext() cf.UserContext {
 	)
 }
 
-func (c ConfiguredContext) RegularUserContext() cf.UserContext {
+func (c context) RegularUserContext() cf.UserContext {
 	return cf.NewUserContext(
 		c.config.ApiEndpoint,
 		c.regularUserUsername,
@@ -161,7 +161,7 @@ func (c ConfiguredContext) RegularUserContext() cf.UserContext {
 	)
 }
 
-func (c ConfiguredContext) setUpSpaceWithUserAccess(uc cf.UserContext) {
+func (c context) setUpSpaceWithUserAccess(uc cf.UserContext) {
     runner.NewCmdRunner(cf.Cf("create-space", "-o", uc.Org, uc.Space), c.shortTimeout).Run()
     runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceManager"), c.shortTimeout).Run()
     runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceDeveloper"), c.shortTimeout).Run()

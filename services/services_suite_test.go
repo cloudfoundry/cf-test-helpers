@@ -1,4 +1,4 @@
-package context_setup_test
+package services_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -9,5 +9,5 @@ import (
 
 func TestContextSetup(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "ContextSetup Suite")
+	RunSpecs(t, "Services Suite")
 }

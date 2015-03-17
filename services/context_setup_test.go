@@ -1,4 +1,4 @@
-package context_setup_test
+package services_test
 
 import (
 	"encoding/json"
@@ -77,14 +77,14 @@ func describeContext() {
 
 	Describe("Setup", func() {
 		var (
-			config IntegrationConfig
+			config Config
 			prefix = "fake-prefix"
 
 			context *ConfiguredContext
 		)
 
 		BeforeEach(func() {
-			config = IntegrationConfig{
+			config = Config{
 				AppsDomain:        "fake-domain",
 				ApiEndpoint:       "fake-endpoint",
 				AdminUser:         "fake-admin-user",
@@ -226,14 +226,14 @@ func describeContext() {
 
 	Describe("Teardown", func() {
 		var (
-			config IntegrationConfig
+			config Config
 			prefix = "fake-prefix"
 
 			context *ConfiguredContext
 		)
 
 		BeforeEach(func() {
-			config = IntegrationConfig{
+			config = Config{
 				AppsDomain:        "fake-domain",
 				ApiEndpoint:       "fake-endpoint",
 				AdminUser:         "fake-admin-user",

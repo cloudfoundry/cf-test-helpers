@@ -1,4 +1,4 @@
-package context_setup
+package services
 
 import (
 	"encoding/json"
@@ -7,8 +7,7 @@ import (
     "time"
 )
 
-//TODO: rename services.config?
-type IntegrationConfig struct {
+type Config struct {
 	AppsDomain        string  `json:"apps_domain"`
 	ApiEndpoint       string  `json:"api"`
 	AdminUser         string  `json:"admin_user"`
@@ -17,7 +16,7 @@ type IntegrationConfig struct {
 	TimeoutScale      float64 `json:"timeout_scale"`
 }
 
-func (c IntegrationConfig) ScaledTimeout(timeout time.Duration) time.Duration {
+func (c Config) ScaledTimeout(timeout time.Duration) time.Duration {
     return time.Duration(float64(timeout) * c.TimeoutScale)
 }
 
@@ -36,7 +35,7 @@ func LoadConfig(path string, configPtr interface{}) error {
     return nil
 }
 
-func ValidateConfig(config *IntegrationConfig) error {
+func ValidateConfig(config *Config) error {
 	if config.ApiEndpoint == "" {
         return fmt.Errorf("Field 'api' must not be empty")
 	}
