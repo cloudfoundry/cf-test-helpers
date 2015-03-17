@@ -12,6 +12,15 @@ import (
 	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 )
 
+type SuiteContext interface {
+    Setup()
+    Teardown()
+
+    AdminUserContext() cf.UserContext
+    RegularUserContext() cf.UserContext
+    ScaledTimeout(time.Duration) time.Duration
+}
+
 type ConfiguredContext struct {
 	config IntegrationConfig
 
@@ -57,9 +66,13 @@ func NewContext(config IntegrationConfig, prefix string) *ConfiguredContext {
 	}
 }
 
+func (context ConfiguredContext) ScaledTimeout(timeout time.Duration) time.Duration {
+    return time.Duration(float64(timeout) * context.config.TimeoutScale)
+}
+
 func (context *ConfiguredContext) Setup() {
 	cf.AsUser(context.AdminUserContext(), func() {
-		shortTimeout := ScaledTimeout(10 * time.Second)
+		shortTimeout := context.ScaledTimeout(10 * time.Second)
 
 		runner.NewCmdRunner(cf.Cf("create-user", context.regularUserUsername, context.regularUserPassword), shortTimeout).Run()
 
@@ -83,7 +96,7 @@ func (context *ConfiguredContext) Setup() {
 
 		context.quotaDefinitionGUID = response.Metadata.Guid
 
-		longTimeout := ScaledTimeout(60 * time.Second)
+		longTimeout := context.ScaledTimeout(60 * time.Second)
 
 		runner.NewCmdRunner(cf.Cf("create-org", context.organizationName), longTimeout).Run()
 		runner.NewCmdRunner(cf.Cf("set-quota", context.organizationName, context.quotaDefinitionName), longTimeout).Run()
@@ -92,7 +105,7 @@ func (context *ConfiguredContext) Setup() {
 
 func (context *ConfiguredContext) Teardown() {
 	cf.AsUser(context.AdminUserContext(), func() {
-		longTimeout := ScaledTimeout(60 * time.Second)
+		longTimeout := context.ScaledTimeout(60 * time.Second)
 		runner.NewCmdRunner(cf.Cf("delete-user", "-f", context.regularUserUsername), longTimeout).Run()
 
 		if !context.isPersistent {
