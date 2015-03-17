@@ -6,7 +6,7 @@ import (
 	"time"
 
 	ginkgoconfig "github.com/onsi/ginkgo/config"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
@@ -101,7 +101,7 @@ func (c *context) Setup() {
 		}
 
 		definitionPayload, err := json.Marshal(definition)
-		Expect(err).ToNot(HaveOccurred())
+        gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
 		var response cf.GenericResource
 
@@ -111,9 +111,7 @@ func (c *context) Setup() {
 
 		runner.NewCmdRunner(cf.Cf("create-org", c.organizationName), c.shortTimeout).Run()
 		runner.NewCmdRunner(cf.Cf("set-quota", c.organizationName, c.quotaDefinitionName), c.shortTimeout).Run()
-	})
 
-    cf.AsUser(c.AdminUserContext(), func() {
         c.setUpSpaceWithUserAccess(c.RegularUserContext())
     })
 

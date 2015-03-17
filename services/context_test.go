@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os/exec"
 
-	. "github.com/cloudfoundry-incubator/cf-test-helpers/services/context_setup"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/services"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -72,26 +72,27 @@ func describeContext() {
 		cf.AsUser = FakeAsUser
 		cf.ApiRequest = FakeApiRequest
 
-		TimeoutScale = float64(0.1)
+		//TODO: TimeoutScale = float64(0.1)
 	})
 
 	Describe("Setup", func() {
 		var (
-			config Config
+			config services.Config
 			prefix = "fake-prefix"
 
-			context *ConfiguredContext
+			context services.Context
 		)
 
 		BeforeEach(func() {
-			config = Config{
+			config = services.Config{
 				AppsDomain:        "fake-domain",
 				ApiEndpoint:       "fake-endpoint",
 				AdminUser:         "fake-admin-user",
 				AdminPassword:     "fake-admin-password",
 				SkipSSLValidation: true,
+                TimeoutScale: 1,
 			}
-			context = NewContext(config, prefix)
+			context = services.NewContext(config, prefix)
 		})
 
 		It("executes commands as the admin user", func() {
@@ -133,7 +134,7 @@ func describeContext() {
 			Expect(createQuotaCall.data).To(HaveLen(1))
 
 			definitionJSON := createQuotaCall.data[0]
-			definition := &QuotaDefinition{}
+			definition := &services.QuotaDefinition{}
 			err := json.Unmarshal([]byte(definitionJSON), definition)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -226,21 +227,22 @@ func describeContext() {
 
 	Describe("Teardown", func() {
 		var (
-			config Config
+			config services.Config
 			prefix = "fake-prefix"
 
-			context *ConfiguredContext
+			context services.Context
 		)
 
 		BeforeEach(func() {
-			config = Config{
+			config = services.Config{
 				AppsDomain:        "fake-domain",
 				ApiEndpoint:       "fake-endpoint",
 				AdminUser:         "fake-admin-user",
 				AdminPassword:     "fake-admin-password",
 				SkipSSLValidation: true,
+                TimeoutScale: 1,
 			}
-			context = NewContext(config, prefix)
+			context = services.NewContext(config, prefix)
 
 			FakeApiRequestCallbacks = append(FakeApiRequestCallbacks, func(method, endpoint string, response interface{}, data ...string) {
 				genericResponse, ok := response.(*cf.GenericResource)
@@ -271,10 +273,17 @@ func describeContext() {
 			}))
 		})
 
+        It("logs out to reset CF_HOME", func() {
+            context.Teardown()
+
+            logoutCall := FakeCfCalls[0]
+            Expect(logoutCall[0]).To(Equal("logout"))
+        })
+
 		It("deletes the user created by Setup()", func() {
 			context.Teardown()
 
-			deleteUserCall := FakeCfCalls[0]
+			deleteUserCall := FakeCfCalls[1]
 			Expect(deleteUserCall[0]).To(Equal("delete-user"))
 			Expect(deleteUserCall[1]).To(Equal("-f"))
 			Expect(deleteUserCall[2]).To(MatchRegexp("fake-prefix-USER-\\d+-.*"))
@@ -283,7 +292,7 @@ func describeContext() {
 		It("deletes the org created by Setup()", func() {
 			context.Teardown()
 
-			deleteOrgCall := FakeCfCalls[1]
+			deleteOrgCall := FakeCfCalls[2]
 			Expect(deleteOrgCall[0]).To(Equal("delete-org"))
 			Expect(deleteOrgCall[1]).To(Equal("-f"))
 			Expect(deleteOrgCall[2]).To(MatchRegexp("fake-prefix-ORG-\\d+-.*"))
