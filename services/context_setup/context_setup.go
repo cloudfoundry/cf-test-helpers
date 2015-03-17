@@ -18,11 +18,16 @@ type SuiteContext interface {
 
     AdminUserContext() cf.UserContext
     RegularUserContext() cf.UserContext
-    ScaledTimeout(time.Duration) time.Duration
+
+    ShortTimeout() time.Duration
+    LongTimeout() time.Duration
 }
 
 type ConfiguredContext struct {
 	config IntegrationConfig
+
+    shortTimeout time.Duration
+    longTimeout time.Duration
 
 	organizationName string
 	spaceName        string
@@ -34,6 +39,9 @@ type ConfiguredContext struct {
 	regularUserPassword string
 
 	isPersistent bool
+
+    originalCfHomeDir string
+    currentCfHomeDir string
 }
 
 type QuotaDefinition struct {
@@ -54,6 +62,9 @@ func NewContext(config IntegrationConfig, prefix string) *ConfiguredContext {
 	return &ConfiguredContext{
 		config: config,
 
+        shortTimeout: config.ScaledTimeout(1 * time.Minute),
+        longTimeout: config.ScaledTimeout(5 * time.Minute),
+
 		quotaDefinitionName: fmt.Sprintf("%s-QUOTA-%d-%s", prefix, node, timeTag),
 
 		organizationName: fmt.Sprintf("%s-ORG-%d-%s", prefix, node, timeTag),
@@ -66,18 +77,20 @@ func NewContext(config IntegrationConfig, prefix string) *ConfiguredContext {
 	}
 }
 
-func (context ConfiguredContext) ScaledTimeout(timeout time.Duration) time.Duration {
-    return time.Duration(float64(timeout) * context.config.TimeoutScale)
+func (c ConfiguredContext) ShortTimeout() time.Duration {
+    return c.shortTimeout
 }
 
-func (context *ConfiguredContext) Setup() {
-	cf.AsUser(context.AdminUserContext(), func() {
-		shortTimeout := context.ScaledTimeout(10 * time.Second)
+func (c ConfiguredContext) LongTimeout() time.Duration {
+    return c.longTimeout
+}
 
-		runner.NewCmdRunner(cf.Cf("create-user", context.regularUserUsername, context.regularUserPassword), shortTimeout).Run()
+func (c *ConfiguredContext) Setup() {
+	cf.AsUser(c.AdminUserContext(), func() {
+		runner.NewCmdRunner(cf.Cf("create-user", c.regularUserUsername, c.regularUserPassword), c.shortTimeout).Run()
 
 		definition := QuotaDefinition{
-			Name: context.quotaDefinitionName,
+			Name: c.quotaDefinitionName,
 
 			TotalServices: 100,
 			TotalRoutes:   1000,
@@ -94,50 +107,63 @@ func (context *ConfiguredContext) Setup() {
 
 		cf.ApiRequest("POST", "/v2/quota_definitions", &response, string(definitionPayload))
 
-		context.quotaDefinitionGUID = response.Metadata.Guid
+		c.quotaDefinitionGUID = response.Metadata.Guid
 
-		longTimeout := context.ScaledTimeout(60 * time.Second)
-
-		runner.NewCmdRunner(cf.Cf("create-org", context.organizationName), longTimeout).Run()
-		runner.NewCmdRunner(cf.Cf("set-quota", context.organizationName, context.quotaDefinitionName), longTimeout).Run()
+		runner.NewCmdRunner(cf.Cf("create-org", c.organizationName), c.shortTimeout).Run()
+		runner.NewCmdRunner(cf.Cf("set-quota", c.organizationName, c.quotaDefinitionName), c.shortTimeout).Run()
 	})
+
+    cf.AsUser(c.AdminUserContext(), func() {
+        c.setUpSpaceWithUserAccess(c.RegularUserContext())
+    })
+
+    c.originalCfHomeDir, c.currentCfHomeDir = cf.InitiateUserContext(c.RegularUserContext())
+    cf.TargetSpace(c.RegularUserContext())
 }
 
-func (context *ConfiguredContext) Teardown() {
-	cf.AsUser(context.AdminUserContext(), func() {
-		longTimeout := context.ScaledTimeout(60 * time.Second)
-		runner.NewCmdRunner(cf.Cf("delete-user", "-f", context.regularUserUsername), longTimeout).Run()
+func (c *ConfiguredContext) Teardown() {
+    cf.RestoreUserContext(c.RegularUserContext(), c.originalCfHomeDir, c.currentCfHomeDir)
 
-		if !context.isPersistent {
-			runner.NewCmdRunner(cf.Cf("delete-org", "-f", context.organizationName), longTimeout).Run()
+	cf.AsUser(c.AdminUserContext(), func() {
+		runner.NewCmdRunner(cf.Cf("delete-user", "-f", c.regularUserUsername), c.longTimeout).Run()
+
+		if !c.isPersistent {
+			runner.NewCmdRunner(cf.Cf("delete-org", "-f", c.organizationName), c.longTimeout).Run()
 
 			cf.ApiRequest(
 				"DELETE",
-				"/v2/quota_definitions/"+context.quotaDefinitionGUID+"?recursive=true",
+				"/v2/quota_definitions/"+c.quotaDefinitionGUID+"?recursive=true",
 				nil,
 			)
 		}
 	})
 }
 
-func (context *ConfiguredContext) AdminUserContext() cf.UserContext {
+func (c ConfiguredContext) AdminUserContext() cf.UserContext {
 	return cf.NewUserContext(
-		context.config.ApiEndpoint,
-		context.config.AdminUser,
-		context.config.AdminPassword,
+		c.config.ApiEndpoint,
+		c.config.AdminUser,
+		c.config.AdminPassword,
 		"",
 		"",
-		context.config.SkipSSLValidation,
+		c.config.SkipSSLValidation,
 	)
 }
 
-func (context *ConfiguredContext) RegularUserContext() cf.UserContext {
+func (c ConfiguredContext) RegularUserContext() cf.UserContext {
 	return cf.NewUserContext(
-		context.config.ApiEndpoint,
-		context.regularUserUsername,
-		context.regularUserPassword,
-		context.organizationName,
-		context.spaceName,
-		context.config.SkipSSLValidation,
+		c.config.ApiEndpoint,
+		c.regularUserUsername,
+		c.regularUserPassword,
+		c.organizationName,
+		c.spaceName,
+		c.config.SkipSSLValidation,
 	)
+}
+
+func (c ConfiguredContext) setUpSpaceWithUserAccess(uc cf.UserContext) {
+    runner.NewCmdRunner(cf.Cf("create-space", "-o", uc.Org, uc.Space), c.shortTimeout).Run()
+    runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceManager"), c.shortTimeout).Run()
+    runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceDeveloper"), c.shortTimeout).Run()
+    runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceAuditor"), c.shortTimeout).Run()
 }

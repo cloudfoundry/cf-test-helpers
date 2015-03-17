@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+    "time"
 )
 
 //TODO: rename services.config?
@@ -14,6 +15,10 @@ type IntegrationConfig struct {
 	AdminPassword     string  `json:"admin_password"`
 	SkipSSLValidation bool    `json:"skip_ssl_validation"`
 	TimeoutScale      float64 `json:"timeout_scale"`
+}
+
+func (c IntegrationConfig) ScaledTimeout(timeout time.Duration) time.Duration {
+    return time.Duration(float64(timeout) * c.TimeoutScale)
 }
 
 func LoadConfig(path string, configPtr interface{}) error {
