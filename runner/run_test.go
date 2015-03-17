@@ -109,7 +109,7 @@ var _ = Describe("cmdRunner", func() {
 
 				failures := InterceptGomegaFailures(func() {
 					session := runner.Run("bash", "-c", command)
-					runner.NewCmdRunner(session, 10*time.Millisecond).WithAttempts(attempts).Run()
+					runner.NewCmdRunner(session, 1*time.Second).WithAttempts(attempts).Run()
 				})
 
 				Expect(failures).To(HaveLen(0))
