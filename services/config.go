@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-    "time"
+	"time"
 )
 
 type Config struct {
@@ -17,42 +17,42 @@ type Config struct {
 }
 
 func (c Config) ScaledTimeout(timeout time.Duration) time.Duration {
-    return time.Duration(float64(timeout) * c.TimeoutScale)
+	return time.Duration(float64(timeout) * c.TimeoutScale)
 }
 
 func LoadConfig(path string, configPtr interface{}) error {
-    configFile, err := os.Open(path)
-    if err != nil {
-        return fmt.Errorf("Loading service integration test config file '%s': %s", path, err.Error())
-    }
+	configFile, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("Loading service integration test config file '%s': %s", path, err.Error())
+	}
 
-    decoder := json.NewDecoder(configFile)
-    err = decoder.Decode(configPtr)
-    if err != nil {
-        return fmt.Errorf("Decoding config: %s", err.Error())
-    }
+	decoder := json.NewDecoder(configFile)
+	err = decoder.Decode(configPtr)
+	if err != nil {
+		return fmt.Errorf("Decoding config: %s", err.Error())
+	}
 
-    return nil
+	return nil
 }
 
 func ValidateConfig(config *Config) error {
 	if config.ApiEndpoint == "" {
-        return fmt.Errorf("Field 'api' must not be empty")
+		return fmt.Errorf("Field 'api' must not be empty")
 	}
 
 	if config.AdminUser == "" {
-        return fmt.Errorf("Field 'admin_user' must not be empty")
+		return fmt.Errorf("Field 'admin_user' must not be empty")
 	}
 
 	if config.AdminPassword == "" {
-        return fmt.Errorf("Field 'admin_password' must not be empty")
+		return fmt.Errorf("Field 'admin_password' must not be empty")
 	}
 
 	if config.TimeoutScale == 0 {
 		config.TimeoutScale = 1
 	} else if config.TimeoutScale < 0 {
-        return fmt.Errorf("Field 'timeout_scale' must not be negative (found %d)", config.TimeoutScale)
-    }
+		return fmt.Errorf("Field 'timeout_scale' must not be negative (found %d)", config.TimeoutScale)
+	}
 
 	return nil
 }

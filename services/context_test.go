@@ -12,12 +12,12 @@ import (
 	"github.com/onsi/gomega/gexec"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
-    "time"
+	"time"
 )
 
 type apiRequestInputs struct {
 	method, endpoint string
-    timeout time.Duration
+	timeout          time.Duration
 	data             []string
 }
 
@@ -53,7 +53,7 @@ func describeContext() {
 		FakeApiRequestCalls = append(FakeApiRequestCalls, apiRequestInputs{
 			method:   method,
 			endpoint: endpoint,
-            timeout: timeout,
+			timeout:  timeout,
 			data:     data,
 		})
 
@@ -93,7 +93,7 @@ func describeContext() {
 				AdminUser:         "fake-admin-user",
 				AdminPassword:     "fake-admin-password",
 				SkipSSLValidation: true,
-                TimeoutScale: 1,
+				TimeoutScale:      1,
 			}
 			context = services.NewContext(config, prefix)
 		})
@@ -243,7 +243,7 @@ func describeContext() {
 				AdminUser:         "fake-admin-user",
 				AdminPassword:     "fake-admin-password",
 				SkipSSLValidation: true,
-                TimeoutScale: 1,
+				TimeoutScale:      1,
 			}
 			context = services.NewContext(config, prefix)
 
@@ -276,12 +276,12 @@ func describeContext() {
 			}))
 		})
 
-        It("logs out to reset CF_HOME", func() {
-            context.Teardown()
+		It("logs out to reset CF_HOME", func() {
+			context.Teardown()
 
-            logoutCall := FakeCfCalls[0]
-            Expect(logoutCall[0]).To(Equal("logout"))
-        })
+			logoutCall := FakeCfCalls[0]
+			Expect(logoutCall[0]).To(Equal("logout"))
+		})
 
 		It("deletes the user created by Setup()", func() {
 			context.Teardown()

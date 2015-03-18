@@ -2,13 +2,13 @@ package cf_test
 
 import (
 	"os/exec"
-    "time"
+	"time"
 
 	. "github.com/onsi/ginkgo"
-    . "github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
 
-    . "github.com/cloudfoundry-incubator/cf-test-helpers/cf"
-    "github.com/cloudfoundry-incubator/cf-test-helpers/runner"
+	. "github.com/cloudfoundry-incubator/cf-test-helpers/cf"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 )
 
 var _ = Describe("Cf", func() {
@@ -20,6 +20,6 @@ var _ = Describe("Cf", func() {
 			return exec.Command("bash", "-c", `exit 42`)
 		}
 
-        runner.NewCmdRunner(Cf("apps"), 1 * time.Second).WithExitCode(42).Run()
+		runner.NewCmdRunner(Cf("apps"), 1*time.Second).WithExitCode(42).Run()
 	})
 })

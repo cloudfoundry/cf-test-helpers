@@ -86,22 +86,22 @@ func (c *cmdRunner) Run() *gexec.Session {
 			c.session = innerRun(newCmd)
 		}
 
-        timer := time.NewTimer(c.timeout)
+		timer := time.NewTimer(c.timeout)
 
 		select {
 		case <-timer.C:
-            failureMessage = fmt.Sprintf(
+			failureMessage = fmt.Sprintf(
 				"Timed out executing command (%v):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s",
 				c.timeout.String(),
 				cmdString,
 				string(c.session.Out.Contents()),
 				string(c.session.Err.Contents()))
 		case <-c.session.Exited:
-            // immediate kill the timer goroutine
-            timer.Stop()
+			// immediate kill the timer goroutine
+			timer.Stop()
 
-            // command may not have failed, but pre-construct failure message for final exit code expectation
-            failureMessage = fmt.Sprintf(
+			// command may not have failed, but pre-construct failure message for final exit code expectation
+			failureMessage = fmt.Sprintf(
 				"Failed executing command (exit %d):\nCommand: %s\n\n[stdout]:\n%s\n\n[stderr]:\n%s",
 				c.session.ExitCode(),
 				cmdString,

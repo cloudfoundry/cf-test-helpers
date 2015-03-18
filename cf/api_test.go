@@ -2,7 +2,7 @@ package cf_test
 
 import (
 	"os/exec"
-    "time"
+	"time"
 
 	. "github.com/cloudfoundry-incubator/cf-test-helpers/cf"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"

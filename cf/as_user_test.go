@@ -3,7 +3,7 @@ package cf_test
 import (
 	"os"
 	"os/exec"
-    "time"
+	"time"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
 	. "github.com/onsi/ginkgo"
@@ -12,11 +12,11 @@ import (
 )
 
 var _ = Describe("AsUser", func() {
-    var (
-        timeout = 1 * time.Second
-        FakeThingsToRunAsUser = func() {}
-        FakeCfCalls = [][]string{}
-    )
+	var (
+		timeout               = 1 * time.Second
+		FakeThingsToRunAsUser = func() {}
+		FakeCfCalls           = [][]string{}
+	)
 
 	var FakeCf = func(args ...string) *gexec.Session {
 		FakeCfCalls = append(FakeCfCalls, args)

@@ -13,21 +13,21 @@ import (
 )
 
 type Context interface {
-    Setup()
-    Teardown()
+	Setup()
+	Teardown()
 
-    AdminUserContext() cf.UserContext
-    RegularUserContext() cf.UserContext
+	AdminUserContext() cf.UserContext
+	RegularUserContext() cf.UserContext
 
-    ShortTimeout() time.Duration
-    LongTimeout() time.Duration
+	ShortTimeout() time.Duration
+	LongTimeout() time.Duration
 }
 
 type context struct {
 	config Config
 
-    shortTimeout time.Duration
-    longTimeout time.Duration
+	shortTimeout time.Duration
+	longTimeout  time.Duration
 
 	organizationName string
 	spaceName        string
@@ -40,8 +40,8 @@ type context struct {
 
 	isPersistent bool
 
-    originalCfHomeDir string
-    currentCfHomeDir string
+	originalCfHomeDir string
+	currentCfHomeDir  string
 }
 
 type QuotaDefinition struct {
@@ -62,8 +62,8 @@ func NewContext(config Config, prefix string) Context {
 	return &context{
 		config: config,
 
-        shortTimeout: config.ScaledTimeout(1 * time.Minute),
-        longTimeout: config.ScaledTimeout(5 * time.Minute),
+		shortTimeout: config.ScaledTimeout(1 * time.Minute),
+		longTimeout:  config.ScaledTimeout(5 * time.Minute),
 
 		quotaDefinitionName: fmt.Sprintf("%s-QUOTA-%d-%s", prefix, node, timeTag),
 
@@ -78,11 +78,11 @@ func NewContext(config Config, prefix string) Context {
 }
 
 func (c context) ShortTimeout() time.Duration {
-    return c.shortTimeout
+	return c.shortTimeout
 }
 
 func (c context) LongTimeout() time.Duration {
-    return c.longTimeout
+	return c.longTimeout
 }
 
 func (c *context) Setup() {
@@ -101,7 +101,7 @@ func (c *context) Setup() {
 		}
 
 		definitionPayload, err := json.Marshal(definition)
-        gomega.Expect(err).ToNot(gomega.HaveOccurred())
+		gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
 		var response cf.GenericResource
 
@@ -112,15 +112,15 @@ func (c *context) Setup() {
 		runner.NewCmdRunner(cf.Cf("create-org", c.organizationName), c.shortTimeout).Run()
 		runner.NewCmdRunner(cf.Cf("set-quota", c.organizationName, c.quotaDefinitionName), c.shortTimeout).Run()
 
-        c.setUpSpaceWithUserAccess(c.RegularUserContext())
-    })
+		c.setUpSpaceWithUserAccess(c.RegularUserContext())
+	})
 
-    c.originalCfHomeDir, c.currentCfHomeDir = cf.InitiateUserContext(c.RegularUserContext(), c.shortTimeout)
-    cf.TargetSpace(c.RegularUserContext(), c.shortTimeout)
+	c.originalCfHomeDir, c.currentCfHomeDir = cf.InitiateUserContext(c.RegularUserContext(), c.shortTimeout)
+	cf.TargetSpace(c.RegularUserContext(), c.shortTimeout)
 }
 
 func (c *context) Teardown() {
-    cf.RestoreUserContext(c.RegularUserContext(), c.shortTimeout, c.originalCfHomeDir, c.currentCfHomeDir)
+	cf.RestoreUserContext(c.RegularUserContext(), c.shortTimeout, c.originalCfHomeDir, c.currentCfHomeDir)
 
 	cf.AsUser(c.AdminUserContext(), c.shortTimeout, func() {
 		runner.NewCmdRunner(cf.Cf("delete-user", "-f", c.regularUserUsername), c.longTimeout).Run()
@@ -132,7 +132,7 @@ func (c *context) Teardown() {
 				"DELETE",
 				"/v2/quota_definitions/"+c.quotaDefinitionGUID+"?recursive=true",
 				nil,
-                c.ShortTimeout(),
+				c.ShortTimeout(),
 			)
 		}
 	})
@@ -161,8 +161,8 @@ func (c context) RegularUserContext() cf.UserContext {
 }
 
 func (c context) setUpSpaceWithUserAccess(uc cf.UserContext) {
-    runner.NewCmdRunner(cf.Cf("create-space", "-o", uc.Org, uc.Space), c.shortTimeout).Run()
-    runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceManager"), c.shortTimeout).Run()
-    runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceDeveloper"), c.shortTimeout).Run()
-    runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceAuditor"), c.shortTimeout).Run()
+	runner.NewCmdRunner(cf.Cf("create-space", "-o", uc.Org, uc.Space), c.shortTimeout).Run()
+	runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceManager"), c.shortTimeout).Run()
+	runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceDeveloper"), c.shortTimeout).Run()
+	runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceAuditor"), c.shortTimeout).Run()
 }

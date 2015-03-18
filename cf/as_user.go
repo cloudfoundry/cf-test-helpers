@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-    "time"
+	"time"
 
-    ginkgoconfig "github.com/onsi/ginkgo/config"
+	ginkgoconfig "github.com/onsi/ginkgo/config"
 
-    "github.com/cloudfoundry-incubator/cf-test-helpers/runner"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 )
 
 var AsUser = func(userContext UserContext, timeout time.Duration, actions func()) {
@@ -37,9 +37,9 @@ func InitiateUserContext(userContext UserContext, timeout time.Duration) (origin
 		cfSetApiArgs = append(cfSetApiArgs, "--skip-ssl-validation")
 	}
 
-    runner.NewCmdRunner(Cf(cfSetApiArgs...), timeout).Run()
+	runner.NewCmdRunner(Cf(cfSetApiArgs...), timeout).Run()
 
-    runner.NewCmdRunner(Cf("auth", userContext.Username, userContext.Password), timeout).Run()
+	runner.NewCmdRunner(Cf("auth", userContext.Username, userContext.Password), timeout).Run()
 
 	return
 }
@@ -47,15 +47,15 @@ func InitiateUserContext(userContext UserContext, timeout time.Duration) (origin
 func TargetSpace(userContext UserContext, timeout time.Duration) {
 	if userContext.Org != "" {
 		if userContext.Space != "" {
-            runner.NewCmdRunner(Cf("target", "-o", userContext.Org, "-s", userContext.Space), timeout).Run()
+			runner.NewCmdRunner(Cf("target", "-o", userContext.Org, "-s", userContext.Space), timeout).Run()
 		} else {
-            runner.NewCmdRunner(Cf("target", "-o", userContext.Org), timeout).Run()
+			runner.NewCmdRunner(Cf("target", "-o", userContext.Org), timeout).Run()
 		}
 	}
 }
 
 func RestoreUserContext(_ UserContext, timeout time.Duration, originalCfHomeDir, currentCfHomeDir string) {
-    runner.NewCmdRunner(Cf("logout"), timeout).Run()
+	runner.NewCmdRunner(Cf("logout"), timeout).Run()
 	os.Setenv("CF_HOME", originalCfHomeDir)
 	os.RemoveAll(currentCfHomeDir)
 }

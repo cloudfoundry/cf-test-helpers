@@ -1,10 +1,10 @@
 package helpers
 
 import (
-    "time"
+	"time"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
-    "github.com/cloudfoundry-incubator/cf-test-helpers/runner"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 )
 
 type SuiteContext interface {
@@ -15,8 +15,8 @@ type SuiteContext interface {
 	AdminUserContext() cf.UserContext
 	RegularUserContext() cf.UserContext
 
-    ShortTimeout() time.Duration
-    LongTimeout() time.Duration
+	ShortTimeout() time.Duration
+	LongTimeout() time.Duration
 }
 
 type Environment struct {
@@ -47,8 +47,8 @@ func (e *Environment) Teardown() {
 }
 
 func (e *Environment) setUpSpaceWithUserAccess(uc cf.UserContext) {
-    runner.NewCmdRunner(cf.Cf("create-space", "-o", uc.Org, uc.Space), e.context.ShortTimeout()).Run()
-    runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceManager"), e.context.ShortTimeout()).Run()
-    runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceDeveloper"), e.context.ShortTimeout()).Run()
-    runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceAuditor"), e.context.ShortTimeout()).Run()
+	runner.NewCmdRunner(cf.Cf("create-space", "-o", uc.Org, uc.Space), e.context.ShortTimeout()).Run()
+	runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceManager"), e.context.ShortTimeout()).Run()
+	runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceDeveloper"), e.context.ShortTimeout()).Run()
+	runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceAuditor"), e.context.ShortTimeout()).Run()
 }
