@@ -3,10 +3,8 @@ package helpers
 import (
     "time"
 
-	. "github.com/onsi/gomega"
-	. "github.com/onsi/gomega/gexec"
-
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
+    "github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 )
 
 type SuiteContext interface {
@@ -35,7 +33,7 @@ func (e *Environment) Setup() {
 	e.context.Setup()
 
 	cf.AsUser(e.context.AdminUserContext(), e.context.ShortTimeout(), func() {
-		setUpSpaceWithUserAccess(e.context.RegularUserContext())
+		e.setUpSpaceWithUserAccess(e.context.RegularUserContext())
 	})
 
 	e.originalCfHomeDir, e.currentCfHomeDir = cf.InitiateUserContext(e.context.RegularUserContext(), e.context.ShortTimeout())
@@ -48,10 +46,9 @@ func (e *Environment) Teardown() {
 	e.context.Teardown()
 }
 
-func setUpSpaceWithUserAccess(uc cf.UserContext) {
-	spaceSetupTimeout := 30.0
-	Expect(cf.Cf("create-space", "-o", uc.Org, uc.Space).Wait(spaceSetupTimeout)).To(Exit(0))
-	Expect(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceManager").Wait(spaceSetupTimeout)).To(Exit(0))
-	Expect(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceDeveloper").Wait(spaceSetupTimeout)).To(Exit(0))
-	Expect(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceAuditor").Wait(spaceSetupTimeout)).To(Exit(0))
+func (e *Environment) setUpSpaceWithUserAccess(uc cf.UserContext) {
+    runner.NewCmdRunner(cf.Cf("create-space", "-o", uc.Org, uc.Space), e.context.ShortTimeout()).Run()
+    runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceManager"), e.context.ShortTimeout()).Run()
+    runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceDeveloper"), e.context.ShortTimeout()).Run()
+    runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceAuditor"), e.context.ShortTimeout()).Run()
 }
