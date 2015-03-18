@@ -14,6 +14,11 @@ type Config struct {
 	AdminUser     string `json:"admin_user"`
 	AdminPassword string `json:"admin_password"`
 
+	UseExistingUser bool `json:"use_existing_user"`
+	ShouldKeepUser bool `json:"keep_user_at_suite_end"`
+	ExistingUser string `json:"existing_user"`
+	ExistingUserPassword string `json:"existing_user_password"`
+
 	PersistentAppHost      string `json:"persistent_app_host"`
 	PersistentAppSpace     string `json:"persistent_app_space"`
 	PersistentAppOrg       string `json:"persistent_app_org"`

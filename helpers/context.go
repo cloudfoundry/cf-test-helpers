@@ -45,6 +45,14 @@ func NewContext(config Config) *ConfiguredContext {
 	node := ginkgoconfig.GinkgoConfig.ParallelNode
 	timeTag := time.Now().Format("2006_01_02-15h04m05.999s")
 
+	regUser := fmt.Sprintf("CATS-USER-%d-%s", node, timeTag)
+	regUserPass := "meow"
+
+	if config.UseExistingUser {
+		regUser = config.ExistingUser
+		regUserPass = config.ExistingUserPassword
+	}
+
 	return &ConfiguredContext{
 		config: config,
 
@@ -56,8 +64,8 @@ func NewContext(config Config) *ConfiguredContext {
 		organizationName: fmt.Sprintf("CATS-ORG-%d-%s", node, timeTag),
 		spaceName:        fmt.Sprintf("CATS-SPACE-%d-%s", node, timeTag),
 
-		regularUserUsername: fmt.Sprintf("CATS-USER-%d-%s", node, timeTag),
-		regularUserPassword: "meow",
+		regularUserUsername: regUser,
+		regularUserPassword: regUserPass,
 
 		isPersistent: false,
 	}
@@ -107,10 +115,12 @@ func (context *ConfiguredContext) Setup() {
 
 		runner.NewCmdRunner(cf.Cf(args...), context.shortTimeout).Run()
 
-		createUserCmd := cf.Cf("create-user", context.regularUserUsername, context.regularUserPassword)
-		runner.NewCmdRunner(createUserCmd, context.shortTimeout).Run()
-		if createUserCmd.ExitCode() != 0 {
-			Expect(createUserCmd.Out).To(Say("scim_resource_already_exists"))
+		if !context.config.UseExistingUser {
+			createUserCmd := cf.Cf("create-user", context.regularUserUsername, context.regularUserPassword)
+			runner.NewCmdRunner(createUserCmd, context.shortTimeout).Run()
+			if createUserCmd.ExitCode() != 0 {
+				Expect(createUserCmd.Out).To(Say("scim_resource_already_exists"))
+			}
 		}
 
 		runner.NewCmdRunner(cf.Cf("create-org", context.organizationName), context.shortTimeout).Run()
@@ -126,7 +136,10 @@ func (context *ConfiguredContext) SetRunawayQuota() {
 
 func (context *ConfiguredContext) Teardown() {
 	cf.AsUser(context.AdminUserContext(), context.shortTimeout, func() {
-		runner.NewCmdRunner(cf.Cf("delete-user", "-f", context.regularUserUsername), context.shortTimeout).Run()
+
+		if !context.config.ShouldKeepUser {
+			runner.NewCmdRunner(cf.Cf("delete-user", "-f", context.regularUserUsername), context.shortTimeout).Run()
+		}
 
 		if !context.isPersistent {
 			runner.NewCmdRunner(cf.Cf("delete-org", "-f", context.organizationName), context.shortTimeout).Run()
