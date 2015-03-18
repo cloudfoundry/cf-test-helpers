@@ -4,11 +4,11 @@ import (
 	"os/exec"
     "time"
 
-	. "github.com/cloudfoundry-incubator/cf-test-helpers/cf"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	. "github.com/onsi/gomega/gexec"
+    . "github.com/onsi/gomega"
+
+    . "github.com/cloudfoundry-incubator/cf-test-helpers/cf"
+    "github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 )
 
 var _ = Describe("Cf", func() {
@@ -20,6 +20,6 @@ var _ = Describe("Cf", func() {
 			return exec.Command("bash", "-c", `exit 42`)
 		}
 
-		Expect(Cf("apps").Wait(1 * time.Second)).To(Exit(42))
+        runner.NewCmdRunner(Cf("apps"), 1 * time.Second).WithExitCode(42).Run()
 	})
 })
