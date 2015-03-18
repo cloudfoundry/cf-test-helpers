@@ -8,12 +8,13 @@ import (
 )
 
 type Config struct {
-	AppsDomain        string  `json:"apps_domain"`
-	ApiEndpoint       string  `json:"api"`
-	AdminUser         string  `json:"admin_user"`
-	AdminPassword     string  `json:"admin_password"`
-	SkipSSLValidation bool    `json:"skip_ssl_validation"`
-	TimeoutScale      float64 `json:"timeout_scale"`
+	AppsDomain                    string  `json:"apps_domain"`
+	ApiEndpoint                   string  `json:"api"`
+	AdminUser                     string  `json:"admin_user"`
+	AdminPassword                 string  `json:"admin_password"`
+	CreatePermissiveSecurityGroup bool    `json:"create_permissive_security_group"`
+	SkipSSLValidation             bool    `json:"skip_ssl_validation"`
+	TimeoutScale                  float64 `json:"timeout_scale"`
 }
 
 func (c Config) ScaledTimeout(timeout time.Duration) time.Duration {

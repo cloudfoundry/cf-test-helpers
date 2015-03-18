@@ -3,6 +3,8 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"time"
 
 	ginkgoconfig "github.com/onsi/ginkgo/config"
@@ -38,6 +40,8 @@ type context struct {
 	regularUserUsername string
 	regularUserPassword string
 
+	securityGroupName string
+
 	isPersistent bool
 
 	originalCfHomeDir string
@@ -72,6 +76,8 @@ func NewContext(config Config, prefix string) Context {
 
 		regularUserUsername: fmt.Sprintf("%s-USER-%d-%s", prefix, node, timeTag),
 		regularUserPassword: "meow",
+
+		securityGroupName: fmt.Sprintf("%s-SECURITY_GROUP-%d-%s", prefix, node, timeTag),
 
 		isPersistent: false,
 	}
@@ -113,6 +119,10 @@ func (c *context) Setup() {
 		runner.NewCmdRunner(cf.Cf("set-quota", c.organizationName, c.quotaDefinitionName), c.shortTimeout).Run()
 
 		c.setUpSpaceWithUserAccess(c.RegularUserContext())
+
+		if c.config.CreatePermissiveSecurityGroup {
+			c.createPermissiveSecurityGroup()
+		}
 	})
 
 	c.originalCfHomeDir, c.currentCfHomeDir = cf.InitiateUserContext(c.RegularUserContext(), c.shortTimeout)
@@ -134,6 +144,10 @@ func (c *context) Teardown() {
 				nil,
 				c.ShortTimeout(),
 			)
+		}
+
+		if c.config.CreatePermissiveSecurityGroup {
+			runner.NewCmdRunner(cf.Cf("delete-security-group", "-f", c.securityGroupName), c.shortTimeout).Run()
 		}
 	})
 }
@@ -165,4 +179,47 @@ func (c context) setUpSpaceWithUserAccess(uc cf.UserContext) {
 	runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceManager"), c.shortTimeout).Run()
 	runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceDeveloper"), c.shortTimeout).Run()
 	runner.NewCmdRunner(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceAuditor"), c.shortTimeout).Run()
+}
+
+func (c context) createPermissiveSecurityGroup() {
+	rules := []map[string]string{
+		map[string]string{
+			"destination": "0.0.0.0-255.255.255.255",
+			"protocol":    "all",
+		},
+	}
+
+	rulesFilePath, err := c.writeJSONToTempFile(rules, fmt.Sprintf("%s-rules.json", c.securityGroupName))
+	defer os.RemoveAll(rulesFilePath)
+	gomega.Expect(err).ToNot(gomega.HaveOccurred())
+
+	runner.NewCmdRunner(cf.Cf("create-security-group", c.securityGroupName, rulesFilePath), c.shortTimeout).Run()
+	runner.NewCmdRunner(cf.Cf("bind-security-group", c.securityGroupName, c.organizationName, c.spaceName), c.shortTimeout).Run()
+}
+
+func (c context) writeJSONToTempFile(object interface{}, filePrefix string) (filePath string, err error) {
+	file, err := ioutil.TempFile("", filePrefix)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	filePath = file.Name()
+	defer func() {
+		if err != nil {
+			os.RemoveAll(filePath)
+		}
+	}()
+
+	bytes, err := json.Marshal(object)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = file.Write(bytes)
+	if err != nil {
+		return "", err
+	}
+
+	return filePath, nil
 }
