@@ -28,10 +28,16 @@ type Config struct {
 	LongCurlTimeout    time.Duration `json:"long_curl_timeout"`
 	BrokerStartTimeout time.Duration `json:"broker_start_timeout"`
 
+    TimeoutScale       float64       `json:"timeout_scale"`
+
 	SyslogDrainPort int    `json:"syslog_drain_port"`
 	SyslogIpAddress string `json:"syslog_ip_address"`
 
 	SecureAddress string `json:"secure_address"`
+}
+
+func (c Config) ScaledTimeout(timeout time.Duration) time.Duration {
+    return time.Duration(float64(timeout) * c.TimeoutScale)
 }
 
 var loadedConfig *Config
@@ -52,6 +58,10 @@ func LoadConfig() Config {
 	if loadedConfig.ApiEndpoint == "" {
 		panic("missing configuration 'admin_password'")
 	}
+
+    if loadedConfig.TimeoutScale <= 0 {
+        loadedConfig.TimeoutScale = 1.0
+    }
 
 	return *loadedConfig
 }

@@ -12,10 +12,12 @@ import (
 	"github.com/onsi/gomega/gexec"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
+    "time"
 )
 
 type apiRequestInputs struct {
 	method, endpoint string
+    timeout time.Duration
 	data             []string
 }
 
@@ -42,15 +44,16 @@ func describeContext() {
 		return session
 	}
 
-	var FakeAsUser = func(userContext cf.UserContext, actions func()) {
+	var FakeAsUser = func(userContext cf.UserContext, timeout time.Duration, actions func()) {
 		FakeAsUserCalls = append(FakeAsUserCalls, userContext)
 		actions()
 	}
 
-	var FakeApiRequest = func(method, endpoint string, response interface{}, data ...string) {
+	var FakeApiRequest = func(method, endpoint string, response interface{}, timeout time.Duration, data ...string) {
 		FakeApiRequestCalls = append(FakeApiRequestCalls, apiRequestInputs{
 			method:   method,
 			endpoint: endpoint,
+            timeout: timeout,
 			data:     data,
 		})
 

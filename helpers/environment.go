@@ -1,6 +1,8 @@
 package helpers
 
 import (
+    "time"
+
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
 
@@ -14,6 +16,9 @@ type SuiteContext interface {
 
 	AdminUserContext() cf.UserContext
 	RegularUserContext() cf.UserContext
+
+    ShortTimeout() time.Duration
+    LongTimeout() time.Duration
 }
 
 type Environment struct {
@@ -29,16 +34,16 @@ func NewEnvironment(context SuiteContext) *Environment {
 func (e *Environment) Setup() {
 	e.context.Setup()
 
-	cf.AsUser(e.context.AdminUserContext(), func() {
+	cf.AsUser(e.context.AdminUserContext(), e.context.ShortTimeout(), func() {
 		setUpSpaceWithUserAccess(e.context.RegularUserContext())
 	})
 
-	e.originalCfHomeDir, e.currentCfHomeDir = cf.InitiateUserContext(e.context.RegularUserContext())
-	cf.TargetSpace(e.context.RegularUserContext())
+	e.originalCfHomeDir, e.currentCfHomeDir = cf.InitiateUserContext(e.context.RegularUserContext(), e.context.ShortTimeout())
+	cf.TargetSpace(e.context.RegularUserContext(), e.context.ShortTimeout())
 }
 
 func (e *Environment) Teardown() {
-	cf.RestoreUserContext(e.context.RegularUserContext(), e.originalCfHomeDir, e.currentCfHomeDir)
+	cf.RestoreUserContext(e.context.RegularUserContext(), e.context.ShortTimeout(), e.originalCfHomeDir, e.currentCfHomeDir)
 
 	e.context.Teardown()
 }

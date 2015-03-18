@@ -10,7 +10,7 @@ import (
 	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 )
 
-var CfApiTimeout = 30 * time.Second
+//var CfApiTimeout = 30 * time.Second
 
 type GenericResource struct {
 	Metadata struct {
@@ -22,7 +22,7 @@ type QueryResponse struct {
 	Resources []GenericResource `struct:"resources"`
 }
 
-var ApiRequest = func(method, endpoint string, response interface{}, data ...string) {
+var ApiRequest = func(method, endpoint string, response interface{}, timeout time.Duration, data ...string) {
 	request := Cf(
 		"curl",
 		endpoint,
@@ -30,7 +30,7 @@ var ApiRequest = func(method, endpoint string, response interface{}, data ...str
 		"-d", strings.Join(data, ""),
 	)
 
-	runner.NewCmdRunner(request, CfApiTimeout).Run()
+	runner.NewCmdRunner(request, timeout).Run()
 
 	if response != nil {
 		err := json.Unmarshal(request.Out.Contents(), response)

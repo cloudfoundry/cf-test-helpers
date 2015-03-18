@@ -86,7 +86,7 @@ func (c context) LongTimeout() time.Duration {
 }
 
 func (c *context) Setup() {
-	cf.AsUser(c.AdminUserContext(), func() {
+	cf.AsUser(c.AdminUserContext(), c.shortTimeout, func() {
 		runner.NewCmdRunner(cf.Cf("create-user", c.regularUserUsername, c.regularUserPassword), c.shortTimeout).Run()
 
 		definition := QuotaDefinition{
@@ -105,7 +105,7 @@ func (c *context) Setup() {
 
 		var response cf.GenericResource
 
-		cf.ApiRequest("POST", "/v2/quota_definitions", &response, string(definitionPayload))
+		cf.ApiRequest("POST", "/v2/quota_definitions", &response, c.shortTimeout, string(definitionPayload))
 
 		c.quotaDefinitionGUID = response.Metadata.Guid
 
@@ -115,14 +115,14 @@ func (c *context) Setup() {
         c.setUpSpaceWithUserAccess(c.RegularUserContext())
     })
 
-    c.originalCfHomeDir, c.currentCfHomeDir = cf.InitiateUserContext(c.RegularUserContext())
-    cf.TargetSpace(c.RegularUserContext())
+    c.originalCfHomeDir, c.currentCfHomeDir = cf.InitiateUserContext(c.RegularUserContext(), c.shortTimeout)
+    cf.TargetSpace(c.RegularUserContext(), c.shortTimeout)
 }
 
 func (c *context) Teardown() {
-    cf.RestoreUserContext(c.RegularUserContext(), c.originalCfHomeDir, c.currentCfHomeDir)
+    cf.RestoreUserContext(c.RegularUserContext(), c.shortTimeout, c.originalCfHomeDir, c.currentCfHomeDir)
 
-	cf.AsUser(c.AdminUserContext(), func() {
+	cf.AsUser(c.AdminUserContext(), c.shortTimeout, func() {
 		runner.NewCmdRunner(cf.Cf("delete-user", "-f", c.regularUserUsername), c.longTimeout).Run()
 
 		if !c.isPersistent {
@@ -132,6 +132,7 @@ func (c *context) Teardown() {
 				"DELETE",
 				"/v2/quota_definitions/"+c.quotaDefinitionGUID+"?recursive=true",
 				nil,
+                c.ShortTimeout(),
 			)
 		}
 	})

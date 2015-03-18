@@ -18,6 +18,9 @@ const RUNAWAY_QUOTA_MEM_LIMIT = "99999G"
 type ConfiguredContext struct {
 	config Config
 
+    shortTimeout time.Duration
+    longTimeout time.Duration
+
 	organizationName string
 	spaceName        string
 
@@ -46,6 +49,9 @@ func NewContext(config Config) *ConfiguredContext {
 	return &ConfiguredContext{
 		config: config,
 
+        shortTimeout: config.ScaledTimeout(1 * time.Minute),
+        longTimeout: config.ScaledTimeout(5 * time.Minute),
+
 		quotaDefinitionName: fmt.Sprintf("CATS-QUOTA-%d-%s", node, timeTag),
 
 		organizationName: fmt.Sprintf("CATS-ORG-%d-%s", node, timeTag),
@@ -69,8 +75,16 @@ func NewPersistentAppContext(config Config) *ConfiguredContext {
 	return baseContext
 }
 
+func (context ConfiguredContext) ShortTimeout() time.Duration {
+    return context.shortTimeout
+}
+
+func (context ConfiguredContext) LongTimeout() time.Duration {
+    return context.longTimeout
+}
+
 func (context *ConfiguredContext) Setup() {
-	cf.AsUser(context.AdminUserContext(), func() {
+	cf.AsUser(context.AdminUserContext(), context.shortTimeout, func() {
 		definition := quotaDefinition{
 			Name: context.quotaDefinitionName,
 
@@ -106,13 +120,13 @@ func (context *ConfiguredContext) Setup() {
 }
 
 func (context *ConfiguredContext) SetRunawayQuota() {
-	cf.AsUser(context.AdminUserContext(), func() {
+	cf.AsUser(context.AdminUserContext(), context.shortTimeout, func() {
 		Expect(cf.Cf("update-quota", context.quotaDefinitionName, "-m", RUNAWAY_QUOTA_MEM_LIMIT, "-i=-1").Wait(CF_API_TIMEOUT)).To(Exit(0))
 	})
 }
 
 func (context *ConfiguredContext) Teardown() {
-	cf.AsUser(context.AdminUserContext(), func() {
+	cf.AsUser(context.AdminUserContext(), context.shortTimeout, func() {
 		Expect(cf.Cf("delete-user", "-f", context.regularUserUsername).Wait(CF_API_TIMEOUT)).To(Exit(0))
 
 		if !context.isPersistent {
