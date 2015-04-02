@@ -25,6 +25,7 @@ type Config struct {
 	PersistentAppQuotaName string `json:"persistent_app_quota_name"`
 
 	SkipSSLValidation bool `json:"skip_ssl_validation"`
+	UseDiego          bool `json:"use_diego"`
 
 	ArtifactsDirectory string `json:"artifacts_directory"`
 
