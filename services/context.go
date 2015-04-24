@@ -42,7 +42,7 @@ type context struct {
 
 	securityGroupName string
 
-	isPersistent bool
+	useExistingOrg bool
 
 	originalCfHomeDir string
 	currentCfHomeDir  string
@@ -63,6 +63,17 @@ func NewContext(config Config, prefix string) Context {
 	node := ginkgoconfig.GinkgoConfig.ParallelNode
 	timeTag := time.Now().Format("2006_01_02-15h04m05.999s")
 
+	var organizationName string
+	var useExistingOrg bool
+
+	if config.OrgName != "" {
+		useExistingOrg = true
+		organizationName = config.OrgName
+	} else {
+		useExistingOrg = false
+		organizationName = fmt.Sprintf("%s-ORG-%d-%s", prefix, node, timeTag)
+	}
+
 	return &context{
 		config: config,
 
@@ -71,7 +82,7 @@ func NewContext(config Config, prefix string) Context {
 
 		quotaDefinitionName: fmt.Sprintf("%s-QUOTA-%d-%s", prefix, node, timeTag),
 
-		organizationName: fmt.Sprintf("%s-ORG-%d-%s", prefix, node, timeTag),
+		organizationName: organizationName,
 		spaceName:        fmt.Sprintf("%s-SPACE-%d-%s", prefix, node, timeTag),
 
 		regularUserUsername: fmt.Sprintf("%s-USER-%d-%s", prefix, node, timeTag),
@@ -79,7 +90,7 @@ func NewContext(config Config, prefix string) Context {
 
 		securityGroupName: fmt.Sprintf("%s-SECURITY_GROUP-%d-%s", prefix, node, timeTag),
 
-		isPersistent: false,
+		useExistingOrg: useExistingOrg,
 	}
 }
 
@@ -95,28 +106,30 @@ func (c *context) Setup() {
 	cf.AsUser(c.AdminUserContext(), c.shortTimeout, func() {
 		runner.NewCmdRunner(cf.Cf("create-user", c.regularUserUsername, c.regularUserPassword), c.shortTimeout).Run()
 
-		definition := QuotaDefinition{
-			Name: c.quotaDefinitionName,
+		if c.useExistingOrg == false {
 
-			TotalServices: 100,
-			TotalRoutes:   1000,
+			definition := QuotaDefinition{
+				Name: c.quotaDefinitionName,
 
-			MemoryLimit: 10240,
+				TotalServices: 100,
+				TotalRoutes:   1000,
 
-			NonBasicServicesAllowed: true,
+				MemoryLimit: 10240,
+
+				NonBasicServicesAllowed: true,
+			}
+
+			definitionPayload, err := json.Marshal(definition)
+			gomega.Expect(err).ToNot(gomega.HaveOccurred())
+
+			var response cf.GenericResource
+			cf.ApiRequest("POST", "/v2/quota_definitions", &response, c.shortTimeout, string(definitionPayload))
+
+			c.quotaDefinitionGUID = response.Metadata.Guid
+
+			runner.NewCmdRunner(cf.Cf("create-org", c.organizationName), c.shortTimeout).Run()
+			runner.NewCmdRunner(cf.Cf("set-quota", c.organizationName, c.quotaDefinitionName), c.shortTimeout).Run()
 		}
-
-		definitionPayload, err := json.Marshal(definition)
-		gomega.Expect(err).ToNot(gomega.HaveOccurred())
-
-		var response cf.GenericResource
-
-		cf.ApiRequest("POST", "/v2/quota_definitions", &response, c.shortTimeout, string(definitionPayload))
-
-		c.quotaDefinitionGUID = response.Metadata.Guid
-
-		runner.NewCmdRunner(cf.Cf("create-org", c.organizationName), c.shortTimeout).Run()
-		runner.NewCmdRunner(cf.Cf("set-quota", c.organizationName, c.quotaDefinitionName), c.shortTimeout).Run()
 
 		c.setUpSpaceWithUserAccess(c.RegularUserContext())
 
@@ -130,12 +143,19 @@ func (c *context) Setup() {
 }
 
 func (c *context) Teardown() {
+
+	userOrg := c.RegularUserContext().Org
+
 	cf.RestoreUserContext(c.RegularUserContext(), c.shortTimeout, c.originalCfHomeDir, c.currentCfHomeDir)
 
 	cf.AsUser(c.AdminUserContext(), c.shortTimeout, func() {
 		runner.NewCmdRunner(cf.Cf("delete-user", "-f", c.regularUserUsername), c.longTimeout).Run()
 
-		if !c.isPersistent {
+		// delete-space does not provide an org flag, so we must target the Org first
+		runner.NewCmdRunner(cf.Cf("target", "-o", userOrg), c.longTimeout).Run()
+		runner.NewCmdRunner(cf.Cf("delete-space", "-f", c.spaceName), c.longTimeout).Run()
+
+		if !c.useExistingOrg {
 			runner.NewCmdRunner(cf.Cf("delete-org", "-f", c.organizationName), c.longTimeout).Run()
 
 			cf.ApiRequest(
