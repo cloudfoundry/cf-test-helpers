@@ -46,6 +46,9 @@ type Config struct {
 	DockerExecutable      string   `json:"docker_executable"`
 	DockerParameters      []string `json:"docker_parameters"`
 	DockerRegistryAddress string   `json:"docker_registry_address"`
+	DockerUser            string   `json:"docker_user"`
+	DockerPassword        string   `json:"docker_password"`
+	DockerEmail           string   `json:"docker_email"`
 }
 
 func (c Config) ScaledTimeout(timeout time.Duration) time.Duration {
