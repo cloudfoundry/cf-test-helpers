@@ -46,6 +46,7 @@ type Config struct {
 	DockerExecutable      string   `json:"docker_executable"`
 	DockerParameters      []string `json:"docker_parameters"`
 	DockerRegistryAddress string   `json:"docker_registry_address"`
+	DockerPrivateImage    string   `json:"docker_private_image"`
 	DockerUser            string   `json:"docker_user"`
 	DockerPassword        string   `json:"docker_password"`
 	DockerEmail           string   `json:"docker_email"`
