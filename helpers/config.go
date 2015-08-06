@@ -83,6 +83,14 @@ func LoadConfig() Config {
 	return *loadedConfig
 }
 
+func (c Config) Protocol() string {
+	if c.HttpDisabled {
+		return "https://"
+	} else {
+		return "http://"
+	}
+}
+
 func loadConfigJsonFromPath() *Config {
 	var config *Config = &Config{
 		PersistentAppHost:      "CATS-persistent-app",
