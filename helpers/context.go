@@ -46,7 +46,7 @@ func NewContext(config Config) *ConfiguredContext {
 	timeTag := time.Now().Format("2006_01_02-15h04m05.999s")
 
 	regUser := fmt.Sprintf("CATS-USER-%d-%s", node, timeTag)
-	regUserPass := "meow"
+	regUserPass := "meowHaiLoch4LeiChaht8aingei5Aek8oh"
 
 	if config.UseExistingUser {
 		regUser = config.ExistingUser

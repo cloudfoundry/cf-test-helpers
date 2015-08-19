@@ -124,7 +124,7 @@ var _ = Describe("ConfiguredContext", func() {
 				createUserCall := FakeCfCalls[0]
 				Expect(createUserCall[0]).To(Equal("create-user"))
 				Expect(createUserCall[1]).To(MatchRegexp("fake-prefix-USER-\\d+-.*"))
-				Expect(createUserCall[2]).To(Equal("meow")) //why meow??
+				Expect(createUserCall[2]).To(Equal("meowHaiLoch4LeiChaht8aingei5Aek8oh")) // CF214 onwards allows pwd policy - so just in case no meow :(
 			})
 
 			It("creates a new quota with a unique name", func() {

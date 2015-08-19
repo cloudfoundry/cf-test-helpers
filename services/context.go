@@ -86,7 +86,7 @@ func NewContext(config Config, prefix string) Context {
 		spaceName:        fmt.Sprintf("%s-SPACE-%d-%s", prefix, node, timeTag),
 
 		regularUserUsername: fmt.Sprintf("%s-USER-%d-%s", prefix, node, timeTag),
-		regularUserPassword: "meow",
+		regularUserPassword: "meowHaiLoch4LeiChaht8aingei5Aek8oh",
 
 		securityGroupName: fmt.Sprintf("%s-SECURITY_GROUP-%d-%s", prefix, node, timeTag),
 
