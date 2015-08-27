@@ -74,6 +74,11 @@ func NewContext(config Config, prefix string) Context {
 		organizationName = fmt.Sprintf("%s-ORG-%d-%s", prefix, node, timeTag)
 	}
 
+	regUserPass := "meow"
+	if config.ConfigurableTestPassword != "" {
+		regUserPass = config.ConfigurableTestPassword
+	}
+
 	return &context{
 		config: config,
 
@@ -86,7 +91,7 @@ func NewContext(config Config, prefix string) Context {
 		spaceName:        fmt.Sprintf("%s-SPACE-%d-%s", prefix, node, timeTag),
 
 		regularUserUsername: fmt.Sprintf("%s-USER-%d-%s", prefix, node, timeTag),
-		regularUserPassword: "meow",
+		regularUserPassword: regUserPass,
 
 		securityGroupName: fmt.Sprintf("%s-SECURITY_GROUP-%d-%s", prefix, node, timeTag),
 

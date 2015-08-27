@@ -16,6 +16,7 @@ type Config struct {
 	SkipSSLValidation             bool    `json:"skip_ssl_validation"`
 	TimeoutScale                  float64 `json:"timeout_scale"`
 	OrgName                       string  `json:"org_name"`
+	ConfigurableTestPassword      string  `json:"test_password"`
 }
 
 func (c Config) ScaledTimeout(timeout time.Duration) time.Duration {
