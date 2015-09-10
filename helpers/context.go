@@ -57,6 +57,9 @@ func NewContext(config Config) *ConfiguredContext {
 		regUser = config.ExistingUser
 		regUserPass = config.ExistingUserPassword
 	}
+	if config.ConfigurableTestPassword != "" {
+		regUserPass = config.ConfigurableTestPassword
+	}
 
 	if config.UseExistingOrgAndSpace {
 		orgName = config.ExistingOrg

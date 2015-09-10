@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 )
 
 type Config struct {
@@ -26,6 +28,8 @@ type Config struct {
 	ExistingOrg		string 	`json:"existing_org"`
 	ExistingSpace 	string	`json:"existing_space"`
 	ExistingQuota	string	`json:"existing_quota"`
+	
+	ConfigurableTestPassword string `json:"test_password"`
 
 	PersistentAppHost      string `json:"persistent_app_host"`
 	PersistentAppSpace     string `json:"persistent_app_space"`
@@ -84,6 +88,8 @@ func LoadConfig() Config {
 	if loadedConfig.TimeoutScale <= 0 {
 		loadedConfig.TimeoutScale = 1.0
 	}
+
+	runner.SkipSSLValidation = loadedConfig.SkipSSLValidation
 
 	return *loadedConfig
 }
