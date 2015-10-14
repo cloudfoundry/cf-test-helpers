@@ -28,7 +28,8 @@ type ConfiguredContext struct {
 	regularUserUsername string
 	regularUserPassword string
 
-	isPersistent bool
+	isPersistentApp bool
+	isPersistentOrgAndSpace bool
 }
 
 type quotaDefinition struct {
@@ -47,6 +48,10 @@ func NewContext(config Config) *ConfiguredContext {
 
 	regUser := fmt.Sprintf("CATS-USER-%d-%s", node, timeTag)
 	regUserPass := "meow"
+	orgName := fmt.Sprintf("CATS-ORG-%d-%s", node, timeTag)
+	spaceName := fmt.Sprintf("CATS-SPACE-%d-%s", node, timeTag)
+	quota := fmt.Sprintf("CATS-QUOTA-%d-%s", node, timeTag)
+	persistOrgAndSpace := false
 
 	if config.UseExistingUser {
 		regUser = config.ExistingUser
@@ -56,21 +61,29 @@ func NewContext(config Config) *ConfiguredContext {
 		regUserPass = config.ConfigurableTestPassword
 	}
 
+	if config.UseExistingOrgAndSpace {
+		orgName = config.ExistingOrg
+		spaceName = config.ExistingSpace
+		quota = config.ExistingQuota
+		persistOrgAndSpace = true
+	}
+
 	return &ConfiguredContext{
 		config: config,
 
 		shortTimeout: config.ScaledTimeout(1 * time.Minute),
 		longTimeout:  config.ScaledTimeout(5 * time.Minute),
 
-		quotaDefinitionName: fmt.Sprintf("CATS-QUOTA-%d-%s", node, timeTag),
+		quotaDefinitionName: quota,
 
-		organizationName: fmt.Sprintf("CATS-ORG-%d-%s", node, timeTag),
-		spaceName:        fmt.Sprintf("CATS-SPACE-%d-%s", node, timeTag),
+		organizationName: orgName,
+		spaceName:        spaceName,
 
 		regularUserUsername: regUser,
 		regularUserPassword: regUserPass,
 
-		isPersistent: false,
+		isPersistentApp: false,
+		isPersistentOrgAndSpace: persistOrgAndSpace,
 	}
 }
 
@@ -80,7 +93,7 @@ func NewPersistentAppContext(config Config) *ConfiguredContext {
 	baseContext.quotaDefinitionName = config.PersistentAppQuotaName
 	baseContext.organizationName = config.PersistentAppOrg
 	baseContext.spaceName = config.PersistentAppSpace
-	baseContext.isPersistent = true
+	baseContext.isPersistentApp = true
 
 	return baseContext
 }
@@ -93,30 +106,40 @@ func (context ConfiguredContext) LongTimeout() time.Duration {
 	return context.longTimeout
 }
 
+func (context ConfiguredContext) IsPersistentOrgAndSpace() bool {
+	return context.isPersistentOrgAndSpace
+}
+
 func (context *ConfiguredContext) Setup() {
-	cf.AsUser(context.AdminUserContext(), context.shortTimeout, func() {
-		definition := quotaDefinition{
-			Name: context.quotaDefinitionName,
+	if !context.isPersistentOrgAndSpace {
+		cf.AsUser(context.AdminUserContext(), context.shortTimeout, func() {
+			definition := quotaDefinition {
+				Name: context.quotaDefinitionName,
 
-			TotalServices: "100",
-			TotalRoutes:   "1000",
-			MemoryLimit:   "10G",
+				TotalServices: "100",
+				TotalRoutes:   "1000",
+				MemoryLimit:   "10G",
 
-			NonBasicServicesAllowed: true,
-		}
+				NonBasicServicesAllowed: true,
+			}
 
-		args := []string{
-			"create-quota",
-			context.quotaDefinitionName,
-			"-m", definition.MemoryLimit,
-			"-r", definition.TotalRoutes,
-			"-s", definition.TotalServices,
-		}
-		if definition.NonBasicServicesAllowed {
-			args = append(args, "--allow-paid-service-plans")
-		}
+			args := []string {
+				"create-quota",
+				context.quotaDefinitionName,
+				"-m", definition.MemoryLimit,
+				"-r", definition.TotalRoutes,
+				"-s", definition.TotalServices,
+			}
 
-		runner.NewCmdRunner(cf.Cf(args...), context.shortTimeout).Run()
+			if definition.NonBasicServicesAllowed {
+				args = append(args, "--allow-paid-service-plans")
+			}
+
+			runner.NewCmdRunner(cf.Cf(args...), context.shortTimeout).Run()
+			runner.NewCmdRunner(cf.Cf("create-org", context.organizationName), context.shortTimeout).Run()
+			runner.NewCmdRunner(cf.Cf("set-quota", context.organizationName, definition.Name), context.shortTimeout).Run()
+		})
+	}
 
 		if !context.config.UseExistingUser {
 			createUserCmd := cf.Cf("create-user", context.regularUserUsername, context.regularUserPassword)
@@ -125,10 +148,6 @@ func (context *ConfiguredContext) Setup() {
 				Expect(createUserCmd.Out).To(Say("scim_resource_already_exists"))
 			}
 		}
-
-		runner.NewCmdRunner(cf.Cf("create-org", context.organizationName), context.shortTimeout).Run()
-		runner.NewCmdRunner(cf.Cf("set-quota", context.organizationName, definition.Name), context.shortTimeout).Run()
-	})
 }
 
 func (context *ConfiguredContext) SetRunawayQuota() {
@@ -144,9 +163,14 @@ func (context *ConfiguredContext) Teardown() {
 			runner.NewCmdRunner(cf.Cf("delete-user", "-f", context.regularUserUsername), context.shortTimeout).Run()
 		}
 
-		if !context.isPersistent {
+		if !context.isPersistentApp && !context.isPersistentOrgAndSpace {
 			runner.NewCmdRunner(cf.Cf("delete-org", "-f", context.organizationName), context.shortTimeout).Run()
 			runner.NewCmdRunner(cf.Cf("delete-quota", "-f", context.quotaDefinitionName), context.shortTimeout).Run()
+		}
+
+		if context.isPersistentOrgAndSpace {
+			runner.NewCmdRunner(cf.Cf("t", "-o", context.organizationName), context.shortTimeout).Run()
+			runner.NewCmdRunner(cf.Cf("delete-space", "-f", context.spaceName), context.shortTimeout).Run()
 		}
 	})
 }

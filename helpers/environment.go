@@ -17,6 +17,7 @@ type SuiteContext interface {
 
 	ShortTimeout() time.Duration
 	LongTimeout() time.Duration
+	IsPersistentOrgAndSpace() bool
 }
 
 type Environment struct {
@@ -32,9 +33,11 @@ func NewEnvironment(context SuiteContext) *Environment {
 func (e *Environment) Setup() {
 	e.context.Setup()
 
-	cf.AsUser(e.context.AdminUserContext(), e.context.ShortTimeout(), func() {
-		e.setUpSpaceWithUserAccess(e.context.RegularUserContext())
-	})
+	if !e.context.IsPersistentOrgAndSpace() {
+		cf.AsUser(e.context.AdminUserContext(), e.context.ShortTimeout(), func() {
+			e.setUpSpaceWithUserAccess(e.context.RegularUserContext())
+		})
+	}
 
 	e.originalCfHomeDir, e.currentCfHomeDir = cf.InitiateUserContext(e.context.RegularUserContext(), e.context.ShortTimeout())
 	cf.TargetSpace(e.context.RegularUserContext(), e.context.ShortTimeout())
