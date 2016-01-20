@@ -89,7 +89,7 @@ func LoadConfig() Config {
 		panic("missing configuration 'admin_user'")
 	}
 
-	if loadedConfig.ApiEndpoint == "" {
+	if loadedConfig.AdminPassword == "" {
 		panic("missing configuration 'admin_password'")
 	}
 
