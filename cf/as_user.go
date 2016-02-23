@@ -39,7 +39,7 @@ func InitiateUserContext(userContext UserContext, timeout time.Duration) (origin
 
 	runner.NewCmdRunner(Cf(cfSetApiArgs...), timeout).Run()
 
-	runner.NewCmdRunner(Cf("auth", userContext.Username, userContext.Password), timeout).Run()
+	runner.NewCmdRunner(CfAuth(userContext.Username, userContext.Password), timeout).Run()
 
 	return
 }
