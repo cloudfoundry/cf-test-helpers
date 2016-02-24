@@ -8,25 +8,19 @@ import (
 	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
-	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 )
 
 const timeFormat = "2006-01-02 15:04:05.00 (MST)"
 
 var CfAuth = func(user, password string) *gexec.Session {
-	cfCmd := exec.Command("cf", "auth", user, password) //Cf("auth", user, password)
-	// session := runner.NewCmdRunner(cfCmd, 1*time.Second).Run()
-
-	sayCommandWillRun(time.Now(), cfCmd)
-
-	sess, err := gexec.Start(runner.CommandInterceptor(cfCmd), ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
-	Expect(err).NotTo(HaveOccurred())
-
-	return sess
+	cmdStarter := runner.NewCommandStarterWithReporter(&sanitizedReporter{})
+	return cmdStarter.Start("cf", "auth", user, password)
 }
 
-func sayCommandWillRun(startTime time.Time, cmd *exec.Cmd) {
+type sanitizedReporter struct{}
+
+func (r *sanitizedReporter) Report(startTime time.Time, cmd *exec.Cmd) {
 	cfCmd := cmd.Args[0]
 	authCmd := cmd.Args[1]
 	user := cmd.Args[2]
