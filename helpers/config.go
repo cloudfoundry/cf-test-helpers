@@ -10,11 +10,9 @@ import (
 )
 
 type Config struct {
-	ApiEndpoint  string `json:"api"`
-	SystemDomain string `json:"system_domain"`
-	ClientSecret string `json:"client_secret"`
-	AppsDomain   string `json:"apps_domain"`
-	UseHttp      bool   `json:"use_http"`
+	ApiEndpoint string `json:"api"`
+	AppsDomain  string `json:"apps_domain"`
+	UseHttp     bool   `json:"use_http"`
 
 	AdminUser     string `json:"admin_user"`
 	AdminPassword string `json:"admin_password"`
