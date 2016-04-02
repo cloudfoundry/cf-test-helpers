@@ -37,9 +37,8 @@ func InitiateUserContext(userContext UserContext, timeout time.Duration) (origin
 		cfSetApiArgs = append(cfSetApiArgs, "--skip-ssl-validation")
 	}
 
-	runner.NewCmdWaiter(Cf(cfSetApiArgs...), timeout).Wait()
-
-	runner.NewCmdWaiter(CfAuth(userContext.Username, userContext.Password), timeout).Wait()
+	Cf(cfSetApiArgs...).Wait(timeout)
+	CfAuth(userContext.Username, userContext.Password).Wait(timeout)
 
 	return
 }
