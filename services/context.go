@@ -8,10 +8,10 @@ import (
 	"time"
 
 	ginkgoconfig "github.com/onsi/ginkgo/config"
-	"github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/gexec"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 )
 
 type Context interface {
@@ -109,10 +109,9 @@ func (c context) LongTimeout() time.Duration {
 
 func (c *context) Setup() {
 	cf.AsUser(c.AdminUserContext(), c.shortTimeout, func() {
-		runner.NewCmdWaiter(cf.Cf("create-user", c.regularUserUsername, c.regularUserPassword), c.shortTimeout).Wait()
+		Eventually(cf.Cf("create-user", c.regularUserUsername, c.regularUserPassword), c.shortTimeout).Should(Exit(0))
 
 		if c.useExistingOrg == false {
-
 			definition := QuotaDefinition{
 				Name: c.quotaDefinitionName,
 
@@ -125,15 +124,15 @@ func (c *context) Setup() {
 			}
 
 			definitionPayload, err := json.Marshal(definition)
-			gomega.Expect(err).ToNot(gomega.HaveOccurred())
+			Expect(err).ToNot(HaveOccurred())
 
 			var response cf.GenericResource
 			cf.ApiRequest("POST", "/v2/quota_definitions", &response, c.shortTimeout, string(definitionPayload))
 
 			c.quotaDefinitionGUID = response.Metadata.Guid
 
-			runner.NewCmdWaiter(cf.Cf("create-org", c.organizationName), c.shortTimeout).Wait()
-			runner.NewCmdWaiter(cf.Cf("set-quota", c.organizationName, c.quotaDefinitionName), c.shortTimeout).Wait()
+			Eventually(cf.Cf("create-org", c.organizationName), c.shortTimeout).Should(Exit(0))
+			Eventually(cf.Cf("set-quota", c.organizationName, c.quotaDefinitionName), c.shortTimeout).Should(Exit(0))
 		}
 
 		c.setUpSpaceWithUserAccess(c.RegularUserContext())
@@ -154,14 +153,14 @@ func (c *context) Teardown() {
 	cf.RestoreUserContext(c.RegularUserContext(), c.shortTimeout, c.originalCfHomeDir, c.currentCfHomeDir)
 
 	cf.AsUser(c.AdminUserContext(), c.shortTimeout, func() {
-		runner.NewCmdWaiter(cf.Cf("delete-user", "-f", c.regularUserUsername), c.longTimeout).Wait()
+		Eventually(cf.Cf("delete-user", "-f", c.regularUserUsername), c.longTimeout).Should(Exit(0))
 
 		// delete-space does not provide an org flag, so we must target the Org first
-		runner.NewCmdWaiter(cf.Cf("target", "-o", userOrg), c.longTimeout).Wait()
-		runner.NewCmdWaiter(cf.Cf("delete-space", "-f", c.spaceName), c.longTimeout).Wait()
+		Eventually(cf.Cf("target", "-o", userOrg), c.longTimeout).Should(Exit(0))
+		Eventually(cf.Cf("delete-space", "-f", c.spaceName), c.longTimeout).Should(Exit(0))
 
 		if !c.useExistingOrg {
-			runner.NewCmdWaiter(cf.Cf("delete-org", "-f", c.organizationName), c.longTimeout).Wait()
+			Eventually(cf.Cf("delete-org", "-f", c.organizationName), c.longTimeout).Should(Exit(0))
 
 			cf.ApiRequest(
 				"DELETE",
@@ -172,7 +171,7 @@ func (c *context) Teardown() {
 		}
 
 		if c.config.CreatePermissiveSecurityGroup {
-			runner.NewCmdWaiter(cf.Cf("delete-security-group", "-f", c.securityGroupName), c.shortTimeout).Wait()
+			Eventually(cf.Cf("delete-security-group", "-f", c.securityGroupName), c.shortTimeout).Should(Exit(0))
 		}
 	})
 }
@@ -200,10 +199,10 @@ func (c context) RegularUserContext() cf.UserContext {
 }
 
 func (c context) setUpSpaceWithUserAccess(uc cf.UserContext) {
-	runner.NewCmdWaiter(cf.Cf("create-space", "-o", uc.Org, uc.Space), c.shortTimeout).Wait()
-	runner.NewCmdWaiter(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceManager"), c.shortTimeout).Wait()
-	runner.NewCmdWaiter(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceDeveloper"), c.shortTimeout).Wait()
-	runner.NewCmdWaiter(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceAuditor"), c.shortTimeout).Wait()
+	Eventually(cf.Cf("create-space", "-o", uc.Org, uc.Space), c.shortTimeout).Should(Exit(0))
+	Eventually(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceManager"), c.shortTimeout).Should(Exit(0))
+	Eventually(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceDeveloper"), c.shortTimeout).Should(Exit(0))
+	Eventually(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceAuditor"), c.shortTimeout).Should(Exit(0))
 }
 
 func (c context) createPermissiveSecurityGroup() {
@@ -216,10 +215,10 @@ func (c context) createPermissiveSecurityGroup() {
 
 	rulesFilePath, err := c.writeJSONToTempFile(rules, fmt.Sprintf("%s-rules.json", c.securityGroupName))
 	defer os.RemoveAll(rulesFilePath)
-	gomega.Expect(err).ToNot(gomega.HaveOccurred())
+	Expect(err).ToNot(HaveOccurred())
 
-	runner.NewCmdWaiter(cf.Cf("create-security-group", c.securityGroupName, rulesFilePath), c.shortTimeout).Wait()
-	runner.NewCmdWaiter(cf.Cf("bind-security-group", c.securityGroupName, c.organizationName, c.spaceName), c.shortTimeout).Wait()
+	Eventually(cf.Cf("create-security-group", c.securityGroupName, rulesFilePath), c.shortTimeout).Should(Exit(0))
+	Eventually(cf.Cf("bind-security-group", c.securityGroupName, c.organizationName, c.spaceName), c.shortTimeout).Should(Exit(0))
 }
 
 func (c context) writeJSONToTempFile(object interface{}, filePrefix string) (filePath string, err error) {

@@ -92,8 +92,6 @@ var _ = Describe("ConfiguredContext", func() {
 
 		oldCfAuth = cf.CfAuth
 		cf.CfAuth = FakeCfAuth
-
-		//TODO: TimeoutScale = float64(0.1)
 	})
 
 	AfterEach(func() {
@@ -109,7 +107,6 @@ var _ = Describe("ConfiguredContext", func() {
 		)
 
 		Context("without OrgName", func() {
-
 			BeforeEach(func() {
 				config = services.Config{
 					AppsDomain:        "fake-domain",
@@ -222,66 +219,6 @@ var _ = Describe("ConfiguredContext", func() {
 					Expect(setRoleCall[3]).To(MatchRegexp("fake-prefix-SPACE-\\d+-.*"))
 					Expect(setRoleCall[4]).To(Equal(role))
 				}
-			})
-
-			Context("when create-user fails", func() {
-				BeforeEach(func() {
-					FakeCfCallback["create-user"] = func(args ...string) *exec.Cmd {
-						return exec.Command("false")
-					}
-				})
-
-				It("causes gomega matcher failure with stdout & stderr", func() {
-					failures := InterceptGomegaFailures(func() {
-						context.Setup()
-					})
-					Expect(failures[0]).To(MatchRegexp(
-						"Failed executing command \\(exit 1\\):\nCommand: %s\n\n\\[stdout\\]:\n%s\n\n\\[stderr\\]:\n%s",
-						"false",
-						"",
-						"",
-					))
-				})
-			})
-
-			Context("when create-org fails", func() {
-				BeforeEach(func() {
-					FakeCfCallback["create-org"] = func(args ...string) *exec.Cmd {
-						return exec.Command("false")
-					}
-				})
-
-				It("causes gomega matcher failure with stdout & stderr", func() {
-					failures := InterceptGomegaFailures(func() {
-						context.Setup()
-					})
-					Expect(failures[0]).To(MatchRegexp(
-						"Failed executing command \\(exit 1\\):\nCommand: %s\n\n\\[stdout\\]:\n%s\n\n\\[stderr\\]:\n%s",
-						"false",
-						"",
-						"",
-					))
-				})
-			})
-
-			Context("when set-quota fails", func() {
-				BeforeEach(func() {
-					FakeCfCallback["set-quota"] = func(args ...string) *exec.Cmd {
-						return exec.Command("false")
-					}
-				})
-
-				It("causes gomega matcher failure with stdout & stderr", func() {
-					failures := InterceptGomegaFailures(func() {
-						context.Setup()
-					})
-					Expect(failures[0]).To(MatchRegexp(
-						"Failed executing command \\(exit 1\\):\nCommand: %s\n\n\\[stdout\\]:\n%s\n\n\\[stderr\\]:\n%s",
-						"false",
-						"",
-						"",
-					))
-				})
 			})
 		})
 
@@ -483,46 +420,6 @@ var _ = Describe("ConfiguredContext", func() {
 				deleteQuotaCall := FakeApiRequestCalls[0]
 				Expect(deleteQuotaCall.method).To(Equal("DELETE"))
 				Expect(deleteQuotaCall.endpoint).To(Equal("/v2/quota_definitions/fake-guid?recursive=true"))
-			})
-
-			Context("when delete-user fails", func() {
-				BeforeEach(func() {
-					FakeCfCallback["delete-user"] = func(args ...string) *exec.Cmd {
-						return exec.Command("false")
-					}
-				})
-
-				It("causes gomega matcher failure with stdout & stderr", func() {
-					failures := InterceptGomegaFailures(func() {
-						context.Teardown()
-					})
-					Expect(failures[0]).To(MatchRegexp(
-						"Failed executing command \\(exit 1\\):\nCommand: %s\n\n\\[stdout\\]:\n%s\n\n\\[stderr\\]:\n%s",
-						"false",
-						"",
-						"",
-					))
-				})
-			})
-
-			Context("when delete-org fails", func() {
-				BeforeEach(func() {
-					FakeCfCallback["delete-org"] = func(args ...string) *exec.Cmd {
-						return exec.Command("false")
-					}
-				})
-
-				It("causes gomega matcher failure with stdout & stderr", func() {
-					failures := InterceptGomegaFailures(func() {
-						context.Teardown()
-					})
-					Expect(failures[0]).To(MatchRegexp(
-						"Failed executing command \\(exit 1\\):\nCommand: %s\n\n\\[stdout\\]:\n%s\n\n\\[stderr\\]:\n%s",
-						"false",
-						"",
-						"",
-					))
-				})
 			})
 		})
 
