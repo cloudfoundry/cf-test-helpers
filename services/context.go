@@ -42,7 +42,8 @@ type context struct {
 
 	securityGroupName string
 
-	useExistingOrg bool
+	useExistingOrg   bool
+	useExistingSpace bool
 
 	originalCfHomeDir string
 	currentCfHomeDir  string
@@ -64,7 +65,9 @@ func NewContext(config Config, prefix string) Context {
 	timeTag := time.Now().Format("2006_01_02-15h04m05.999s")
 
 	var organizationName string
+	var spaceName string
 	var useExistingOrg bool
+	var useExistingSpace bool
 
 	if config.OrgName != "" {
 		useExistingOrg = true
@@ -72,6 +75,14 @@ func NewContext(config Config, prefix string) Context {
 	} else {
 		useExistingOrg = false
 		organizationName = fmt.Sprintf("%s-ORG-%d-%s", prefix, node, timeTag)
+	}
+
+	if config.SpaceName != "" {
+		useExistingSpace = true
+		spaceName = config.SpaceName
+	} else {
+		useExistingSpace = false
+		spaceName = fmt.Sprintf("%s-SPACE-%d-%s", prefix, node, timeTag)
 	}
 
 	regUserPass := "meow"
@@ -88,14 +99,15 @@ func NewContext(config Config, prefix string) Context {
 		quotaDefinitionName: fmt.Sprintf("%s-QUOTA-%d-%s", prefix, node, timeTag),
 
 		organizationName: organizationName,
-		spaceName:        fmt.Sprintf("%s-SPACE-%d-%s", prefix, node, timeTag),
+		spaceName:        spaceName,
 
 		regularUserUsername: fmt.Sprintf("%s-USER-%d-%s", prefix, node, timeTag),
 		regularUserPassword: regUserPass,
 
 		securityGroupName: fmt.Sprintf("%s-SECURITY_GROUP-%d-%s", prefix, node, timeTag),
 
-		useExistingOrg: useExistingOrg,
+		useExistingOrg:   useExistingOrg,
+		useExistingSpace: useExistingSpace,
 	}
 }
 
@@ -157,7 +169,10 @@ func (c *context) Teardown() {
 
 		// delete-space does not provide an org flag, so we must target the Org first
 		Eventually(cf.Cf("target", "-o", userOrg), c.longTimeout).Should(Exit(0))
-		Eventually(cf.Cf("delete-space", "-f", c.spaceName), c.longTimeout).Should(Exit(0))
+
+		if !c.useExistingSpace {
+			Eventually(cf.Cf("delete-space", "-f", c.spaceName), c.longTimeout).Should(Exit(0))
+		}
 
 		if !c.useExistingOrg {
 			Eventually(cf.Cf("delete-org", "-f", c.organizationName), c.longTimeout).Should(Exit(0))
@@ -199,7 +214,9 @@ func (c context) RegularUserContext() cf.UserContext {
 }
 
 func (c context) setUpSpaceWithUserAccess(uc cf.UserContext) {
-	Eventually(cf.Cf("create-space", "-o", uc.Org, uc.Space), c.shortTimeout).Should(Exit(0))
+	if !c.useExistingSpace {
+		Eventually(cf.Cf("create-space", "-o", uc.Org, uc.Space), c.shortTimeout).Should(Exit(0))
+	}
 	Eventually(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceManager"), c.shortTimeout).Should(Exit(0))
 	Eventually(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceDeveloper"), c.shortTimeout).Should(Exit(0))
 	Eventually(cf.Cf("set-space-role", uc.Username, uc.Org, uc.Space, "SpaceAuditor"), c.shortTimeout).Should(Exit(0))
