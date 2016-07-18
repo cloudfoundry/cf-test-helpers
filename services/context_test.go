@@ -188,37 +188,39 @@ var _ = Describe("ConfiguredContext", func() {
 				Expect(setQuotaCall[2]).To(MatchRegexp("fake-prefix-QUOTA-\\d+-.*"))
 			})
 
-			It("creates a new space with a unique name", func() {
-				context.Setup()
+			Context("without SpaceName", func() {
+				It("creates a new space with a unique name", func() {
+					context.Setup()
 
-				createSpaceCall := FakeCfCalls[3]
-				Expect(createSpaceCall).To(HaveLen(4))
-				Expect(createSpaceCall[0]).To(Equal("create-space"))
-				Expect(createSpaceCall[1]).To(Equal("-o"))
-				Expect(createSpaceCall[2]).To(MatchRegexp("fake-prefix-ORG-\\d+-.*"))
-				Expect(createSpaceCall[3]).To(MatchRegexp("fake-prefix-SPACE-\\d+-.*"))
-			})
+					createSpaceCall := FakeCfCalls[3]
+					Expect(createSpaceCall).To(HaveLen(4))
+					Expect(createSpaceCall[0]).To(Equal("create-space"))
+					Expect(createSpaceCall[1]).To(Equal("-o"))
+					Expect(createSpaceCall[2]).To(MatchRegexp("fake-prefix-ORG-\\d+-.*"))
+					Expect(createSpaceCall[3]).To(MatchRegexp("fake-prefix-SPACE-\\d+-.*"))
+				})
 
-			It("binds the user to the new space", func() {
+				It("binds the user to the new space", func() {
+					expectedRoles := []string{
+						"SpaceManager",
+						"SpaceDeveloper",
+						"SpaceAuditor",
+					}
 
-				expectedRoles := []string{
-					"SpaceManager",
-					"SpaceDeveloper",
-					"SpaceAuditor",
-				}
+					context.Setup()
 
-				context.Setup()
+					previousCfCallCount := 4
+					for i, role := range expectedRoles {
+						setRoleCall := FakeCfCalls[previousCfCallCount+i]
+						Expect(setRoleCall).To(HaveLen(5))
+						Expect(setRoleCall[0]).To(Equal("set-space-role"))
+						Expect(setRoleCall[1]).To(MatchRegexp("fake-prefix-USER-\\d+-.*"))
+						Expect(setRoleCall[2]).To(MatchRegexp("fake-prefix-ORG-\\d+-.*"))
+						Expect(setRoleCall[3]).To(MatchRegexp("fake-prefix-SPACE-\\d+-.*"))
+						Expect(setRoleCall[4]).To(Equal(role))
+					}
+				})
 
-				previousCfCallCount := 4
-				for i, role := range expectedRoles {
-					setRoleCall := FakeCfCalls[previousCfCallCount+i]
-					Expect(setRoleCall).To(HaveLen(5))
-					Expect(setRoleCall[0]).To(Equal("set-space-role"))
-					Expect(setRoleCall[1]).To(MatchRegexp("fake-prefix-USER-\\d+-.*"))
-					Expect(setRoleCall[2]).To(MatchRegexp("fake-prefix-ORG-\\d+-.*"))
-					Expect(setRoleCall[3]).To(MatchRegexp("fake-prefix-SPACE-\\d+-.*"))
-					Expect(setRoleCall[4]).To(Equal(role))
-				}
 			})
 		})
 
@@ -320,6 +322,46 @@ var _ = Describe("ConfiguredContext", func() {
 					Expect(setRoleCall[3]).To(MatchRegexp("fake-prefix-SPACE-\\d+-.*"))
 					Expect(setRoleCall[4]).To(Equal(role))
 				}
+			})
+
+			Context("with SpaceName", func() {
+				BeforeEach(func() {
+					config.SpaceName = "fake-existing-space"
+					context = services.NewContext(config, prefix)
+				})
+
+				It("does not create a new space", func() {
+					createSpaceCallCount := 0
+					FakeCfCallback["create-space"] = func(args ...string) *exec.Cmd {
+						createSpaceCallCount += 1
+						return NoOpCmd()
+					}
+
+					context.Setup()
+
+					Expect(createSpaceCallCount).To(BeZero(), "Should not have called cf create-space")
+				})
+
+				It("binds the user to the existing space", func() {
+					expectedRoles := []string{
+						"SpaceManager",
+						"SpaceDeveloper",
+						"SpaceAuditor",
+					}
+
+					context.Setup()
+
+					previousCfCallCount := 1
+					for i, role := range expectedRoles {
+						setRoleCall := FakeCfCalls[previousCfCallCount+i]
+						Expect(setRoleCall).To(HaveLen(5))
+						Expect(setRoleCall[0]).To(Equal("set-space-role"))
+						Expect(setRoleCall[1]).To(MatchRegexp("fake-prefix-USER-\\d+-.*"))
+						Expect(setRoleCall[2]).To(MatchRegexp(config.OrgName))
+						Expect(setRoleCall[3]).To(MatchRegexp(config.SpaceName))
+						Expect(setRoleCall[4]).To(Equal(role))
+					}
+				})
 			})
 		})
 	})

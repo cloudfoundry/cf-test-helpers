@@ -16,6 +16,7 @@ type Config struct {
 	SkipSSLValidation             bool    `json:"skip_ssl_validation"`
 	TimeoutScale                  float64 `json:"timeout_scale"`
 	OrgName                       string  `json:"org_name"`
+	SpaceName                     string  `json:"space_name"`
 	ConfigurableTestPassword      string  `json:"test_password"`
 }
 
@@ -55,6 +56,10 @@ func ValidateConfig(config *Config) error {
 		config.TimeoutScale = 1
 	} else if config.TimeoutScale < 0 {
 		return fmt.Errorf("Field 'timeout_scale' must not be negative (found %d)", config.TimeoutScale)
+	}
+
+	if config.SpaceName != "" && config.OrgName == "" {
+		return fmt.Errorf("Field 'space_name' cannot be set unless 'org_name' is also set")
 	}
 
 	return nil
