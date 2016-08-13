@@ -1,6 +1,11 @@
-package runner
+package helpers
 
-import "github.com/onsi/gomega/gexec"
+import (
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
+)
+
+var SkipSSLValidation bool
 
 func Curl(args ...string) *gexec.Session {
 	return CurlSkipSSL(SkipSSLValidation, args...)
@@ -11,5 +16,7 @@ func CurlSkipSSL(skip bool, args ...string) *gexec.Session {
 	if skip {
 		curlArgs = append([]string{"-k"}, curlArgs...)
 	}
-	return Run("curl", curlArgs...)
+	session, err := Run("curl", curlArgs...)
+	Expect(err).NotTo(HaveOccurred())
+	return session
 }

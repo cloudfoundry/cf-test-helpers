@@ -5,8 +5,6 @@ import (
 
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
-
-	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 )
 
 const CURL_TIMEOUT = 30 * time.Second
@@ -27,7 +25,7 @@ func AppRootUri(appName string) string {
 // Curls an app's endpoint and exit successfully before the specified timeout
 func CurlAppWithTimeout(appName, path string, timeout time.Duration, args ...string) string {
 	uri := AppUri(appName, path)
-	curlCmd := runner.Curl(append([]string{uri}, args...)...).Wait(timeout)
+	curlCmd := Curl(append([]string{uri}, args...)...).Wait(timeout)
 	Expect(curlCmd).To(Exit(0))
 	Expect(string(curlCmd.Err.Contents())).To(HaveLen(0))
 	return string(curlCmd.Out.Contents())
