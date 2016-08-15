@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
+	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 )
 
@@ -15,5 +17,9 @@ func CurlSkipSSL(skip bool, args ...string) *gexec.Session {
 	if skip {
 		curlArgs = append([]string{"-k"}, curlArgs...)
 	}
-	return Run("curl", curlArgs...)
+	cmdStarter := runner.NewCommandStarter()
+	request, err := cmdStarter.Start("curl", curlArgs...)
+	Expect(err).NotTo(HaveOccurred())
+
+	return request
 }
