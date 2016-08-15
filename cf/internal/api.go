@@ -26,13 +26,13 @@ func ApiRequest(cmdStarter starter, method, endpoint string, response interface{
 	}
 
 	request, err := cmdStarter.Start("cf", args...)
-	Expect(err).NotTo(HaveOccurred())
+	ExpectWithOffset(2, err).NotTo(HaveOccurred())
 
 	request.Wait(timeout)
-	Expect(request).To(Exit(0))
+	ExpectWithOffset(2, request).To(Exit(0))
 
 	if response != nil {
 		err := json.Unmarshal(request.Out.Contents(), response)
-		Expect(err).ToNot(HaveOccurred())
+		ExpectWithOffset(2, err).ToNot(HaveOccurred())
 	}
 }
