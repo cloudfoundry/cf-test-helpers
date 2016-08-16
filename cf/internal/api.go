@@ -10,10 +10,6 @@ import (
 	. "github.com/onsi/gomega/gexec"
 )
 
-type starter interface {
-	Start(string, ...string) (*Session, error)
-}
-
 func ApiRequest(cmdStarter starter, method, endpoint string, response interface{}, timeout time.Duration, data ...string) {
 	args := []string{
 		"curl",
