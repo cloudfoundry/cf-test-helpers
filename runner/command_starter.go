@@ -13,24 +13,15 @@ var CommandInterceptor = func(cmd *exec.Cmd) *exec.Cmd {
 }
 
 type CommandStarter struct {
-	reporter Reporter
 }
 
 func NewCommandStarter() *CommandStarter {
-	return &CommandStarter{
-		reporter: NewDefaultReporter(),
-	}
+	return &CommandStarter{}
 }
 
-func NewCommandStarterWithReporter(reporter Reporter) *CommandStarter {
-	return &CommandStarter{
-		reporter: reporter,
-	}
-}
-
-func (r *CommandStarter) Start(executable string, args ...string) (*gexec.Session, error) {
+func (r *CommandStarter) Start(reporter Reporter, executable string, args ...string) (*gexec.Session, error) {
 	cmd := exec.Command(executable, args...)
-	r.reporter.Report(time.Now(), cmd)
+	reporter.Report(time.Now(), cmd)
 
 	sess, err := gexec.Start(CommandInterceptor(cmd), ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
 

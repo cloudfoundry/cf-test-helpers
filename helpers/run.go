@@ -8,7 +8,8 @@ import (
 
 func Run(executable string, args ...string) *gexec.Session {
 	cmdStarter := runner.NewCommandStarter()
-	session, err := cmdStarter.Start(executable, args...)
+	reporter := runner.NewDefaultReporter()
+	session, err := cmdStarter.Start(reporter, executable, args...)
 	Expect(err).NotTo(HaveOccurred())
 	return session
 }

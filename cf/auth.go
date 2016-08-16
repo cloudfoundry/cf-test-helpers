@@ -15,8 +15,9 @@ import (
 const timeFormat = "2006-01-02 15:04:05.00 (MST)"
 
 var CfAuth = func(user, password string) *gexec.Session {
-	cmdStarter := runner.NewCommandStarterWithReporter(&sanitizedReporter{})
-	session, err := cmdStarter.Start("cf", "auth", user, password)
+	cmdStarter := runner.NewCommandStarter()
+	reporter := &sanitizedReporter{}
+	session, err := cmdStarter.Start(reporter, "cf", "auth", user, password)
 	Expect(err).NotTo(HaveOccurred())
 	return session
 }

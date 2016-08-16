@@ -18,7 +18,8 @@ func CurlSkipSSL(skip bool, args ...string) *gexec.Session {
 		curlArgs = append([]string{"-k"}, curlArgs...)
 	}
 	cmdStarter := runner.NewCommandStarter()
-	request, err := cmdStarter.Start("curl", curlArgs...)
+	reporter := runner.NewDefaultReporter()
+	request, err := cmdStarter.Start(reporter, "curl", curlArgs...)
 	Expect(err).NotTo(HaveOccurred())
 
 	return request

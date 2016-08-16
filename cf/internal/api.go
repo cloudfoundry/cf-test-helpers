@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
 )
@@ -25,7 +26,8 @@ func ApiRequest(cmdStarter starter, method, endpoint string, response interface{
 		args = append(args, "-d", dataArg)
 	}
 
-	request, err := cmdStarter.Start("cf", args...)
+	reporter := runner.NewDefaultReporter()
+	request, err := cmdStarter.Start(reporter, "cf", args...)
 	ExpectWithOffset(2, err).NotTo(HaveOccurred())
 
 	request.Wait(timeout)

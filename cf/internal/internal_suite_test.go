@@ -1,9 +1,12 @@
 package cfinternal_test
 
 import (
+	"bytes"
 	"fmt"
 	"os/exec"
+	"time"
 
+	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -24,7 +27,15 @@ type fakeStarter struct {
 	}
 }
 
-func (s *fakeStarter) Start(executable string, args ...string) (*gexec.Session, error) {
+type fakeReporter struct {
+	calledWith struct {
+		startTime time.Time
+		cmd       *exec.Cmd
+	}
+	outputBuffer *bytes.Buffer
+}
+
+func (s *fakeStarter) Start(reporter runner.Reporter, executable string, args ...string) (*gexec.Session, error) {
 	s.calledWith.executable = executable
 	s.calledWith.args = args
 
@@ -32,6 +43,8 @@ func (s *fakeStarter) Start(executable string, args ...string) (*gexec.Session, 
 	if s.toReturn.output == "" {
 		s.toReturn.output = `\{\}`
 	}
+
+	reporter.Report(time.Now(), exec.Command(executable, args...))
 	cmd := exec.Command(
 		"bash",
 		"-c",
@@ -44,6 +57,13 @@ func (s *fakeStarter) Start(executable string, args ...string) (*gexec.Session, 
 	)
 	session, _ := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	return session, s.toReturn.err
+}
+
+func (r *fakeReporter) Report(startTime time.Time, cmd *exec.Cmd) {
+	r.calledWith.startTime = startTime
+	r.calledWith.cmd = cmd
+
+	fmt.Fprintf(r.outputBuffer, "Reporter reporting for duty")
 }
 
 func TestInternal(t *testing.T) {
