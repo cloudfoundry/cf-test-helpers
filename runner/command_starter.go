@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 )
 
@@ -28,11 +29,12 @@ func NewCommandStarterWithReporter(reporter Reporter) *CommandStarter {
 	}
 }
 
-func (r *CommandStarter) Start(executable string, args ...string) (*gexec.Session, error) {
+func (r *CommandStarter) Start(executable string, args ...string) *gexec.Session {
 	cmd := exec.Command(executable, args...)
 	r.reporter.Report(time.Now(), cmd)
 
 	sess, err := gexec.Start(CommandInterceptor(cmd), ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
+	Expect(err).NotTo(HaveOccurred())
 
-	return sess, err
+	return sess
 }

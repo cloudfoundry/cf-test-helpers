@@ -1,4 +1,4 @@
-package setuphelpers
+package helpers
 
 import (
 	"fmt"
