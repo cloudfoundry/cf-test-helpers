@@ -1,4 +1,4 @@
-package cfinternal
+package internal
 
 import (
 	"encoding/json"

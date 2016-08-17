@@ -1,10 +1,10 @@
-package cfinternal_test
+package internal_test
 
 import (
 	"fmt"
 	"time"
 
-	. "github.com/cloudfoundry-incubator/cf-test-helpers/cf/internal"
+	. "github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

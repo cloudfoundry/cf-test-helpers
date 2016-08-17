@@ -1,20 +1,20 @@
-package cf_test
+package workflowhelpers_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
 )
 
 var _ = Describe("NewUserContext", func() {
 
-	var createUser = func() cf.UserContext {
-		return cf.NewUserContext("http://FAKE_API.example.com", "FAKE_USERNAME", "FAKE_PASSWORD", "FAKE_ORG", "FAKE_SPACE", false)
+	var createUser = func() workflowhelpers.UserContext {
+		return workflowhelpers.NewUserContext("http://FAKE_API.example.com", "FAKE_USERNAME", "FAKE_PASSWORD", "FAKE_ORG", "FAKE_SPACE", false)
 	}
 
 	It("returns a UserContext struct", func() {
-		Expect(createUser()).To(BeAssignableToTypeOf(cf.UserContext{}))
+		Expect(createUser()).To(BeAssignableToTypeOf(workflowhelpers.UserContext{}))
 	})
 
 	It("sets UserContext.ApiUrl", func() {

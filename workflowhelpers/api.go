@@ -1,10 +1,10 @@
-package cf
+package workflowhelpers
 
 import (
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/cf/internal"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
 )
 
 type GenericResource struct {
@@ -18,5 +18,5 @@ type QueryResponse struct {
 }
 
 var ApiRequest = func(method, endpoint string, response interface{}, timeout time.Duration, data ...string) {
-	cfinternal.ApiRequest(runner.NewCommandStarter(), method, endpoint, response, timeout, data...)
+	internal.ApiRequest(runner.NewCommandStarter(), method, endpoint, response, timeout, data...)
 }

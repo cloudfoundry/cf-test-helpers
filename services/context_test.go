@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/services"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -29,7 +30,7 @@ var _ = Describe("ConfiguredContext", func() {
 		FakeCfCalls             [][]string
 		FakeCfAuthCalls         [][]string
 		FakeCfCallback          map[string]func(args ...string) *exec.Cmd
-		FakeAsUserCalls         []cf.UserContext
+		FakeAsUserCalls         []workflowhelpers.UserContext
 		FakeApiRequestCalls     []apiRequestInputs
 		FakeApiRequestCallbacks []func(method, endpoint string, response interface{}, data ...string)
 	)
@@ -56,7 +57,7 @@ var _ = Describe("ConfiguredContext", func() {
 		return session
 	}
 
-	var FakeAsUser = func(userContext cf.UserContext, timeout time.Duration, actions func()) {
+	var FakeAsUser = func(userContext workflowhelpers.UserContext, timeout time.Duration, actions func()) {
 		FakeAsUserCalls = append(FakeAsUserCalls, userContext)
 		actions()
 	}
@@ -82,13 +83,13 @@ var _ = Describe("ConfiguredContext", func() {
 		FakeCfCalls = [][]string{}
 		FakeCfAuthCalls = [][]string{}
 		FakeCfCallback = map[string]func(args ...string) *exec.Cmd{}
-		FakeAsUserCalls = []cf.UserContext{}
+		FakeAsUserCalls = []workflowhelpers.UserContext{}
 		FakeApiRequestCalls = []apiRequestInputs{}
 		FakeApiRequestCallbacks = []func(method, endpoint string, response interface{}, data ...string){}
 
 		cf.Cf = FakeCf
-		cf.AsUser = FakeAsUser
-		cf.ApiRequest = FakeApiRequest
+		workflowhelpers.AsUser = FakeAsUser
+		workflowhelpers.ApiRequest = FakeApiRequest
 
 		oldCfAuth = cf.CfAuth
 		cf.CfAuth = FakeCfAuth
@@ -122,7 +123,7 @@ var _ = Describe("ConfiguredContext", func() {
 			It("executes commands as the admin user", func() {
 				context.Setup()
 
-				Expect(FakeAsUserCalls).To(Equal([]cf.UserContext{
+				Expect(FakeAsUserCalls).To(Equal([]workflowhelpers.UserContext{
 					{
 						ApiUrl:            "fake-endpoint",
 						Username:          "fake-admin-user",
@@ -143,9 +144,9 @@ var _ = Describe("ConfiguredContext", func() {
 
 			It("creates a new quota with a unique name", func() {
 				FakeApiRequestCallbacks = append(FakeApiRequestCallbacks, func(method, endpoint string, response interface{}, data ...string) {
-					genericResponse, ok := response.(*cf.GenericResource)
+					genericResponse, ok := response.(*workflowhelpers.GenericResource)
 					if !ok {
-						Fail(fmt.Sprintf("Expected response to be of type *cf.GenericResource: %#v", response))
+						Fail(fmt.Sprintf("Expected response to be of type *workflowhelpers.GenericResource: %#v", response))
 					}
 					genericResponse.Metadata.Guid = "fake-guid"
 				})
@@ -241,7 +242,7 @@ var _ = Describe("ConfiguredContext", func() {
 			It("executes commands as the admin user", func() {
 				context.Setup()
 
-				Expect(FakeAsUserCalls).To(Equal([]cf.UserContext{
+				Expect(FakeAsUserCalls).To(Equal([]workflowhelpers.UserContext{
 					{
 						ApiUrl:            "fake-endpoint",
 						Username:          "fake-admin-user",
@@ -388,9 +389,9 @@ var _ = Describe("ConfiguredContext", func() {
 				context = services.NewContext(config, prefix)
 
 				FakeApiRequestCallbacks = append(FakeApiRequestCallbacks, func(method, endpoint string, response interface{}, data ...string) {
-					genericResponse, ok := response.(*cf.GenericResource)
+					genericResponse, ok := response.(*workflowhelpers.GenericResource)
 					if !ok {
-						Fail(fmt.Sprintf("Expected response to be of type *cf.GenericResource: %#v", response))
+						Fail(fmt.Sprintf("Expected response to be of type *workflowhelpers.GenericResource: %#v", response))
 					}
 					genericResponse.Metadata.Guid = "fake-guid"
 				})
@@ -399,14 +400,14 @@ var _ = Describe("ConfiguredContext", func() {
 
 				// ignore calls made by setup
 				FakeCfCalls = [][]string{}
-				FakeAsUserCalls = []cf.UserContext{}
+				FakeAsUserCalls = []workflowhelpers.UserContext{}
 				FakeApiRequestCalls = []apiRequestInputs{}
 			})
 
 			It("executes commands as the admin user", func() {
 				context.Teardown()
 
-				Expect(FakeAsUserCalls).To(Equal([]cf.UserContext{
+				Expect(FakeAsUserCalls).To(Equal([]workflowhelpers.UserContext{
 					{
 						ApiUrl:            "fake-endpoint",
 						Username:          "fake-admin-user",
@@ -480,9 +481,9 @@ var _ = Describe("ConfiguredContext", func() {
 				context = services.NewContext(config, prefix)
 
 				FakeApiRequestCallbacks = append(FakeApiRequestCallbacks, func(method, endpoint string, response interface{}, data ...string) {
-					genericResponse, ok := response.(*cf.GenericResource)
+					genericResponse, ok := response.(*workflowhelpers.GenericResource)
 					if !ok {
-						Fail(fmt.Sprintf("Expected response to be of type *cf.GenericResource: %#v", response))
+						Fail(fmt.Sprintf("Expected response to be of type *workflowhelpers.GenericResource: %#v", response))
 					}
 					genericResponse.Metadata.Guid = "fake-guid"
 				})
@@ -491,14 +492,14 @@ var _ = Describe("ConfiguredContext", func() {
 
 				// ignore calls made by setup
 				FakeCfCalls = [][]string{}
-				FakeAsUserCalls = []cf.UserContext{}
+				FakeAsUserCalls = []workflowhelpers.UserContext{}
 				FakeApiRequestCalls = []apiRequestInputs{}
 			})
 
 			It("executes commands as the admin user", func() {
 				context.Teardown()
 
-				Expect(FakeAsUserCalls).To(Equal([]cf.UserContext{
+				Expect(FakeAsUserCalls).To(Equal([]workflowhelpers.UserContext{
 					{
 						ApiUrl:            "fake-endpoint",
 						Username:          "fake-admin-user",
