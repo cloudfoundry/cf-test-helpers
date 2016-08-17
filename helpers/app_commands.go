@@ -17,11 +17,6 @@ func AppUri(appName, path string) string {
 	return config.Protocol() + appName + "." + appsDomain + path
 }
 
-// Gets an app's root endpoint
-func AppRootUri(appName string) string {
-	return AppUri(appName, "/")
-}
-
 // Curls an app's endpoint and exit successfully before the specified timeout
 func CurlAppWithTimeout(appName, path string, timeout time.Duration, args ...string) string {
 	uri := AppUri(appName, path)
