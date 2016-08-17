@@ -33,7 +33,6 @@ type Config struct {
 
 	SkipSSLValidation                 bool   `json:"skip_ssl_validation"`
 	Backend                           string `json:"backend"`
-	IncludeDiegoDocker                bool   `json:"include_diego_docker"`
 	IncludeTasks                      bool   `json:"include_tasks"`
 	IncludePrivilegedContainerSupport bool   `json:"include_privileged_container_support"`
 	IncludeSSO                        bool   `json:"include_sso"`
