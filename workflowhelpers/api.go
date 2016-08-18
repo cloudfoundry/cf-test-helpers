@@ -3,7 +3,7 @@ package workflowhelpers
 import (
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/commandstarter"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
 )
 

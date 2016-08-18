@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/commandstarter"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"

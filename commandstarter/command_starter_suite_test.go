@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestRunner(t *testing.T) {
+func TestCommandStarter(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Runner Suite")
+	RunSpecs(t, "Command Starter Suite")
 }

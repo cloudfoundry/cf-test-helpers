@@ -1,17 +1,17 @@
-package cfinternal_test
+package helpersinternal_test
 
 import (
-	"bytes"
 	"fmt"
 	"os/exec"
 	"time"
 
+	"github.com/cloudfoundry-incubator/cf-test-helpers/helpers/internal"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/commandstarter"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-
-	"testing"
 )
 
 type fakeStarter struct {
@@ -25,14 +25,6 @@ type fakeStarter struct {
 		exitCode  int
 		sleepTime int
 	}
-}
-
-type fakeReporter struct {
-	calledWith struct {
-		startTime time.Time
-		cmd       *exec.Cmd
-	}
-	outputBuffer *bytes.Buffer
 }
 
 func (s *fakeStarter) Start(reporter runner.Reporter, executable string, args ...string) (*gexec.Session, error) {
@@ -59,14 +51,32 @@ func (s *fakeStarter) Start(reporter runner.Reporter, executable string, args ..
 	return session, s.toReturn.err
 }
 
-func (r *fakeReporter) Report(startTime time.Time, cmd *exec.Cmd) {
-	r.calledWith.startTime = startTime
-	r.calledWith.cmd = cmd
+var _ = Describe("Curl", func() {
+	var cmdTimeout time.Duration
+	BeforeEach(func() {
+		cmdTimeout = 30 * time.Second
+	})
 
-	fmt.Fprintf(r.outputBuffer, "Reporter reporting for duty")
-}
+	It("outputs the body of the given URL", func() {
+		starter := new(fakeStarter)
+		starter.toReturn.output = "HTTP/1.1 200 OK"
 
-func TestInternal(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "CF Internal Suite")
-}
+		session := helpersinternal.Curl(starter, "-I", "http://example.com")
+
+		session.Wait(cmdTimeout)
+		Expect(session).To(gexec.Exit(0))
+		Expect(session.Out).To(Say("HTTP/1.1 200 OK"))
+		Expect(starter.calledWith.executable).To(Equal("curl"))
+		Expect(starter.calledWith.args).To(ConsistOf("-I", "-s", "http://example.com"))
+	})
+
+	It("panics when the starter returns an error", func() {
+		starter := new(fakeStarter)
+		starter.toReturn.err = fmt.Errorf("error")
+
+		Expect(func() {
+			helpersinternal.Curl(starter, "-I", "http://example.com")
+		}).To(Panic())
+
+	})
+})
