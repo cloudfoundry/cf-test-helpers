@@ -7,14 +7,15 @@ import (
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
-	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 )
 
 func CfAuth(user string, password string, cmdStarter starter) *gexec.Session {
 	reporter := &sanitizedReporter{}
 	auth, err := cmdStarter.Start(reporter, "cf", "auth", user, password)
-	Expect(err).NotTo(HaveOccurred())
+	if err != nil {
+		panic(err)
+	}
 	return auth
 }
 

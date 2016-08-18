@@ -36,13 +36,10 @@ var _ = Describe("CfAuth", func() {
 			cmdStarter.toReturn.err = fmt.Errorf("something went wrong")
 		})
 
-		It("fails with a ginkgo error", func() {
-			failures := InterceptGomegaFailures(func() {
+		It("panics", func() {
+			Expect(func() {
 				cfinternal.CfAuth("user", "password", cmdStarter)
-			})
-
-			Expect(failures).To(ContainElement(MatchRegexp("something went wrong")))
-			Expect(failures).To(ContainElement(MatchRegexp("not to have occurred")))
+			}).To(Panic())
 		})
 	})
 })

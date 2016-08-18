@@ -23,13 +23,12 @@ var _ = Describe("Cf", func() {
 	})
 
 	Context("when there is an error", func() {
-		It("reports the failure to ginkgo", func() {
+		It("panics", func() {
 			starter := new(fakeStarter)
 			starter.toReturn.err = fmt.Errorf("failing now")
-			failures := InterceptGomegaFailures(func() {
+			Expect(func() {
 				cfinternal.Cf(starter, "fail")
-			})
-			Expect(failures).To(ContainElement(MatchRegexp("failing now")))
+			}).To(Panic())
 		})
 	})
 })
