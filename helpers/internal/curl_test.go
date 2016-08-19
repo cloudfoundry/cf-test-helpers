@@ -61,7 +61,7 @@ var _ = Describe("Curl", func() {
 		starter := new(fakeStarter)
 		starter.toReturn.output = "HTTP/1.1 200 OK"
 
-		session := helpersinternal.CurlSkipSSL(starter, false, "-I", "http://example.com")
+		session := helpersinternal.Curl(starter, false, "-I", "http://example.com")
 
 		session.Wait(cmdTimeout)
 		Expect(session).To(gexec.Exit(0))
@@ -75,7 +75,7 @@ var _ = Describe("Curl", func() {
 		starter.toReturn.err = fmt.Errorf("error")
 
 		Expect(func() {
-			helpersinternal.CurlSkipSSL(starter, false, "-I", "http://example.com")
+			helpersinternal.Curl(starter, false, "-I", "http://example.com")
 		}).To(Panic())
 
 	})
