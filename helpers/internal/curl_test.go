@@ -5,8 +5,8 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/helpers/internal"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/commandstarter"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/helpers/internal"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -61,7 +61,7 @@ var _ = Describe("Curl", func() {
 		starter := new(fakeStarter)
 		starter.toReturn.output = "HTTP/1.1 200 OK"
 
-		session := helpersinternal.Curl(starter, "-I", "http://example.com")
+		session := helpersinternal.CurlSkipSSL(starter, false, "-I", "http://example.com")
 
 		session.Wait(cmdTimeout)
 		Expect(session).To(gexec.Exit(0))
@@ -75,7 +75,7 @@ var _ = Describe("Curl", func() {
 		starter.toReturn.err = fmt.Errorf("error")
 
 		Expect(func() {
-			helpersinternal.Curl(starter, "-I", "http://example.com")
+			helpersinternal.CurlSkipSSL(starter, false, "-I", "http://example.com")
 		}).To(Panic())
 
 	})

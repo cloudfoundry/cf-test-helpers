@@ -10,7 +10,7 @@ var SkipSSLValidation bool
 
 func Curl(args ...string) *gexec.Session {
 	cmdStarter := runner.NewCommandStarter()
-	return helpersinternal.Curl(cmdStarter, args...)
+	return helpersinternal.CurlSkipSSL(cmdStarter, SkipSSLValidation, args...)
 }
 
 func CurlSkipSSL(skip bool, args ...string) *gexec.Session {
