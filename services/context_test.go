@@ -28,7 +28,6 @@ var _ = Describe("ConfiguredContext", func() {
 
 	var (
 		FakeCfCalls             [][]string
-		FakeCfAuthCalls         [][]string
 		FakeCfCallback          map[string]func(args ...string) *exec.Cmd
 		FakeAsUserCalls         []workflowhelpers.UserContext
 		FakeApiRequestCalls     []apiRequestInputs
@@ -48,12 +47,6 @@ var _ = Describe("ConfiguredContext", func() {
 			cmd = NoOpCmd()
 		}
 		session, _ := gexec.Start(cmd, nil, nil)
-		return session
-	}
-
-	var FakeCfAuth = func(user, password string) *gexec.Session {
-		FakeCfAuthCalls = append(FakeCfAuthCalls, []string{user, password})
-		session, _ := gexec.Start(NoOpCmd(), nil, nil)
 		return session
 	}
 
@@ -77,11 +70,8 @@ var _ = Describe("ConfiguredContext", func() {
 		}
 	}
 
-	var oldCfAuth func(string, string) *gexec.Session
-
 	BeforeEach(func() {
 		FakeCfCalls = [][]string{}
-		FakeCfAuthCalls = [][]string{}
 		FakeCfCallback = map[string]func(args ...string) *exec.Cmd{}
 		FakeAsUserCalls = []workflowhelpers.UserContext{}
 		FakeApiRequestCalls = []apiRequestInputs{}
@@ -90,13 +80,6 @@ var _ = Describe("ConfiguredContext", func() {
 		cf.Cf = FakeCf
 		workflowhelpers.AsUser = FakeAsUser
 		workflowhelpers.ApiRequest = FakeApiRequest
-
-		oldCfAuth = cf.CfAuth
-		cf.CfAuth = FakeCfAuth
-	})
-
-	AfterEach(func() {
-		cf.CfAuth = oldCfAuth
 	})
 
 	Describe("Setup", func() {
