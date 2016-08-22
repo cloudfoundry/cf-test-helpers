@@ -27,7 +27,7 @@ type fakeStarter struct {
 	}
 }
 
-func (s *fakeStarter) Start(reporter runner.Reporter, executable string, args ...string) (*gexec.Session, error) {
+func (s *fakeStarter) Start(reporter commandstarter.Reporter, executable string, args ...string) (*gexec.Session, error) {
 	s.calledWith.executable = executable
 	s.calledWith.args = args
 

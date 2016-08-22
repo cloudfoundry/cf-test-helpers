@@ -7,6 +7,6 @@ import (
 )
 
 var CfAuth = func(user, password string) *gexec.Session {
-	cmdStarter := runner.NewCommandStarter()
+	cmdStarter := commandstarter.NewCommandStarter()
 	return cfinternal.CfAuth(user, password, cmdStarter)
 }
