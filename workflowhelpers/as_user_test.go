@@ -17,7 +17,6 @@ var _ = Describe("AsUser", func() {
 		timeout               = 1 * time.Second
 		FakeThingsToRunAsUser = func() {}
 		FakeCfCalls           = [][]string{}
-		FakeCfAuthCalls       = [][]string{}
 	)
 
 	var FakeCf = func(args ...string) *gexec.Session {
@@ -26,39 +25,19 @@ var _ = Describe("AsUser", func() {
 		return session
 	}
 
-	var FakeCfAuth = func(user, password string) *gexec.Session {
-		FakeCfAuthCalls = append(FakeCfAuthCalls, []string{user, password})
-		var session, _ = gexec.Start(exec.Command("echo", "nothing"), nil, nil)
-		return session
-	}
-	var oldCfAuth func(string, string) *gexec.Session
 	var user workflowhelpers.UserContext
 
 	BeforeEach(func() {
 		FakeCfCalls = [][]string{}
-		FakeCfAuthCalls = [][]string{}
 		cf.Cf = FakeCf
 
-		oldCfAuth = cf.CfAuth
-		cf.CfAuth = FakeCfAuth
-
 		user = workflowhelpers.NewUserContext("http://FAKE_API.example.com", "FAKE_USERNAME", "FAKE_PASSWORD", "FAKE_ORG", "FAKE_SPACE", true)
-	})
-
-	AfterEach(func() {
-		cf.CfAuth = oldCfAuth
 	})
 
 	It("calls cf api", func() {
 		workflowhelpers.AsUser(user, timeout, FakeThingsToRunAsUser)
 
 		Expect(FakeCfCalls[0]).To(Equal([]string{"api", "http://FAKE_API.example.com", "--skip-ssl-validation"}))
-	})
-
-	It("calls cf auth", func() {
-		workflowhelpers.AsUser(user, timeout, FakeThingsToRunAsUser)
-
-		Expect(FakeCfAuthCalls[0]).To(Equal([]string{"FAKE_USERNAME", "FAKE_PASSWORD"}))
 	})
 
 	Describe("calling cf target", func() {

@@ -1,10 +1,10 @@
-package cfinternal_test
+package internal_test
 
 import (
 	"bytes"
 	"fmt"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/cf/internal"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -20,13 +20,13 @@ var _ = Describe("CfAuth", func() {
 	})
 
 	It("runs the cf auth command", func() {
-		cfinternal.CfAuth("user", "password", cmdStarter).Wait()
+		internal.CfAuth("user", "password", cmdStarter).Wait()
 		Expect(cmdStarter.calledWith.executable).To(Equal("cf"))
 		Expect(cmdStarter.calledWith.args).To(Equal([]string{"auth", "user", "password"}))
 	})
 
 	It("does not reveal the password", func() {
-		cfinternal.CfAuth("user", "password", cmdStarter).Wait()
+		internal.CfAuth("user", "password", cmdStarter).Wait()
 		Expect(reporterOutput.String()).To(ContainSubstring("REDACTED"))
 		Expect(reporterOutput.String()).NotTo(ContainSubstring("password"))
 	})
@@ -38,7 +38,7 @@ var _ = Describe("CfAuth", func() {
 
 		It("panics", func() {
 			Expect(func() {
-				cfinternal.CfAuth("user", "password", cmdStarter)
+				internal.CfAuth("user", "password", cmdStarter)
 			}).To(Panic())
 		})
 	})
