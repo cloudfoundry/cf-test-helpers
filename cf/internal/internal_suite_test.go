@@ -14,10 +14,11 @@ import (
 	"testing"
 )
 
-type fakeStarter struct {
+type fakeCmdStarter struct {
 	calledWith struct {
 		executable string
 		args       []string
+		reporter   commandstarter.Reporter
 	}
 	toReturn struct {
 		output    string
@@ -35,9 +36,10 @@ type fakeReporter struct {
 	outputBuffer *bytes.Buffer
 }
 
-func (s *fakeStarter) Start(reporter commandstarter.Reporter, executable string, args ...string) (*gexec.Session, error) {
+func (s *fakeCmdStarter) Start(reporter commandstarter.Reporter, executable string, args ...string) (*gexec.Session, error) {
 	s.calledWith.executable = executable
 	s.calledWith.args = args
+	s.calledWith.reporter = reporter
 
 	// Default return values
 	if s.toReturn.output == "" {

@@ -19,7 +19,5 @@ func (r *CommandStarter) Start(reporter Reporter, executable string, args ...str
 	cmd := exec.Command(executable, args...)
 	reporter.Report(time.Now(), cmd)
 
-	sess, err := gexec.Start(cmd, ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
-
-	return sess, err
+	return gexec.Start(cmd, ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
 }
