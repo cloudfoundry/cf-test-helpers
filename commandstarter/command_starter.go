@@ -8,10 +8,6 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var CommandInterceptor = func(cmd *exec.Cmd) *exec.Cmd {
-	return cmd
-}
-
 type CommandStarter struct {
 }
 
@@ -23,7 +19,7 @@ func (r *CommandStarter) Start(reporter Reporter, executable string, args ...str
 	cmd := exec.Command(executable, args...)
 	reporter.Report(time.Now(), cmd)
 
-	sess, err := gexec.Start(CommandInterceptor(cmd), ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
+	sess, err := gexec.Start(cmd, ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
 
 	return sess, err
 }
