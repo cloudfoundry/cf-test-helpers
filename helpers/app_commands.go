@@ -3,6 +3,7 @@ package helpers
 import (
 	"time"
 
+	"github.com/cloudfoundry-incubator/cf-test-helpers/config"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
 )
@@ -11,7 +12,7 @@ const CURL_TIMEOUT = 30 * time.Second
 
 // Gets an app's endpoint with the specified path
 func AppUri(appName, path string) string {
-	config := LoadConfig()
+	config := config.LoadConfig()
 	appsDomain := config.AppsDomain
 
 	return config.Protocol() + appName + "." + appsDomain + path
