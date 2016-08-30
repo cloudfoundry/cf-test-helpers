@@ -55,7 +55,7 @@ var _ = Describe("AppUriCreator", func() {
 			})
 
 			It("uses the app root", func() {
-				Expect(uriCreator.AppUri(appName, path)).To(Equal(fmt.Sprintf("http://%s.%s/", appName, appsDomain)))
+				Expect(uriCreator.AppUri(appName, path)).To(Equal(fmt.Sprintf("http://%s.%s", appName, appsDomain)))
 			})
 		})
 
