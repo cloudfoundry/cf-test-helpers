@@ -15,12 +15,12 @@ func EnableCFTrace(config config.Config, componentName string) {
 	os.Setenv("CF_TRACE", traceLogFilePath(config, componentName))
 }
 
-func traceLogFilePath(config config.Config, componentName string) string {
-	return filepath.Join(config.ArtifactsDirectory, fmt.Sprintf("CATS-TRACE-%s-%d.txt", sanitizeComponentName(componentName), ginkgoNode()))
-}
-
 func NewJUnitReporter(config config.Config, componentName string) *reporters.JUnitReporter {
 	return reporters.NewJUnitReporter(jUnitReportFilePath(config, componentName))
+}
+
+func traceLogFilePath(config config.Config, componentName string) string {
+	return filepath.Join(config.ArtifactsDirectory, fmt.Sprintf("CATS-TRACE-%s-%d.txt", sanitizeComponentName(componentName), ginkgoNode()))
 }
 
 func jUnitReportFilePath(config config.Config, componentName string) string {
