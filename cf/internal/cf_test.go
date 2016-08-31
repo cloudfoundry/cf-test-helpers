@@ -27,7 +27,7 @@ var _ = Describe("Cf", func() {
 	It("uses a default reporter", func() {
 		starter := new(fakes.FakeCmdStarter)
 		Eventually(cfinternal.Cf(starter, "app", "my-app"), 1*time.Second).Should(Exit(0))
-		Expect(starter.CalledWith.Reporter).To(BeAssignableToTypeOf(commandstarter.NewDefaultReporter()))
+		Expect(starter.CalledWith.Reporter).To(BeAssignableToTypeOf(commandstarter.NewCommandReporter()))
 	})
 
 	Context("when there is an error", func() {

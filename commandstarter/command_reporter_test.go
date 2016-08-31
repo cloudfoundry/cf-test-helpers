@@ -13,8 +13,8 @@ import (
 	"github.com/onsi/gomega/gbytes"
 )
 
-var _ = Describe("Reporter", func() {
-	Describe("NewDefaultReporter", func() {
+var _ = Describe("CommandReporter", func() {
+	Describe("NewCommandReporter", func() {
 		var writers []io.Writer
 
 		Context("when no writers are provided", func() {
@@ -23,7 +23,7 @@ var _ = Describe("Reporter", func() {
 			})
 
 			It("uses the GinkgoWriter", func() {
-				reporter := commandstarter.NewDefaultReporter(writers...)
+				reporter := commandstarter.NewCommandReporter(writers...)
 				writer := reporter.Writer
 				Expect(writer).To(BeAssignableToTypeOf(GinkgoWriter))
 			})
@@ -37,7 +37,7 @@ var _ = Describe("Reporter", func() {
 			})
 
 			It("uses the provided writer", func() {
-				reporter := commandstarter.NewDefaultReporter(writers...)
+				reporter := commandstarter.NewCommandReporter(writers...)
 				Expect(reporter.Writer).To(Equal(writers[0]))
 			})
 		})
@@ -51,19 +51,19 @@ var _ = Describe("Reporter", func() {
 			})
 
 			It("panics", func() {
-				Expect(func() { commandstarter.NewDefaultReporter(writers...) }).To(Panic())
+				Expect(func() { commandstarter.NewCommandReporter(writers...) }).To(Panic())
 			})
 		})
 	})
 
 	Describe("#Report", func() {
-		var reporter *commandstarter.DefaultReporter
+		var reporter *commandstarter.CommandReporter
 		var writer *gbytes.Buffer
 		var t time.Time
 		var timestampRegex string
 		BeforeEach(func() {
 			writer = gbytes.NewBuffer()
-			reporter = commandstarter.NewDefaultReporter(writer)
+			reporter = commandstarter.NewCommandReporter(writer)
 			t = time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 			timestampRegex = "\\[2009-11-10 23:00:00.00 \\(UTC\\)\\]>"
 		})

@@ -12,7 +12,7 @@ func Curl(cmdStarter internal.Starter, skipSsl bool, args ...string) *gexec.Sess
 		curlArgs = append([]string{"-k"}, curlArgs...)
 	}
 
-	reporter := commandstarter.NewDefaultReporter()
+	reporter := commandstarter.NewCommandReporter()
 	request, err := cmdStarter.Start(reporter, "curl", curlArgs...)
 
 	if err != nil {

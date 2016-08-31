@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/commandstarter"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/internal"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega/gexec"
 )
@@ -14,7 +14,7 @@ type FakeCmdStarter struct {
 	CalledWith struct {
 		Executable string
 		Args       []string
-		Reporter   commandstarter.Reporter
+		Reporter   internal.Reporter
 	}
 	ToReturn struct {
 		Output    string
@@ -24,7 +24,7 @@ type FakeCmdStarter struct {
 	}
 }
 
-func (s *FakeCmdStarter) Start(reporter commandstarter.Reporter, executable string, args ...string) (*gexec.Session, error) {
+func (s *FakeCmdStarter) Start(reporter internal.Reporter, executable string, args ...string) (*gexec.Session, error) {
 	s.CalledWith.Executable = executable
 	s.CalledWith.Args = args
 	s.CalledWith.Reporter = reporter

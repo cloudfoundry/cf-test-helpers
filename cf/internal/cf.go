@@ -7,7 +7,7 @@ import (
 )
 
 func Cf(cmdStarter internal.Starter, args ...string) *gexec.Session {
-	reporter := commandstarter.NewDefaultReporter()
+	reporter := commandstarter.NewCommandReporter()
 	request, err := cmdStarter.Start(reporter, "cf", args...)
 	if err != nil {
 		panic(err)
