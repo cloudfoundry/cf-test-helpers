@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cloudfoundry-incubator/cf-test-helpers/internal/fakes"
 	. "github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -14,19 +15,19 @@ type genericResource struct {
 }
 
 var _ = Describe("ApiRequest", func() {
-	var starter *fakeStarter
+	var starter *fakes.FakeCmdStarter
 	var timeout time.Duration
 	BeforeEach(func() {
-		starter = new(fakeStarter)
-		starter.toReturn.output = `\{\"foo\": \"bar\"\}`
+		starter = new(fakes.FakeCmdStarter)
+		starter.ToReturn.Output = `\{\"foo\": \"bar\"\}`
 		timeout = 1 * time.Second
 	})
 
 	It("sends the request to the current CF target", func() {
 		var response genericResource
 		ApiRequest(starter, "GET", "/v2/info", &response, timeout, "some", "data")
-		Expect(starter.calledWith.executable).To(Equal("cf"))
-		Expect(starter.calledWith.args).To(Equal([]string{"curl", "/v2/info", "-X", "GET", "-d", "somedata"}))
+		Expect(starter.CalledWith.Executable).To(Equal("cf"))
+		Expect(starter.CalledWith.Args).To(Equal([]string{"curl", "/v2/info", "-X", "GET", "-d", "somedata"}))
 
 		Expect(response.Foo).To(Equal("bar"))
 	})
@@ -43,13 +44,13 @@ var _ = Describe("ApiRequest", func() {
 	Context("when request data is empty", func() {
 		It("doesn't include a -d argument", func() {
 			ApiRequest(starter, "GET", "/v2/info", nil, timeout)
-			Expect(starter.calledWith.args).NotTo(ContainElement("-d"))
+			Expect(starter.CalledWith.Args).NotTo(ContainElement("-d"))
 		})
 	})
 
 	Context("when there is an error from the starter", func() {
 		BeforeEach(func() {
-			starter.toReturn.err = fmt.Errorf("something went wrong")
+			starter.ToReturn.Err = fmt.Errorf("something went wrong")
 		})
 
 		It("fails with a ginkgo error", func() {
@@ -62,7 +63,7 @@ var _ = Describe("ApiRequest", func() {
 
 	Context("when the process exits with non-zero code", func() {
 		BeforeEach(func() {
-			starter.toReturn.exitCode = 1
+			starter.ToReturn.ExitCode = 1
 		})
 
 		It("fails with a ginkgo error", func() {
@@ -88,7 +89,7 @@ var _ = Describe("ApiRequest", func() {
 
 	Context("when there is an error unmarshaling the api response", func() {
 		BeforeEach(func() {
-			starter.toReturn.output = `{{{`
+			starter.ToReturn.Output = `{{{`
 		})
 
 		It("fails with a ginkgo error", func() {
