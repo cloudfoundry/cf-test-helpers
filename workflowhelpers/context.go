@@ -30,17 +30,15 @@ type ConfiguredContext struct {
 	regularUserUsername string
 	regularUserPassword string
 
+	adminUserUsername string
+	adminUserPassword string
+
+	SkipSSLValidation bool
+
 	isPersistent bool
-}
 
-type quotaDefinition struct {
-	Name string
-
-	TotalServices string
-	TotalRoutes   string
-	MemoryLimit   string
-
-	NonBasicServicesAllowed bool
+	originalCfHomeDir string
+	currentCfHomeDir  string
 }
 
 func NewContext(config config.Config) *ConfiguredContext {
@@ -72,6 +70,9 @@ func NewContext(config config.Config) *ConfiguredContext {
 		regularUserUsername: regUser,
 		regularUserPassword: regUserPass,
 
+		adminUserUsername: config.AdminUser,
+		adminUserPassword: config.AdminPassword,
+
 		isPersistent: false,
 	}
 }
@@ -97,25 +98,13 @@ func (context ConfiguredContext) LongTimeout() time.Duration {
 
 func (context *ConfiguredContext) Setup() {
 	AsUser(context.AdminUserContext(), context.shortTimeout, func() {
-		definition := quotaDefinition{
-			Name: context.quotaDefinitionName,
-
-			TotalServices: "100",
-			TotalRoutes:   "1000",
-			MemoryLimit:   "10G",
-
-			NonBasicServicesAllowed: true,
-		}
-
 		args := []string{
 			"create-quota",
 			context.quotaDefinitionName,
-			"-m", definition.MemoryLimit,
-			"-r", definition.TotalRoutes,
-			"-s", definition.TotalServices,
-		}
-		if definition.NonBasicServicesAllowed {
-			args = append(args, "--allow-paid-service-plans")
+			"-m", "10G",
+			"-r", "1000",
+			"-s", "100",
+			"--allow-paid-service-plans",
 		}
 
 		EventuallyWithOffset(1, cf.Cf(args...), context.shortTimeout).Should(Exit(0))
@@ -129,8 +118,16 @@ func (context *ConfiguredContext) Setup() {
 		}
 
 		EventuallyWithOffset(1, cf.Cf("create-org", context.organizationName), context.shortTimeout).Should(Exit(0))
-		EventuallyWithOffset(1, cf.Cf("set-quota", context.organizationName, definition.Name), context.shortTimeout).Should(Exit(0))
+		EventuallyWithOffset(1, cf.Cf("set-quota", context.organizationName, context.quotaDefinitionName), context.shortTimeout).Should(Exit(0))
+
+		EventuallyWithOffset(1, cf.Cf("create-space", "-o", context.organizationName, context.spaceName), context.shortTimeout).Should(Exit(0))
+		EventuallyWithOffset(1, cf.Cf("set-space-role", context.regularUserUsername, context.organizationName, context.spaceName, "SpaceManager"), context.shortTimeout).Should(Exit(0))
+		EventuallyWithOffset(1, cf.Cf("set-space-role", context.regularUserUsername, context.organizationName, context.spaceName, "SpaceDeveloper"), context.shortTimeout).Should(Exit(0))
+		EventuallyWithOffset(1, cf.Cf("set-space-role", context.regularUserUsername, context.organizationName, context.spaceName, "SpaceAuditor"), context.shortTimeout).Should(Exit(0))
 	})
+
+	context.originalCfHomeDir, context.currentCfHomeDir = InitiateUserContext(context.RegularUserContext(), context.shortTimeout)
+	TargetSpace(context.RegularUserContext(), context.shortTimeout)
 }
 
 func (context *ConfiguredContext) SetRunawayQuota() {
@@ -140,8 +137,8 @@ func (context *ConfiguredContext) SetRunawayQuota() {
 }
 
 func (context *ConfiguredContext) Teardown() {
+	RestoreUserContext(context.RegularUserContext(), context.shortTimeout, context.originalCfHomeDir, context.currentCfHomeDir)
 	AsUser(context.AdminUserContext(), context.shortTimeout, func() {
-
 		if !context.config.ShouldKeepUser {
 			EventuallyWithOffset(1, cf.Cf("delete-user", "-f", context.regularUserUsername), context.shortTimeout).Should(Exit(0))
 		}
@@ -156,11 +153,11 @@ func (context *ConfiguredContext) Teardown() {
 func (context *ConfiguredContext) AdminUserContext() UserContext {
 	return NewUserContext(
 		context.config.ApiEndpoint,
-		context.config.AdminUser,
-		context.config.AdminPassword,
+		context.adminUserUsername,
+		context.adminUserPassword,
 		"",
 		"",
-		context.config.SkipSSLValidation,
+		context.SkipSSLValidation,
 	)
 }
 
@@ -171,6 +168,6 @@ func (context *ConfiguredContext) RegularUserContext() UserContext {
 		context.regularUserPassword,
 		context.organizationName,
 		context.spaceName,
-		context.config.SkipSSLValidation,
+		context.SkipSSLValidation,
 	)
 }
