@@ -34,7 +34,7 @@ var _ = Describe("CfAuth", func() {
 
 	Context("when the starter returns error", func() {
 		BeforeEach(func() {
-			cmdStarter.ToReturn.Err = fmt.Errorf("something went wrong")
+			cmdStarter.ToReturn[0].Err = fmt.Errorf("something went wrong")
 		})
 
 		It("panics", func() {

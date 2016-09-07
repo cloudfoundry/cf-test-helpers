@@ -16,23 +16,37 @@ type callToStartMethod struct {
 	Reporter   internal.Reporter
 }
 
+type startMethodStub struct {
+	Output    string
+	Err       error
+	ExitCode  int
+	SleepTime int
+}
+
 type FakeCmdStarter struct {
-	CalledWith []callToStartMethod
-	ToReturn   struct {
-		Output    string
-		Err       error
-		ExitCode  int
-		SleepTime int
-	}
+	CalledWith        []callToStartMethod
+	ToReturn          []startMethodStub
+	TotalCallsToStart int
 }
 
 func NewFakeCmdStarter() *FakeCmdStarter {
 	return &FakeCmdStarter{
 		CalledWith: []callToStartMethod{},
+		ToReturn:   make([]startMethodStub, 10),
 	}
 }
 
 func (s *FakeCmdStarter) Start(reporter internal.Reporter, executable string, args ...string) (*gexec.Session, error) {
+	output := s.ToReturn[s.TotalCallsToStart].Output
+	if output == "" {
+		output = `\{\}`
+	}
+	sleepTime := s.ToReturn[s.TotalCallsToStart].SleepTime
+	exitCode := s.ToReturn[s.TotalCallsToStart].ExitCode
+	err := s.ToReturn[s.TotalCallsToStart].Err
+
+	s.TotalCallsToStart += 1
+
 	callToStart := callToStartMethod{
 		Executable: executable,
 		Args:       args,
@@ -40,22 +54,17 @@ func (s *FakeCmdStarter) Start(reporter internal.Reporter, executable string, ar
 	}
 	s.CalledWith = append(s.CalledWith, callToStart)
 
-	// Default return values
-	if s.ToReturn.Output == "" {
-		s.ToReturn.Output = `\{\}`
-	}
-
 	reporter.Report(time.Now(), exec.Command(executable, args...))
 	cmd := exec.Command(
 		"bash",
 		"-c",
 		fmt.Sprintf(
 			"echo %s; sleep %d; exit %d",
-			s.ToReturn.Output,
-			s.ToReturn.SleepTime,
-			s.ToReturn.ExitCode,
+			output,
+			sleepTime,
+			exitCode,
 		),
 	)
 	session, _ := gexec.Start(cmd, ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
-	return session, s.ToReturn.Err
+	return session, err
 }

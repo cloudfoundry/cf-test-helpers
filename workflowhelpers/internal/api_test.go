@@ -18,8 +18,8 @@ var _ = Describe("ApiRequest", func() {
 	var starter *fakes.FakeCmdStarter
 	var timeout time.Duration
 	BeforeEach(func() {
-		starter = new(fakes.FakeCmdStarter)
-		starter.ToReturn.Output = `\{\"foo\": \"bar\"\}`
+		starter = fakes.NewFakeCmdStarter()
+		starter.ToReturn[0].Output = `\{\"foo\": \"bar\"\}`
 		timeout = 1 * time.Second
 	})
 
@@ -50,7 +50,7 @@ var _ = Describe("ApiRequest", func() {
 
 	Context("when there is an error from the starter", func() {
 		BeforeEach(func() {
-			starter.ToReturn.Err = fmt.Errorf("something went wrong")
+			starter.ToReturn[0].Err = fmt.Errorf("something went wrong")
 		})
 
 		It("fails with a ginkgo error", func() {
@@ -63,7 +63,7 @@ var _ = Describe("ApiRequest", func() {
 
 	Context("when the process exits with non-zero code", func() {
 		BeforeEach(func() {
-			starter.ToReturn.ExitCode = 1
+			starter.ToReturn[0].ExitCode = 1
 		})
 
 		It("fails with a ginkgo error", func() {
@@ -89,7 +89,7 @@ var _ = Describe("ApiRequest", func() {
 
 	Context("when there is an error unmarshaling the api response", func() {
 		BeforeEach(func() {
-			starter.ToReturn.Output = `{{{`
+			starter.ToReturn[0].Output = `{{{`
 		})
 
 		It("fails with a ginkgo error", func() {

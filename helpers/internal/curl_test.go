@@ -15,14 +15,16 @@ import (
 
 var _ = Describe("Curl", func() {
 	var cmdTimeout time.Duration
+	var starter *fakes.FakeCmdStarter
+
 	BeforeEach(func() {
 		cmdTimeout = 30 * time.Second
+		starter = fakes.NewFakeCmdStarter()
+
+		starter.ToReturn[0].Output = "HTTP/1.1 200 OK"
 	})
 
 	It("outputs the body of the given URL", func() {
-		starter := new(fakes.FakeCmdStarter)
-		starter.ToReturn.Output = "HTTP/1.1 200 OK"
-
 		session := helpersinternal.Curl(starter, false, "-I", "http://example.com")
 
 		session.Wait(cmdTimeout)
@@ -32,12 +34,15 @@ var _ = Describe("Curl", func() {
 		Expect(starter.CalledWith[0].Args).To(ConsistOf("-I", "-s", "http://example.com"))
 	})
 
-	It("panics when the starter returns an error", func() {
-		starter := new(fakes.FakeCmdStarter)
-		starter.ToReturn.Err = fmt.Errorf("error")
+	Context("when the starter returns an error", func() {
+		BeforeEach(func() {
+			starter.ToReturn[0].Err = fmt.Errorf("error")
+		})
 
-		Expect(func() {
-			helpersinternal.Curl(starter, false, "-I", "http://example.com")
-		}).To(Panic())
+		It("panics when the starter returns an error", func() {
+			Expect(func() {
+				helpersinternal.Curl(starter, false, "-I", "http://example.com")
+			}).To(Panic())
+		})
 	})
 })

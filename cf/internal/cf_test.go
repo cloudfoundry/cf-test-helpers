@@ -14,26 +14,39 @@ import (
 )
 
 var _ = Describe("Cf", func() {
-	It("calls the cf cli with the correct command and args", func() {
-		starter := new(fakes.FakeCmdStarter)
-		starter.ToReturn.ExitCode = 42
+	var starter *fakes.FakeCmdStarter
+	BeforeEach(func() {
+		starter = fakes.NewFakeCmdStarter()
+	})
 
-		Eventually(cfinternal.Cf(starter, "app", "my-app"), 1*time.Second).Should(Exit(42))
+	It("calls the cf cli with the correct command and args", func() {
+		Eventually(cfinternal.Cf(starter, "app", "my-app"), 1*time.Second).Should(Exit(0))
 
 		Expect(starter.CalledWith[0].Executable).To(Equal("cf"))
 		Expect(starter.CalledWith[0].Args).To(Equal([]string{"app", "my-app"}))
 	})
 
 	It("uses a default reporter", func() {
-		starter := new(fakes.FakeCmdStarter)
 		Eventually(cfinternal.Cf(starter, "app", "my-app"), 1*time.Second).Should(Exit(0))
 		Expect(starter.CalledWith[0].Reporter).To(BeAssignableToTypeOf(commandstarter.NewCommandReporter()))
 	})
 
+	Context("when the exit code is non-zero", func() {
+		BeforeEach(func() {
+			starter.ToReturn[0].ExitCode = 42
+		})
+
+		It("returns the exit code anyway", func() {
+			Eventually(cfinternal.Cf(starter, "app", "my-app"), 1*time.Second).Should(Exit(42))
+		})
+	})
+
 	Context("when there is an error", func() {
+		BeforeEach(func() {
+			starter.ToReturn[0].Err = fmt.Errorf("failing now")
+		})
+
 		It("panics", func() {
-			starter := new(fakes.FakeCmdStarter)
-			starter.ToReturn.Err = fmt.Errorf("failing now")
 			Expect(func() {
 				cfinternal.Cf(starter, "fail")
 			}).To(Panic())
