@@ -21,13 +21,13 @@ var _ = Describe("CfAuth", func() {
 	})
 
 	It("runs the cf auth command", func() {
-		internal.CfAuth("user", "password", cmdStarter).Wait()
+		internal.CfAuth(cmdStarter, "user", "password").Wait()
 		Expect(cmdStarter.CalledWith[0].Executable).To(Equal("cf"))
 		Expect(cmdStarter.CalledWith[0].Args).To(Equal([]string{"auth", "user", "password"}))
 	})
 
 	It("does not reveal the password", func() {
-		internal.CfAuth("user", "password", cmdStarter).Wait()
+		internal.CfAuth(cmdStarter, "user", "password").Wait()
 		Expect(reporterOutput.String()).To(ContainSubstring("REDACTED"))
 		Expect(reporterOutput.String()).NotTo(ContainSubstring("password"))
 	})
@@ -39,7 +39,7 @@ var _ = Describe("CfAuth", func() {
 
 		It("panics", func() {
 			Expect(func() {
-				internal.CfAuth("user", "password", cmdStarter)
+				internal.CfAuth(cmdStarter, "user", "password").Wait()
 			}).To(Panic())
 		})
 	})

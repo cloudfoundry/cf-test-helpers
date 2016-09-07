@@ -11,7 +11,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-func CfAuth(user string, password string, cmdStarter internal.Starter) *gexec.Session {
+func CfAuth(cmdStarter internal.Starter, user string, password string) *gexec.Session {
 	reporter := &sanitizedReporter{}
 	auth, err := cmdStarter.Start(reporter, "cf", "auth", user, password)
 	if err != nil {

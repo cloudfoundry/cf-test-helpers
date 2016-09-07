@@ -43,7 +43,7 @@ func InitiateUserContext(userContext UserContext, timeout time.Duration) (origin
 	cf.Cf(cfSetApiArgs...).Wait(timeout)
 
 	cmdStarter := commandstarter.NewCommandStarter()
-	internal.CfAuth(userContext.Username, userContext.Password, cmdStarter).Wait(timeout)
+	internal.CfAuth(cmdStarter, userContext.Username, userContext.Password).Wait(timeout)
 
 	return
 }
