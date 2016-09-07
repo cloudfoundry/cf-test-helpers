@@ -26,8 +26,8 @@ var _ = Describe("ApiRequest", func() {
 	It("sends the request to the current CF target", func() {
 		var response genericResource
 		ApiRequest(starter, "GET", "/v2/info", &response, timeout, "some", "data")
-		Expect(starter.CalledWith.Executable).To(Equal("cf"))
-		Expect(starter.CalledWith.Args).To(Equal([]string{"curl", "/v2/info", "-X", "GET", "-d", "somedata"}))
+		Expect(starter.CalledWith[0].Executable).To(Equal("cf"))
+		Expect(starter.CalledWith[0].Args).To(Equal([]string{"curl", "/v2/info", "-X", "GET", "-d", "somedata"}))
 
 		Expect(response.Foo).To(Equal("bar"))
 	})
@@ -44,7 +44,7 @@ var _ = Describe("ApiRequest", func() {
 	Context("when request data is empty", func() {
 		It("doesn't include a -d argument", func() {
 			ApiRequest(starter, "GET", "/v2/info", nil, timeout)
-			Expect(starter.CalledWith.Args).NotTo(ContainElement("-d"))
+			Expect(starter.CalledWith[0].Args).NotTo(ContainElement("-d"))
 		})
 	})
 

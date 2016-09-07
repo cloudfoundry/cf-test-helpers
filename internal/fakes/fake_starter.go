@@ -10,13 +10,15 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
+type callToStartMethod struct {
+	Executable string
+	Args       []string
+	Reporter   internal.Reporter
+}
+
 type FakeCmdStarter struct {
-	CalledWith struct {
-		Executable string
-		Args       []string
-		Reporter   internal.Reporter
-	}
-	ToReturn struct {
+	CalledWith []callToStartMethod
+	ToReturn   struct {
 		Output    string
 		Err       error
 		ExitCode  int
@@ -24,10 +26,19 @@ type FakeCmdStarter struct {
 	}
 }
 
+func NewFakeCmdStarter() *FakeCmdStarter {
+	return &FakeCmdStarter{
+		CalledWith: []callToStartMethod{},
+	}
+}
+
 func (s *FakeCmdStarter) Start(reporter internal.Reporter, executable string, args ...string) (*gexec.Session, error) {
-	s.CalledWith.Executable = executable
-	s.CalledWith.Args = args
-	s.CalledWith.Reporter = reporter
+	callToStart := callToStartMethod{
+		Executable: executable,
+		Args:       args,
+		Reporter:   reporter,
+	}
+	s.CalledWith = append(s.CalledWith, callToStart)
 
 	// Default return values
 	if s.ToReturn.Output == "" {

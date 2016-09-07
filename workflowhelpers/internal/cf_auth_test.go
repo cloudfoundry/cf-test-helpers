@@ -15,15 +15,15 @@ var _ = Describe("CfAuth", func() {
 	var reporterOutput *bytes.Buffer
 
 	BeforeEach(func() {
-		cmdStarter = &fakes.FakeCmdStarter{}
+		cmdStarter = fakes.NewFakeCmdStarter()
 		reporterOutput = bytes.NewBuffer([]byte{})
 		GinkgoWriter = reporterOutput
 	})
 
 	It("runs the cf auth command", func() {
 		internal.CfAuth("user", "password", cmdStarter).Wait()
-		Expect(cmdStarter.CalledWith.Executable).To(Equal("cf"))
-		Expect(cmdStarter.CalledWith.Args).To(Equal([]string{"auth", "user", "password"}))
+		Expect(cmdStarter.CalledWith[0].Executable).To(Equal("cf"))
+		Expect(cmdStarter.CalledWith[0].Args).To(Equal([]string{"auth", "user", "password"}))
 	})
 
 	It("does not reveal the password", func() {
