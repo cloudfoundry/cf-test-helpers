@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/commandstarter"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/commandreporter"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/internal"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
@@ -23,7 +23,7 @@ func ApiRequest(cmdStarter internal.Starter, method, endpoint string, response i
 		args = append(args, "-d", dataArg)
 	}
 
-	reporter := commandstarter.NewCommandReporter()
+	reporter := commandreporter.NewCommandReporter()
 	request, err := cmdStarter.Start(reporter, "cf", args...)
 	ExpectWithOffset(2, err).NotTo(HaveOccurred())
 

@@ -1,4 +1,4 @@
-package cfinternal_test
+package internal_test
 
 import (
 	"bytes"

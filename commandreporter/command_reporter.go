@@ -1,4 +1,4 @@
-package commandstarter
+package commandreporter
 
 import (
 	"fmt"

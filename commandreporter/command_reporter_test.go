@@ -1,4 +1,4 @@
-package commandstarter_test
+package commandreporter_test
 
 import (
 	"bytes"
@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/commandstarter"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/commandreporter"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
@@ -23,7 +23,7 @@ var _ = Describe("CommandReporter", func() {
 			})
 
 			It("uses the GinkgoWriter", func() {
-				reporter := commandstarter.NewCommandReporter(writers...)
+				reporter := commandreporter.NewCommandReporter(writers...)
 				writer := reporter.Writer
 				Expect(writer).To(BeAssignableToTypeOf(GinkgoWriter))
 			})
@@ -37,7 +37,7 @@ var _ = Describe("CommandReporter", func() {
 			})
 
 			It("uses the provided writer", func() {
-				reporter := commandstarter.NewCommandReporter(writers...)
+				reporter := commandreporter.NewCommandReporter(writers...)
 				Expect(reporter.Writer).To(Equal(writers[0]))
 			})
 		})
@@ -51,19 +51,19 @@ var _ = Describe("CommandReporter", func() {
 			})
 
 			It("panics", func() {
-				Expect(func() { commandstarter.NewCommandReporter(writers...) }).To(Panic())
+				Expect(func() { commandreporter.NewCommandReporter(writers...) }).To(Panic())
 			})
 		})
 	})
 
 	Describe("#Report", func() {
-		var reporter *commandstarter.CommandReporter
+		var reporter *commandreporter.CommandReporter
 		var writer *gbytes.Buffer
 		var t time.Time
 		var timestampRegex string
 		BeforeEach(func() {
 			writer = gbytes.NewBuffer()
-			reporter = commandstarter.NewCommandReporter(writer)
+			reporter = commandreporter.NewCommandReporter(writer)
 			t = time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 			timestampRegex = "\\[2009-11-10 23:00:00.00 \\(UTC\\)\\]>"
 		})

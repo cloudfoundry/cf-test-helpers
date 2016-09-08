@@ -12,6 +12,35 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
+type fakeUserContext struct {
+	NumLoginCalls          int
+	NumSetCfHomeDirCalls   int
+	NumLogoutCalls         int
+	NumUnsetCfHomeDirCalls int
+	NumTargetSpaceCalls    int
+}
+
+func (f *fakeUserContext) SetCfHomeDir() (string, string) {
+	f.NumSetCfHomeDirCalls += 1
+	return "", ""
+}
+
+func (f *fakeUserContext) Login(timeout time.Duration) {
+	f.NumLoginCalls += 1
+}
+
+func (f *fakeUserContext) Logout(timeout time.Duration) {
+	f.NumLogoutCalls += 1
+}
+
+func (f *fakeUserContext) UnsetCfHomeDir(string, string) {
+	f.NumUnsetCfHomeDirCalls += 1
+}
+
+func (f *fakeUserContext) TargetSpace(timeout time.Duration) {
+	f.NumTargetSpaceCalls += 1
+}
+
 var _ = Describe("AsUser", func() {
 	var (
 		timeout               = 1 * time.Second
@@ -25,84 +54,40 @@ var _ = Describe("AsUser", func() {
 		return session
 	}
 
-	var user workflowhelpers.UserContext
+	var user *fakeUserContext
 
 	BeforeEach(func() {
 		FakeCfCalls = [][]string{}
 		cf.Cf = FakeCf
 
-		user = workflowhelpers.NewUserContext("http://FAKE_API.example.com", "FAKE_USERNAME", "FAKE_PASSWORD", "FAKE_ORG", "FAKE_SPACE", true)
+		user = new(fakeUserContext)
 	})
 
-	It("calls cf api", func() {
+	It("logs the user in", func() {
 		workflowhelpers.AsUser(user, timeout, FakeThingsToRunAsUser)
-
-		Expect(FakeCfCalls[0]).To(Equal([]string{"api", "http://FAKE_API.example.com", "--skip-ssl-validation"}))
+		Expect(user.NumLoginCalls).To(Equal(1))
 	})
 
-	Describe("calling cf target", func() {
-		Context("when org is set and space is set", func() {
-			It("includes flags to set org and space", func() {
-				workflowhelpers.AsUser(user, timeout, FakeThingsToRunAsUser)
+	It("sets the cf home dir", func() {
+		workflowhelpers.AsUser(user, timeout, FakeThingsToRunAsUser)
+		Expect(user.NumSetCfHomeDirCalls).To(Equal(1))
+	})
 
-				Expect(FakeCfCalls[1]).To(Equal([]string{"target", "-o", "FAKE_ORG", "-s", "FAKE_SPACE"}))
-			})
-		})
-
-		Context("when org is set and space is NOT set", func() {
-			BeforeEach(func() {
-				user.Space = ""
-			})
-
-			It("includes a flag to set org but NOT for space", func() {
-				workflowhelpers.AsUser(user, timeout, FakeThingsToRunAsUser)
-
-				Expect(FakeCfCalls[1]).To(Equal([]string{"target", "-o", "FAKE_ORG"}))
-			})
-		})
-
-		Context("when org is NOT set and space is NOT set", func() {
-			BeforeEach(func() {
-				user.Org = ""
-				user.Space = ""
-			})
-
-			It("does not call cf target", func() {
-				workflowhelpers.AsUser(user, timeout, FakeThingsToRunAsUser)
-
-				for _, call := range FakeCfCalls {
-					Expect(call).ToNot(ContainElement("target"))
-				}
-			})
-		})
-
-		Context("when org is NOT set and space is set", func() {
-			BeforeEach(func() {
-				user.Org = ""
-			})
-
-			It("does not call cf target", func() {
-				workflowhelpers.AsUser(user, timeout, FakeThingsToRunAsUser)
-
-				for _, call := range FakeCfCalls {
-					Expect(call).ToNot(ContainElement("target"))
-				}
-			})
-		})
+	It("targets the correct space and org", func() {
+		workflowhelpers.AsUser(user, timeout, FakeThingsToRunAsUser)
+		Expect(user.NumTargetSpaceCalls).To(Equal(1))
 	})
 
 	It("calls cf logout", func() {
 		workflowhelpers.AsUser(user, timeout, FakeThingsToRunAsUser)
-
-		Expect(FakeCfCalls[len(FakeCfCalls)-1]).To(Equal([]string{"logout"}))
+		Expect(user.NumLogoutCalls).To(Equal(1))
 	})
 
 	It("logs out even if actions contain a failing expectation", func() {
 		RegisterFailHandler(func(message string, callerSkip ...int) {})
 		workflowhelpers.AsUser(user, timeout, func() { Expect(1).To(Equal(2)) })
 		RegisterFailHandler(Fail)
-
-		Expect(FakeCfCalls[len(FakeCfCalls)-1]).To(Equal([]string{"logout"}))
+		Expect(user.NumLogoutCalls).To(Equal(1))
 	})
 
 	It("calls the passed function", func() {
@@ -112,27 +97,9 @@ var _ = Describe("AsUser", func() {
 		Expect(called).To(BeTrue())
 	})
 
-	It("sets a unique CF_HOME value", func() {
-		var (
-			firstHome  string
-			secondHome string
-		)
-
-		workflowhelpers.AsUser(user, timeout, func() {
-			firstHome = os.Getenv("CF_HOME")
-		})
-
-		workflowhelpers.AsUser(user, timeout, func() {
-			secondHome = os.Getenv("CF_HOME")
-		})
-
-		Expect(firstHome).NotTo(Equal(secondHome))
-	})
-
 	It("returns CF_HOME to its original value", func() {
 		os.Setenv("CF_HOME", "some-crazy-value")
 		workflowhelpers.AsUser(user, timeout, func() {})
-
 		Expect(os.Getenv("CF_HOME")).To(Equal("some-crazy-value"))
 	})
 })

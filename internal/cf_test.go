@@ -1,4 +1,4 @@
-package cfinternal_test
+package internal_test
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/cf/internal"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/commandstarter"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/commandreporter"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/internal"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/internal/fakes"
 )
 
@@ -20,15 +20,15 @@ var _ = Describe("Cf", func() {
 	})
 
 	It("calls the cf cli with the correct command and args", func() {
-		Eventually(cfinternal.Cf(starter, "app", "my-app"), 1*time.Second).Should(Exit(0))
+		Eventually(internal.Cf(starter, "app", "my-app"), 1*time.Second).Should(Exit(0))
 
 		Expect(starter.CalledWith[0].Executable).To(Equal("cf"))
 		Expect(starter.CalledWith[0].Args).To(Equal([]string{"app", "my-app"}))
 	})
 
 	It("uses a default reporter", func() {
-		Eventually(cfinternal.Cf(starter, "app", "my-app"), 1*time.Second).Should(Exit(0))
-		Expect(starter.CalledWith[0].Reporter).To(BeAssignableToTypeOf(commandstarter.NewCommandReporter()))
+		Eventually(internal.Cf(starter, "app", "my-app"), 1*time.Second).Should(Exit(0))
+		Expect(starter.CalledWith[0].Reporter).To(BeAssignableToTypeOf(commandreporter.NewCommandReporter()))
 	})
 
 	Context("when the exit code is non-zero", func() {
@@ -37,7 +37,7 @@ var _ = Describe("Cf", func() {
 		})
 
 		It("returns the exit code anyway", func() {
-			Eventually(cfinternal.Cf(starter, "app", "my-app"), 1*time.Second).Should(Exit(42))
+			Eventually(internal.Cf(starter, "app", "my-app"), 1*time.Second).Should(Exit(42))
 		})
 	})
 
@@ -48,7 +48,7 @@ var _ = Describe("Cf", func() {
 
 		It("panics", func() {
 			Expect(func() {
-				cfinternal.Cf(starter, "fail")
+				internal.Cf(starter, "fail")
 			}).To(Panic())
 		})
 	})

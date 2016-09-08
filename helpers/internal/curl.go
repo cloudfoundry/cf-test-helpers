@@ -1,7 +1,7 @@
 package helpersinternal
 
 import (
-	"github.com/cloudfoundry-incubator/cf-test-helpers/commandstarter"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/commandreporter"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/internal"
 	"github.com/onsi/gomega/gexec"
 )
@@ -12,7 +12,7 @@ func Curl(cmdStarter internal.Starter, skipSsl bool, args ...string) *gexec.Sess
 		curlArgs = append([]string{"-k"}, curlArgs...)
 	}
 
-	reporter := commandstarter.NewCommandReporter()
+	reporter := commandreporter.NewCommandReporter()
 	request, err := cmdStarter.Start(reporter, "curl", curlArgs...)
 
 	if err != nil {

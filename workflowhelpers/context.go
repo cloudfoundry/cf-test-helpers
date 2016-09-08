@@ -14,9 +14,7 @@ import (
 	"github.com/cloudfoundry-incubator/cf-test-helpers/generator"
 )
 
-const RUNAWAY_QUOTA_MEM_LIMIT = "99999G"
-
-type ConfiguredContext struct {
+type ReproducibleTestSetup struct {
 	config config.Config
 
 	shortTimeout time.Duration
@@ -25,7 +23,13 @@ type ConfiguredContext struct {
 	organizationName string
 	spaceName        string
 
-	quotaDefinitionName string
+	quotaDefinitionName                  string
+	quotaDefinitionTotalMemoryLimit      string
+	quotaDefinitionInstanceMemoryLimit   string
+	quotaDefinitionRoutesLimit           string
+	quotaDefinitionAppInstanceLimit      string
+	quotaDefinitionServiceInstanceLimit  string
+	quotaDefinitionAllowPaidServicesFlag string
 
 	regularUserUsername string
 	regularUserPassword string
@@ -41,7 +45,7 @@ type ConfiguredContext struct {
 	currentCfHomeDir  string
 }
 
-func NewContext(config config.Config) *ConfiguredContext {
+func NewTestSetup(config config.Config) *ReproducibleTestSetup {
 	node := ginkgoconfig.GinkgoConfig.ParallelNode
 	timeTag := time.Now().Format("2006_01_02-15h04m05.999s")
 
@@ -56,13 +60,19 @@ func NewContext(config config.Config) *ConfiguredContext {
 		regUserPass = config.ConfigurableTestPassword
 	}
 
-	return &ConfiguredContext{
+	return &ReproducibleTestSetup{
 		config: config,
 
 		shortTimeout: config.ScaledTimeout(1 * time.Minute),
 		longTimeout:  config.ScaledTimeout(5 * time.Minute),
 
-		quotaDefinitionName: generator.PrefixedRandomName(config.NamePrefix, "QUOTA"),
+		quotaDefinitionName:                  generator.PrefixedRandomName(config.NamePrefix, "QUOTA"),
+		quotaDefinitionTotalMemoryLimit:      "10G",
+		quotaDefinitionInstanceMemoryLimit:   "-1",
+		quotaDefinitionRoutesLimit:           "1000",
+		quotaDefinitionAppInstanceLimit:      "-1",
+		quotaDefinitionServiceInstanceLimit:  "100",
+		quotaDefinitionAllowPaidServicesFlag: "--allow-paid-service-plans",
 
 		organizationName: generator.PrefixedRandomName(config.NamePrefix, "ORG"),
 		spaceName:        generator.PrefixedRandomName(config.NamePrefix, "SPACE"),
@@ -77,8 +87,8 @@ func NewContext(config config.Config) *ConfiguredContext {
 	}
 }
 
-func NewPersistentAppContext(config config.Config) *ConfiguredContext {
-	baseContext := NewContext(config)
+func NewPersistentAppTestSetup(config config.Config) *ReproducibleTestSetup {
+	baseContext := NewTestSetup(config)
 
 	baseContext.quotaDefinitionName = config.PersistentAppQuotaName
 	baseContext.organizationName = config.PersistentAppOrg
@@ -88,23 +98,32 @@ func NewPersistentAppContext(config config.Config) *ConfiguredContext {
 	return baseContext
 }
 
-func (context ConfiguredContext) ShortTimeout() time.Duration {
+func NewRunawayAppTestSetup(config config.Config) *ReproducibleTestSetup {
+	baseContext := NewTestSetup(config)
+	baseContext.quotaDefinitionTotalMemoryLimit = RUNAWAY_QUOTA_MEM_LIMIT
+
+	return baseContext
+}
+
+func (context ReproducibleTestSetup) ShortTimeout() time.Duration {
 	return context.shortTimeout
 }
 
-func (context ConfiguredContext) LongTimeout() time.Duration {
+func (context ReproducibleTestSetup) LongTimeout() time.Duration {
 	return context.longTimeout
 }
 
-func (context *ConfiguredContext) Setup() {
+func (context *ReproducibleTestSetup) Setup() {
 	AsUser(context.AdminUserContext(), context.shortTimeout, func() {
 		args := []string{
 			"create-quota",
 			context.quotaDefinitionName,
-			"-m", "10G",
-			"-r", "1000",
-			"-s", "100",
-			"--allow-paid-service-plans",
+			"-m", context.quotaDefinitionTotalMemoryLimit,
+			"-i", context.quotaDefinitionInstanceMemoryLimit,
+			"-r", context.quotaDefinitionRoutesLimit,
+			"-s", context.quotaDefinitionServiceInstanceLimit,
+			"-a", context.quotaDefinitionAppInstanceLimit,
+			context.quotaDefinitionAllowPaidServicesFlag,
 		}
 
 		EventuallyWithOffset(1, cf.Cf(args...), context.shortTimeout).Should(Exit(0))
@@ -126,18 +145,15 @@ func (context *ConfiguredContext) Setup() {
 		EventuallyWithOffset(1, cf.Cf("set-space-role", context.regularUserUsername, context.organizationName, context.spaceName, "SpaceAuditor"), context.shortTimeout).Should(Exit(0))
 	})
 
-	context.originalCfHomeDir, context.currentCfHomeDir = InitiateUserContext(context.RegularUserContext(), context.shortTimeout)
-	TargetSpace(context.RegularUserContext(), context.shortTimeout)
+	context.originalCfHomeDir, context.currentCfHomeDir = context.RegularUserContext().SetCfHomeDir()
+	context.RegularUserContext().Login(context.shortTimeout)
+
+	context.RegularUserContext().TargetSpace(context.shortTimeout)
 }
 
-func (context *ConfiguredContext) SetRunawayQuota() {
-	AsUser(context.AdminUserContext(), context.shortTimeout, func() {
-		EventuallyWithOffset(1, cf.Cf("update-quota", context.quotaDefinitionName, "-m", RUNAWAY_QUOTA_MEM_LIMIT, "-i=-1"), context.shortTimeout).Should(Exit(0))
-	})
-}
-
-func (context *ConfiguredContext) Teardown() {
-	RestoreUserContext(context.RegularUserContext(), context.shortTimeout, context.originalCfHomeDir, context.currentCfHomeDir)
+func (context *ReproducibleTestSetup) Teardown() {
+	context.RegularUserContext().Logout(context.shortTimeout)
+	context.RegularUserContext().UnsetCfHomeDir(context.originalCfHomeDir, context.currentCfHomeDir)
 	AsUser(context.AdminUserContext(), context.shortTimeout, func() {
 		if !context.config.ShouldKeepUser {
 			EventuallyWithOffset(1, cf.Cf("delete-user", "-f", context.regularUserUsername), context.shortTimeout).Should(Exit(0))
@@ -150,7 +166,7 @@ func (context *ConfiguredContext) Teardown() {
 	})
 }
 
-func (context *ConfiguredContext) AdminUserContext() UserContext {
+func (context *ReproducibleTestSetup) AdminUserContext() UserContext {
 	return NewUserContext(
 		context.config.ApiEndpoint,
 		context.adminUserUsername,
@@ -161,7 +177,7 @@ func (context *ConfiguredContext) AdminUserContext() UserContext {
 	)
 }
 
-func (context *ConfiguredContext) RegularUserContext() UserContext {
+func (context *ReproducibleTestSetup) RegularUserContext() UserContext {
 	return NewUserContext(
 		context.config.ApiEndpoint,
 		context.regularUserUsername,
