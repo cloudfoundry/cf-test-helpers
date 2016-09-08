@@ -67,7 +67,7 @@ var _ = Describe("Curl", func() {
 		Expect(session).To(gexec.Exit(0))
 		Expect(session.Out).To(Say("HTTP/1.1 200 OK"))
 		Expect(starter.calledWith.executable).To(Equal("curl"))
-		Expect(starter.calledWith.args).To(ConsistOf("-I", "-s", "http://example.com"))
+		Expect(starter.calledWith.args).To(ConsistOf("-I", "--fail", "-s", "http://example.com"))
 	})
 
 	It("panics when the starter returns an error", func() {
