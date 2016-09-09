@@ -369,7 +369,7 @@ var _ = Describe("UserContext", func() {
 		})
 
 		It("deletes the user", func() {
-			userContext.Destroy(timeout)
+			userContext.DeleteUser(timeout)
 			Expect(fakeStarter.CalledWith).To(HaveLen(1))
 			Expect(fakeStarter.CalledWith[0].Executable).To(Equal("cf"))
 			Expect(fakeStarter.CalledWith[0].Args).To(Equal([]string{"delete-user", "-f", userContext.Username}))
@@ -382,7 +382,7 @@ var _ = Describe("UserContext", func() {
 
 			It("fails with a ginkgo error", func() {
 				failures := InterceptGomegaFailures(func() {
-					userContext.Destroy(timeout)
+					userContext.DeleteUser(timeout)
 				})
 
 				Expect(failures).To(HaveLen(1))
@@ -398,7 +398,7 @@ var _ = Describe("UserContext", func() {
 
 			It("fails with a ginkgo error", func() {
 				failures := InterceptGomegaFailures(func() {
-					userContext.Destroy(timeout)
+					userContext.DeleteUser(timeout)
 				})
 
 				Expect(failures).To(HaveLen(1))
@@ -447,7 +447,20 @@ var _ = Describe("UserContext", func() {
 				})
 
 				Expect(failures).To(HaveLen(1))
-				Expect(failures[0]).To(MatchRegexp("to match exit code:\n.*0"))
+				Expect(failures[0]).To(MatchRegexp("scim_resource_already_exists"))
+			})
+
+			Context("and the output mentions that the user already exists", func() {
+				BeforeEach(func() {
+					fakeStarter.ToReturn[0].Output = "scim_resource_already_exists"
+				})
+
+				It("considers the command successful and does not fail", func() {
+					failures := InterceptGomegaFailures(func() {
+						userContext.CreateUser(timeout)
+					})
+					Expect(failures).To(BeEmpty())
+				})
 			})
 		})
 
@@ -462,7 +475,7 @@ var _ = Describe("UserContext", func() {
 					userContext.CreateUser(timeout)
 				})
 
-				Expect(failures).To(HaveLen(1))
+				Expect(len(failures)).To(BeNumerically(">", 0))
 				Expect(failures[0]).To(MatchRegexp("Timed out after 2.*"))
 			})
 		})
