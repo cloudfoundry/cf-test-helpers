@@ -11,50 +11,66 @@ import (
 	workflowhelpersinternal "github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
-	. "github.com/onsi/gomega/gbytes"
 	. "github.com/onsi/gomega/gexec"
 )
 
+type userValues interface {
+	Username() string
+	Password() string
+}
+
+type spaceValues interface {
+	OrganizationName() string
+	SpaceName() string
+}
+
 type UserContext struct {
 	ApiUrl    string
-	Username  string
-	Password  string
-	TestSpace *TestSpace
-	Org       string // These are still used by CATS
-	Space     string
+	TestSpace spaceValues
+	TestUser  userValues
 
 	SkipSSLValidation bool
 	CommandStarter    internal.Starter
+	Timeout           time.Duration
+
+	// the followings are left around for CATS to use
+	Username string
+	Password string
+	Org      string
+	Space    string
 }
 
-func NewUserContext(apiUrl, username, password string, testSpace *TestSpace, skipSSLValidation bool) UserContext {
+func NewUserContext(apiUrl string, testUser userValues, testSpace spaceValues, skipSSLValidation bool, timeout time.Duration) UserContext {
 	var org, space string
 	if testSpace != nil {
-		org = testSpace.OrganizationName
-		space = testSpace.SpaceName
+		org = testSpace.OrganizationName()
+		space = testSpace.SpaceName()
 	}
+
 	return UserContext{
 		ApiUrl:            apiUrl,
-		Username:          username,
-		Password:          password,
+		Username:          testUser.Username(),
+		Password:          testUser.Password(),
 		TestSpace:         testSpace,
+		TestUser:          testUser,
 		Org:               org,
 		Space:             space,
 		SkipSSLValidation: skipSSLValidation,
 		CommandStarter:    commandstarter.NewCommandStarter(),
+		Timeout:           timeout,
 	}
 }
 
-func (uc UserContext) Login(timeout time.Duration) {
+func (uc UserContext) Login() {
 	args := []string{"api", uc.ApiUrl}
 	if uc.SkipSSLValidation {
 		args = append(args, "--skip-ssl-validation")
 	}
 	session := internal.Cf(uc.CommandStarter, args...)
-	EventuallyWithOffset(1, session, timeout).Should(Exit(0))
+	EventuallyWithOffset(1, session, uc.Timeout).Should(Exit(0))
 
-	session = workflowhelpersinternal.CfAuth(uc.CommandStarter, uc.Username, uc.Password)
-	EventuallyWithOffset(1, session, timeout).Should(Exit(0))
+	session = workflowhelpersinternal.CfAuth(uc.CommandStarter, uc.TestUser.Username(), uc.TestUser.Password())
+	EventuallyWithOffset(1, session, uc.Timeout).Should(Exit(0))
 }
 
 func (uc UserContext) SetCfHomeDir() (string, string) {
@@ -68,44 +84,35 @@ func (uc UserContext) SetCfHomeDir() (string, string) {
 	return originalCfHomeDir, currentCfHomeDir
 }
 
-func (uc UserContext) TargetSpace(timeout time.Duration) {
-	if uc.TestSpace != nil {
+func (uc UserContext) TargetSpace() {
+	if uc.TestSpace != nil && uc.TestSpace.OrganizationName() != "" {
 		var session *Session
-		session = internal.Cf(uc.CommandStarter, "target", "-o", uc.TestSpace.OrganizationName, "-s", uc.TestSpace.SpaceName)
-		EventuallyWithOffset(1, session, timeout).Should(Exit(0))
+		session = internal.Cf(uc.CommandStarter, "target", "-o", uc.TestSpace.OrganizationName(), "-s", uc.TestSpace.SpaceName())
+		EventuallyWithOffset(1, session, uc.Timeout).Should(Exit(0))
 	}
 }
 
-func (uc UserContext) AddUserToSpace(timeout time.Duration) {
-	spaceManager := internal.Cf(uc.CommandStarter, "set-space-role", uc.Username, uc.TestSpace.OrganizationName, uc.TestSpace.SpaceName, "SpaceManager")
-	EventuallyWithOffset(1, spaceManager, timeout).Should(Exit(0))
+func (uc UserContext) AddUserToSpace() {
+	username := uc.TestUser.Username()
+	orgName := uc.TestSpace.OrganizationName()
+	spaceName := uc.TestSpace.SpaceName()
 
-	spaceDeveloper := internal.Cf(uc.CommandStarter, "set-space-role", uc.Username, uc.TestSpace.OrganizationName, uc.TestSpace.SpaceName, "SpaceDeveloper")
-	EventuallyWithOffset(1, spaceDeveloper, timeout).Should(Exit(0))
+	spaceManager := internal.Cf(uc.CommandStarter, "set-space-role", username, orgName, spaceName, "SpaceManager")
+	EventuallyWithOffset(1, spaceManager, uc.Timeout).Should(Exit(0))
 
-	spaceAuditor := internal.Cf(uc.CommandStarter, "set-space-role", uc.Username, uc.TestSpace.OrganizationName, uc.TestSpace.SpaceName, "SpaceAuditor")
-	EventuallyWithOffset(1, spaceAuditor, timeout).Should(Exit(0))
+	spaceDeveloper := internal.Cf(uc.CommandStarter, "set-space-role", username, orgName, spaceName, "SpaceDeveloper")
+	EventuallyWithOffset(1, spaceDeveloper, uc.Timeout).Should(Exit(0))
+
+	spaceAuditor := internal.Cf(uc.CommandStarter, "set-space-role", username, orgName, spaceName, "SpaceAuditor")
+	EventuallyWithOffset(1, spaceAuditor, uc.Timeout).Should(Exit(0))
 }
 
-func (uc UserContext) Logout(timeout time.Duration) {
+func (uc UserContext) Logout() {
 	session := internal.Cf(uc.CommandStarter, "logout")
-	EventuallyWithOffset(1, session, timeout).Should(Exit(0))
+	EventuallyWithOffset(1, session, uc.Timeout).Should(Exit(0))
 }
 
 func (uc UserContext) UnsetCfHomeDir(originalCfHomeDir, currentCfHomeDir string) {
 	os.Setenv("CF_HOME", originalCfHomeDir)
 	os.RemoveAll(currentCfHomeDir)
-}
-
-func (uc UserContext) CreateUser(timeout time.Duration) {
-	session := internal.Cf(uc.CommandStarter, "create-user", uc.Username, uc.Password)
-	EventuallyWithOffset(1, session, timeout).Should(Exit())
-	if session.ExitCode() != 0 {
-		ExpectWithOffset(1, session.Out).Should(Say("scim_resource_already_exists"))
-	}
-}
-
-func (uc UserContext) DeleteUser(timeout time.Duration) {
-	session := internal.Cf(uc.CommandStarter, "delete-user", "-f", uc.Username)
-	EventuallyWithOffset(1, session, timeout).Should(Exit(0))
 }

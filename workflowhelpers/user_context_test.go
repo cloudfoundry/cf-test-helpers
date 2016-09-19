@@ -5,6 +5,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/cloudfoundry-incubator/cf-test-helpers/config"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
+
 	. "github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
@@ -15,8 +18,15 @@ import (
 
 var _ = Describe("UserContext", func() {
 	Describe("NewUserContext", func() {
+		var testSpace *internal.TestSpace
+		var testUser *internal.TestUser
+		BeforeEach(func() {
+			testSpace = internal.NewRegularTestSpace(config.Config{}, "10G")
+			testUser = internal.NewTestUser(config.Config{}, &fakes.FakeCmdStarter{})
+		})
+
 		var createUser = func() workflowhelpers.UserContext {
-			return workflowhelpers.NewUserContext("http://FAKE_API.example.com", "FAKE_USERNAME", "FAKE_PASSWORD", "FAKE_ORG", "FAKE_SPACE", false)
+			return workflowhelpers.NewUserContext("http://FAKE_API.example.com", testUser, testSpace, false, 1*time.Minute)
 		}
 
 		It("returns a UserContext struct", func() {
@@ -28,19 +38,23 @@ var _ = Describe("UserContext", func() {
 		})
 
 		It("sets UserContext.Username", func() {
-			Expect(createUser().Username).To(Equal("FAKE_USERNAME"))
+			Expect(createUser().Username).To(Equal(testUser.Username()))
 		})
 
 		It("sets UserContext.Password", func() {
-			Expect(createUser().Password).To(Equal("FAKE_PASSWORD"))
+			Expect(createUser().Password).To(Equal(testUser.Password()))
 		})
 
 		It("sets UserContext.Org", func() {
-			Expect(createUser().Org).To(Equal("FAKE_ORG"))
+			Expect(createUser().Org).To(Equal(testSpace.OrganizationName()))
 		})
 
 		It("sets UserContext.Space", func() {
-			Expect(createUser().Space).To(Equal("FAKE_SPACE"))
+			Expect(createUser().Space).To(Equal(testSpace.SpaceName()))
+		})
+
+		It("sets the timeout for all cf commands", func() {
+			Expect(createUser().Timeout).To(Equal(1 * time.Minute))
 		})
 	})
 
@@ -49,6 +63,8 @@ var _ = Describe("UserContext", func() {
 		var skipSslValidation bool
 		var timeout time.Duration
 		var fakeStarter *fakes.FakeCmdStarter
+		var testSpace *internal.TestSpace
+		var testUser *internal.TestUser
 
 		var userContext workflowhelpers.UserContext
 
@@ -60,16 +76,20 @@ var _ = Describe("UserContext", func() {
 			space = "FAKE_SPACE"
 			skipSslValidation = false
 			timeout = 1 * time.Second
+
 			fakeStarter = fakes.NewFakeCmdStarter()
+			testSpace = internal.NewRegularTestSpace(config.Config{}, "10G")
+
+			testUser = internal.NewTestUser(config.Config{}, &fakes.FakeCmdStarter{})
 		})
 
 		JustBeforeEach(func() {
-			userContext = workflowhelpers.NewUserContext(target, username, password, org, space, skipSslValidation)
+			userContext = workflowhelpers.NewUserContext(target, testUser, testSpace, skipSslValidation, timeout)
 			userContext.CommandStarter = fakeStarter
 		})
 
 		It("logs in the user", func() {
-			userContext.Login(timeout)
+			userContext.Login()
 
 			Expect(fakeStarter.CalledWith).To(HaveLen(2))
 
@@ -77,7 +97,7 @@ var _ = Describe("UserContext", func() {
 			Expect(fakeStarter.CalledWith[0].Args).To(Equal([]string{"api", target}))
 
 			Expect(fakeStarter.CalledWith[1].Executable).To(Equal("cf"))
-			Expect(fakeStarter.CalledWith[1].Args).To(Equal([]string{"auth", username, password}))
+			Expect(fakeStarter.CalledWith[1].Args).To(Equal([]string{"auth", testUser.Username(), testUser.Password()}))
 		})
 
 		Context("when SkipSSLValidation is true", func() {
@@ -86,7 +106,7 @@ var _ = Describe("UserContext", func() {
 			})
 
 			It("adds the --skip-ssl-validation flag to 'cf api'", func() {
-				userContext.Login(timeout)
+				userContext.Login()
 
 				Expect(fakeStarter.CalledWith).To(HaveLen(2))
 
@@ -102,7 +122,7 @@ var _ = Describe("UserContext", func() {
 
 			It("fails with a ginkgo error", func() {
 				failures := InterceptGomegaFailures(func() {
-					userContext.Login(timeout)
+					userContext.Login()
 				})
 
 				Expect(failures).To(HaveLen(1))
@@ -118,7 +138,7 @@ var _ = Describe("UserContext", func() {
 
 			It("fails with a ginkgo error", func() {
 				failures := InterceptGomegaFailures(func() {
-					userContext.Login(timeout)
+					userContext.Login()
 				})
 
 				Expect(failures).To(HaveLen(1))
@@ -134,7 +154,7 @@ var _ = Describe("UserContext", func() {
 
 			It("fails with a ginkgo error", func() {
 				failures := InterceptGomegaFailures(func() {
-					userContext.Login(timeout)
+					userContext.Login()
 				})
 
 				Expect(failures).To(HaveLen(1))
@@ -150,7 +170,7 @@ var _ = Describe("UserContext", func() {
 
 			It("fails with a ginkgo error", func() {
 				failures := InterceptGomegaFailures(func() {
-					userContext.Login(timeout)
+					userContext.Login()
 				})
 
 				Expect(failures).To(HaveLen(1))
@@ -201,57 +221,38 @@ var _ = Describe("UserContext", func() {
 
 	Describe("TargetSpace", func() {
 		var userContext workflowhelpers.UserContext
-		var org, space string
 		var timeout time.Duration
 		var fakeStarter *fakes.FakeCmdStarter
+		var testSpace *internal.TestSpace
+		var testUser *internal.TestUser
 
 		BeforeEach(func() {
-			org = "my-org"
-			space = "my-space"
+			testSpace = internal.NewRegularTestSpace(config.Config{}, "10G")
 			timeout = 1 * time.Second
 			fakeStarter = fakes.NewFakeCmdStarter()
+
+			testUser = internal.NewTestUser(config.Config{}, &fakes.FakeCmdStarter{})
 		})
 
 		JustBeforeEach(func() {
-			userContext = workflowhelpers.UserContext{
-				Org:            org,
-				Space:          space,
-				CommandStarter: fakeStarter,
-			}
+			userContext = workflowhelpers.NewUserContext("api-url", testUser, testSpace, false, timeout)
+			userContext.CommandStarter = fakeStarter
 		})
 
 		It("targets the org and space", func() {
-			userContext.TargetSpace(timeout)
+			userContext.TargetSpace()
 			Expect(fakeStarter.CalledWith).To(HaveLen(1))
 			Expect(fakeStarter.CalledWith[0].Executable).To(Equal("cf"))
-			Expect(fakeStarter.CalledWith[0].Args).To(Equal([]string{"target", "-o", org, "-s", space}))
-
-			userContext.Org = "my-other-org"
-			userContext.Space = "my-other-space"
-			userContext.TargetSpace(timeout)
-			Expect(fakeStarter.CalledWith[1].Args).To(Equal([]string{"target", "-o", "my-other-org", "-s", "my-other-space"}))
+			Expect(fakeStarter.CalledWith[0].Args).To(Equal([]string{"target", "-o", testSpace.OrganizationName(), "-s", testSpace.SpaceName()}))
 		})
 
-		Context("when the space is not set", func() {
+		Context("when the test space is not set", func() {
 			BeforeEach(func() {
-				space = ""
+				testSpace = nil
 			})
 
-			It("targets only the org", func() {
-				userContext.TargetSpace(timeout)
-				Expect(fakeStarter.CalledWith).To(HaveLen(1))
-				Expect(fakeStarter.CalledWith[0].Executable).To(Equal("cf"))
-				Expect(fakeStarter.CalledWith[0].Args).To(Equal([]string{"target", "-o", org}))
-			})
-		})
-
-		Context("when the org is not set", func() {
-			BeforeEach(func() {
-				org = ""
-			})
-
-			It("does nothing", func() {
-				userContext.TargetSpace(timeout)
+			It("does not target anything", func() {
+				userContext.TargetSpace()
 				Expect(fakeStarter.CalledWith).To(HaveLen(0))
 			})
 		})
@@ -264,7 +265,7 @@ var _ = Describe("UserContext", func() {
 
 			It("fails with a ginkgo error", func() {
 				failures := InterceptGomegaFailures(func() {
-					userContext.TargetSpace(timeout)
+					userContext.TargetSpace()
 				})
 
 				Expect(failures).To(HaveLen(1))
@@ -279,7 +280,7 @@ var _ = Describe("UserContext", func() {
 
 			It("fails with a ginkgo error", func() {
 				failures := InterceptGomegaFailures(func() {
-					userContext.TargetSpace(timeout)
+					userContext.TargetSpace()
 				})
 
 				Expect(failures).To(HaveLen(1))
@@ -288,20 +289,115 @@ var _ = Describe("UserContext", func() {
 		})
 	})
 
+	Describe("AddUserToSpace", func() {
+		var userContext workflowhelpers.UserContext
+		var fakeStarter *fakes.FakeCmdStarter
+		var timeout time.Duration
+		var testSpace *internal.TestSpace
+		var testUser *internal.TestUser
+
+		BeforeEach(func() {
+			timeout = 1 * time.Second
+			fakeStarter = fakes.NewFakeCmdStarter()
+			testSpace = internal.NewRegularTestSpace(config.Config{NamePrefix: "UNIT-TESTS"}, "10G")
+
+			testUser = internal.NewTestUser(config.Config{}, &fakes.FakeCmdStarter{})
+		})
+
+		JustBeforeEach(func() {
+			userContext = workflowhelpers.NewUserContext("", testUser, testSpace, false, timeout)
+			userContext.CommandStarter = fakeStarter
+		})
+
+		It("gives the user the SpaceManager role", func() {
+			userContext.AddUserToSpace()
+			Expect(len(fakeStarter.CalledWith)).To(BeNumerically(">", 0))
+			Expect(fakeStarter.CalledWith[0].Executable).To(Equal("cf"))
+			Expect(fakeStarter.CalledWith[0].Args).To(Equal([]string{"set-space-role", userContext.Username, testSpace.OrganizationName(), testSpace.SpaceName(), "SpaceManager"}))
+		})
+
+		It("gives the user the SpaceDeveloper role", func() {
+			userContext.AddUserToSpace()
+			Expect(len(fakeStarter.CalledWith)).To(BeNumerically(">", 0))
+			Expect(fakeStarter.CalledWith[1].Executable).To(Equal("cf"))
+			Expect(fakeStarter.CalledWith[1].Args).To(Equal([]string{"set-space-role", userContext.Username, testSpace.OrganizationName(), testSpace.SpaceName(), "SpaceDeveloper"}))
+		})
+
+		It("gives the user the SpaceAuditor role", func() {
+			userContext.AddUserToSpace()
+			Expect(len(fakeStarter.CalledWith)).To(BeNumerically(">", 0))
+			Expect(fakeStarter.CalledWith[2].Executable).To(Equal("cf"))
+			Expect(fakeStarter.CalledWith[2].Args).To(Equal([]string{"set-space-role", userContext.Username, testSpace.OrganizationName(), testSpace.SpaceName(), "SpaceAuditor"}))
+		})
+
+		Describe("failure cases", func() {
+			testFailureCase := func(callIndex int) func() {
+				return func() {
+					BeforeEach(func() {
+						fakeStarter.ToReturn[callIndex].ExitCode = 1
+					})
+
+					It("returns a ginkgo error", func() {
+						failures := InterceptGomegaFailures(func() {
+							userContext.AddUserToSpace()
+						})
+
+						Expect(failures).To(HaveLen(1))
+						Expect(failures[0]).To(MatchRegexp("to match exit code:\n.*0"))
+					})
+				}
+			}
+			Context("when 'cf set-role SpaceManager' fails", testFailureCase(0))
+			Context("when 'cf set-role SpaceDeveloper' fails", testFailureCase(1))
+			Context("when 'cf set-role SpaceAuditor' fails", testFailureCase(2))
+		})
+
+		Describe("timing out", func() {
+			testTimeoutCase := func(callIndex int) func() {
+				return func() {
+					BeforeEach(func() {
+						fakeStarter.ToReturn[callIndex].SleepTime = 5
+						timeout = 2 * time.Second
+					})
+
+					It("returns a ginkgo error", func() {
+						failures := InterceptGomegaFailures(func() {
+							userContext.AddUserToSpace()
+						})
+
+						Expect(failures).To(HaveLen(1))
+						Expect(failures[0]).To(MatchRegexp("Timed out after 2.*"))
+					})
+				}
+			}
+
+			Context("when 'cf set-role SpaceManager' times out", testTimeoutCase(0))
+			Context("when 'cf set-role SpaceDeveloper' times out", testTimeoutCase(1))
+			Context("when 'cf set-role SpaceAuditor' times out", testTimeoutCase(2))
+		})
+	})
+
 	Describe("Logout", func() {
 		var userContext workflowhelpers.UserContext
 		var fakeStarter *fakes.FakeCmdStarter
 		var timeout time.Duration
+		var testSpace *internal.TestSpace
+		var testUser *internal.TestUser
 
 		BeforeEach(func() {
-			fakeStarter = fakes.NewFakeCmdStarter()
-			userContext = workflowhelpers.NewUserContext("", "", "", "", "", false)
-			userContext.CommandStarter = fakeStarter
 			timeout = 1 * time.Second
+			fakeStarter = fakes.NewFakeCmdStarter()
+			testSpace = internal.NewRegularTestSpace(config.Config{}, "10G")
+			testUser = internal.NewTestUser(config.Config{}, &fakes.FakeCmdStarter{})
+		})
+
+		JustBeforeEach(func() {
+			userContext = workflowhelpers.NewUserContext("", testUser, testSpace, false, timeout)
+			userContext.CommandStarter = fakeStarter
 		})
 
 		It("logs out the user", func() {
-			userContext.Logout(timeout)
+			userContext.Logout()
 
 			Expect(fakeStarter.CalledWith).To(HaveLen(1))
 			Expect(fakeStarter.CalledWith[0].Executable).To(Equal("cf"))
@@ -315,7 +411,7 @@ var _ = Describe("UserContext", func() {
 
 			It("fails with a ginkgo error", func() {
 				failures := InterceptGomegaFailures(func() {
-					userContext.Logout(timeout)
+					userContext.Logout()
 				})
 
 				Expect(failures).To(HaveLen(1))
@@ -331,7 +427,7 @@ var _ = Describe("UserContext", func() {
 
 			It("fails with a ginkgo error", func() {
 				failures := InterceptGomegaFailures(func() {
-					userContext.Logout(timeout)
+					userContext.Logout()
 				})
 
 				Expect(failures).To(HaveLen(1))
@@ -343,9 +439,13 @@ var _ = Describe("UserContext", func() {
 	Describe("UnsetCfHomeDir", func() {
 		var userContext workflowhelpers.UserContext
 		var originalCfHomeDir, currentCfHomeDir string
+		var testSpace *internal.TestSpace
+		var testUser *internal.TestUser
 
 		BeforeEach(func() {
-			userContext = workflowhelpers.NewUserContext("", "", "", "", "", false)
+			testSpace = internal.NewRegularTestSpace(config.Config{}, "10G")
+			testUser = internal.NewTestUser(config.Config{}, &fakes.FakeCmdStarter{})
+			userContext = workflowhelpers.NewUserContext("", testUser, testSpace, false, 1*time.Minute)
 		})
 
 		It("restores Cf home dir to its original value", func() {
@@ -353,141 +453,6 @@ var _ = Describe("UserContext", func() {
 			userContext.UnsetCfHomeDir(originalCfHomeDir, currentCfHomeDir)
 			Expect(os.Getenv("CF_HOME")).To(Equal(originalCfHomeDir))
 			Expect(currentCfHomeDir).NotTo(BeADirectory())
-		})
-	})
-
-	Describe("Destroy", func() {
-		var userContext workflowhelpers.UserContext
-		var fakeStarter *fakes.FakeCmdStarter
-		var timeout time.Duration
-
-		BeforeEach(func() {
-			fakeStarter = fakes.NewFakeCmdStarter()
-			userContext = workflowhelpers.NewUserContext("", "", "", "", "", false)
-			userContext.CommandStarter = fakeStarter
-			timeout = 1 * time.Second
-		})
-
-		It("deletes the user", func() {
-			userContext.DeleteUser(timeout)
-			Expect(fakeStarter.CalledWith).To(HaveLen(1))
-			Expect(fakeStarter.CalledWith[0].Executable).To(Equal("cf"))
-			Expect(fakeStarter.CalledWith[0].Args).To(Equal([]string{"delete-user", "-f", userContext.Username}))
-		})
-
-		Context("when 'cf delete-user' exits with a non-zero exit code", func() {
-			BeforeEach(func() {
-				fakeStarter.ToReturn[0].ExitCode = 1
-			})
-
-			It("fails with a ginkgo error", func() {
-				failures := InterceptGomegaFailures(func() {
-					userContext.DeleteUser(timeout)
-				})
-
-				Expect(failures).To(HaveLen(1))
-				Expect(failures[0]).To(MatchRegexp("to match exit code:\n.*0"))
-			})
-		})
-
-		Context("when 'cf delete-user' times out", func() {
-			BeforeEach(func() {
-				timeout = 2 * time.Second
-				fakeStarter.ToReturn[0].SleepTime = 3
-			})
-
-			It("fails with a ginkgo error", func() {
-				failures := InterceptGomegaFailures(func() {
-					userContext.DeleteUser(timeout)
-				})
-
-				Expect(failures).To(HaveLen(1))
-				Expect(failures[0]).To(MatchRegexp("Timed out after 2.*"))
-			})
-		})
-
-		XContext("when config.ShouldKeepUser is true", func() {
-			JustBeforeEach(func() {
-
-			})
-
-			It("does not delete the user", func() {
-
-			})
-		})
-	})
-
-	Describe("create-user", func() {
-		var userContext workflowhelpers.UserContext
-		var fakeStarter *fakes.FakeCmdStarter
-		var timeout time.Duration
-
-		BeforeEach(func() {
-			fakeStarter = fakes.NewFakeCmdStarter()
-			userContext = workflowhelpers.NewUserContext("", "", "", "", "", false)
-			userContext.CommandStarter = fakeStarter
-			timeout = 1 * time.Second
-		})
-
-		It("creates the user", func() {
-			userContext.CreateUser(timeout)
-			Expect(fakeStarter.CalledWith).To(HaveLen(1))
-			Expect(fakeStarter.CalledWith[0].Executable).To(Equal("cf"))
-			Expect(fakeStarter.CalledWith[0].Args).To(Equal([]string{"create-user", userContext.Username, userContext.Password}))
-		})
-
-		Context("when 'cf create-user' exits with a non-zero exit code", func() {
-			BeforeEach(func() {
-				fakeStarter.ToReturn[0].ExitCode = 1
-			})
-
-			It("fails with a ginkgo error", func() {
-				failures := InterceptGomegaFailures(func() {
-					userContext.CreateUser(timeout)
-				})
-
-				Expect(failures).To(HaveLen(1))
-				Expect(failures[0]).To(MatchRegexp("scim_resource_already_exists"))
-			})
-
-			Context("and the output mentions that the user already exists", func() {
-				BeforeEach(func() {
-					fakeStarter.ToReturn[0].Output = "scim_resource_already_exists"
-				})
-
-				It("considers the command successful and does not fail", func() {
-					failures := InterceptGomegaFailures(func() {
-						userContext.CreateUser(timeout)
-					})
-					Expect(failures).To(BeEmpty())
-				})
-			})
-		})
-
-		Context("when 'cf create-user' times out", func() {
-			BeforeEach(func() {
-				timeout = 2 * time.Second
-				fakeStarter.ToReturn[0].SleepTime = 3
-			})
-
-			It("fails with a ginkgo error", func() {
-				failures := InterceptGomegaFailures(func() {
-					userContext.CreateUser(timeout)
-				})
-
-				Expect(len(failures)).To(BeNumerically(">", 0))
-				Expect(failures[0]).To(MatchRegexp("Timed out after 2.*"))
-			})
-		})
-
-		XContext("when config.UseExistingUser is true", func() {
-			JustBeforeEach(func() {
-
-			})
-
-			It("does not delete the user", func() {
-
-			})
 		})
 	})
 })

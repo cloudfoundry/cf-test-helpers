@@ -25,11 +25,11 @@ func (f *fakeUserContext) SetCfHomeDir() (string, string) {
 	return "", ""
 }
 
-func (f *fakeUserContext) Login(timeout time.Duration) {
+func (f *fakeUserContext) Login() {
 	f.NumLoginCalls += 1
 }
 
-func (f *fakeUserContext) Logout(timeout time.Duration) {
+func (f *fakeUserContext) Logout() {
 	f.NumLogoutCalls += 1
 }
 
@@ -37,7 +37,7 @@ func (f *fakeUserContext) UnsetCfHomeDir(string, string) {
 	f.NumUnsetCfHomeDirCalls += 1
 }
 
-func (f *fakeUserContext) TargetSpace(timeout time.Duration) {
+func (f *fakeUserContext) TargetSpace() {
 	f.NumTargetSpaceCalls += 1
 }
 
