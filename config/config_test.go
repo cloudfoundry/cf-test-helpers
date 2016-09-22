@@ -58,14 +58,41 @@ var _ = Describe("Config", func() {
 
 	It("should have the right defaults", func() {
 		Expect(config.IncludeApps).To(BeTrue())
-		Expect(config.DefaultTimeout).To(Equal(30 * time.Second))
-		Expect(config.CfPushTimeout).To(Equal(2 * time.Minute))
-		Expect(config.LongCurlTimeout).To(Equal(2 * time.Minute))
-		Expect(config.BrokerStartTimeout).To(Equal(5 * time.Minute))
-		Expect(config.AsyncServiceOperationTimeout).To(Equal(2 * time.Minute))
+		Expect(config.DefaultTimeout).To(Equal(30))
+		Expect(config.DefaultTimeoutDuration()).To(Equal(30 * time.Second))
+		Expect(config.CfPushTimeout).To(Equal(2))
+		Expect(config.CfPushTimeoutDuration()).To(Equal(2 * time.Minute))
+		Expect(config.LongCurlTimeout).To(Equal(2))
+		Expect(config.LongCurlTimeoutDuration()).To(Equal(2 * time.Minute))
+		Expect(config.BrokerStartTimeout).To(Equal(5))
+		Expect(config.BrokerStartTimeoutDuration()).To(Equal(5 * time.Minute))
+		Expect(config.AsyncServiceOperationTimeout).To(Equal(2))
+		Expect(config.AsyncServiceOperationTimeoutDuration()).To(Equal(2 * time.Minute))
 
 		// undocumented
-		Expect(config.DetectTimeout).To(Equal(5 * time.Minute))
-		Expect(config.SleepTimeout).To(Equal(30 * time.Second))
+		Expect(config.DetectTimeout).To(Equal(5))
+		Expect(config.DetectTimeoutDuration()).To(Equal(5 * time.Minute))
+		Expect(config.SleepTimeout).To(Equal(30))
+		Expect(config.SleepTimeoutDuration()).To(Equal(30 * time.Second))
+	})
+
+	It("should have duration timeouts based on the configured values", func() {
+		cfg := cfg.Config{
+			DefaultTimeout:               12,
+			CfPushTimeout:                34,
+			LongCurlTimeout:              56,
+			BrokerStartTimeout:           78,
+			AsyncServiceOperationTimeout: 90,
+			DetectTimeout:                100,
+			SleepTimeout:                 101,
+		}
+
+		Expect(cfg.DefaultTimeoutDuration()).To(Equal(12 * time.Second))
+		Expect(cfg.CfPushTimeoutDuration()).To(Equal(34 * time.Minute))
+		Expect(cfg.LongCurlTimeoutDuration()).To(Equal(56 * time.Minute))
+		Expect(cfg.BrokerStartTimeoutDuration()).To(Equal(78 * time.Minute))
+		Expect(cfg.AsyncServiceOperationTimeoutDuration()).To(Equal(90 * time.Minute))
+		Expect(cfg.DetectTimeoutDuration()).To(Equal(100 * time.Minute))
+		Expect(cfg.SleepTimeoutDuration()).To(Equal(101 * time.Second))
 	})
 })
