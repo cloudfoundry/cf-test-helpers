@@ -108,6 +108,14 @@ var defaults = Config{
 	IncludeSsh:                 true,
 	IncludeV3:                  true,
 
+	DefaultTimeout:               30 * time.Second,
+	CfPushTimeout:                2 * time.Minute,
+	LongCurlTimeout:              2 * time.Minute,
+	BrokerStartTimeout:           5 * time.Minute,
+	AsyncServiceOperationTimeout: 2 * time.Minute,
+	DetectTimeout:                5 * time.Minute,
+	SleepTimeout:                 30 * time.Second,
+
 	ArtifactsDirectory: filepath.Join("..", "results"),
 
 	NamePrefix: "CATS",
