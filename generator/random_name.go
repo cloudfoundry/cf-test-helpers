@@ -3,17 +3,17 @@ package generator
 import (
 	"strconv"
 
-	"github.com/adam-hanna/randomstrings"
+	uuid "github.com/nu7hatch/gouuid"
 	"github.com/onsi/ginkgo/config"
 )
 
 func randomName() string {
-	str, err := randomstrings.GenerateRandomString(20)
+	guid, err := uuid.NewV4()
 	if err != nil {
 		panic(err)
 	}
 
-	return str
+	return guid.String()
 }
 
 func PrefixedRandomName(prefixName, resourceName string) string {
