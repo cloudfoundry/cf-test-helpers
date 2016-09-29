@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/cloudfoundry-incubator/cf-test-helpers/config"
 	. "github.com/cloudfoundry-incubator/cf-test-helpers/helpers/internal"
 
 	. "github.com/onsi/ginkgo"
@@ -22,7 +23,7 @@ func (fake *fakeUriCreator) AppUri(appName, path string) string {
 
 var _ = Describe("AppCurler", func() {
 	var appCurler *AppCurler
-	var curlStub func(...string) *gexec.Session
+	var curlStub func(config.Config, ...string) *gexec.Session
 	var uriCreator *fakeUriCreator
 
 	JustBeforeEach(func() {
@@ -35,6 +36,7 @@ var _ = Describe("AppCurler", func() {
 	Describe("CurlAndWait", func() {
 		var appName, path string
 		var timeout time.Duration
+		var cfg config.Config
 		var args []string
 		var curlOutput string
 
@@ -51,7 +53,9 @@ var _ = Describe("AppCurler", func() {
 			curledUri = ""
 			receivedArgs = []string{}
 
-			curlStub = func(args ...string) *gexec.Session {
+			cfg = config.Config{}
+
+			curlStub = func(cfg config.Config, args ...string) *gexec.Session {
 				Expect(len(args)).To(BeNumerically(">", 0))
 				curledUri = args[0]
 				receivedArgs = args[1:]
@@ -67,22 +71,22 @@ var _ = Describe("AppCurler", func() {
 		})
 
 		It("returns the curl output", func() {
-			Expect(appCurler.CurlAndWait(appName, path, timeout, args...)).To(ContainSubstring(curlOutput))
+			Expect(appCurler.CurlAndWait(cfg, appName, path, timeout, args...)).To(ContainSubstring(curlOutput))
 		})
 
 		It("curls the app uri, as computed by the uriCreator", func() {
-			appCurler.CurlAndWait(appName, path, timeout, args...)
+			appCurler.CurlAndWait(cfg, appName, path, timeout, args...)
 			Expect(curledUri).To(Equal(uriCreator.toReturn))
 		})
 
 		It("passes any args on to the curl function", func() {
-			appCurler.CurlAndWait(appName, path, timeout, args...)
+			appCurler.CurlAndWait(cfg, appName, path, timeout, args...)
 			Expect(receivedArgs).To(ConsistOf(args))
 		})
 
 		Context("when stderr has contents", func() {
 			BeforeEach(func() {
-				curlStub = func(...string) *gexec.Session {
+				curlStub = func(config.Config, ...string) *gexec.Session {
 					cmd := exec.Command("bash", "-c", "echo \"curl app\" >&2")
 					session, _ := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 					return session
@@ -91,7 +95,7 @@ var _ = Describe("AppCurler", func() {
 
 			It("raises a ginkgo error", func() {
 				failures := InterceptGomegaFailures(func() {
-					appCurler.CurlAndWait(appName, path, timeout, args...)
+					appCurler.CurlAndWait(cfg, appName, path, timeout, args...)
 				})
 
 				Expect(failures).To(ContainElement(MatchRegexp("to have length 0")))
@@ -100,7 +104,7 @@ var _ = Describe("AppCurler", func() {
 
 		Context("when curl exits with non-zero", func() {
 			BeforeEach(func() {
-				curlStub = func(...string) *gexec.Session {
+				curlStub = func(config.Config, ...string) *gexec.Session {
 					cmd := exec.Command("bash", "-c", "exit 1")
 					session, _ := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 					return session
@@ -109,7 +113,7 @@ var _ = Describe("AppCurler", func() {
 
 			It("raises a ginkgo error", func() {
 				failures := InterceptGomegaFailures(func() {
-					appCurler.CurlAndWait(appName, path, timeout, args...)
+					appCurler.CurlAndWait(cfg, appName, path, timeout, args...)
 				})
 
 				Expect(failures).To(ContainElement(MatchRegexp("to match exit code")))
@@ -118,7 +122,7 @@ var _ = Describe("AppCurler", func() {
 
 		Context("when the timeout expires", func() {
 			BeforeEach(func() {
-				curlStub = func(...string) *gexec.Session {
+				curlStub = func(config.Config, ...string) *gexec.Session {
 					cmd := exec.Command("bash", "-c", "sleep 1")
 					session, _ := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 					return session
@@ -127,7 +131,7 @@ var _ = Describe("AppCurler", func() {
 
 			It("raises a ginkgo error", func() {
 				failures := InterceptGomegaFailures(func() {
-					appCurler.CurlAndWait(appName, path, timeout, args...)
+					appCurler.CurlAndWait(cfg, appName, path, timeout, args...)
 				})
 
 				Expect(failures).To(ContainElement(MatchRegexp("Expected process to exit.")))
