@@ -21,7 +21,7 @@ type RequiredConfig struct {
 	UseHttp           bool   `json:"use_http"`
 }
 
-var config cfg.Config
+var config *cfg.Config
 var tmpFile *os.File
 var err error
 var _ = Describe("Config", func() {

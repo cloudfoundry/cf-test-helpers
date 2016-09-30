@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reflect"
 	"time"
 )
 
@@ -127,52 +126,42 @@ func (c Config) GetScaledTimeout(timeout time.Duration) time.Duration {
 
 var loadedConfig *Config
 
-func Load(path string, config interface{}) error {
-	c, ok := config.(*Config)
-	if !ok {
-		val := reflect.ValueOf(config).Elem().FieldByName("Config").Addr()
-		c = val.Interface().(*Config)
-	}
-
-	*c = defaults
+func Load(path string, config *Config) error {
 	err := loadConfigFromPath(path, config)
 	if err != nil {
 		return err
 	}
 
-	if c.ApiEndpoint == "" {
+	if config.ApiEndpoint == "" {
 		return fmt.Errorf("missing configuration 'api'")
 	}
 
-	if c.AdminUser == "" {
+	if config.AdminUser == "" {
 		return fmt.Errorf("missing configuration 'admin_user'")
 	}
 
-	if c.AdminPassword == "" {
+	if config.AdminPassword == "" {
 		return fmt.Errorf("missing configuration 'admin_password'")
 	}
 
-	if c.TimeoutScale <= 0 {
-		c.TimeoutScale = 1.0
+	if config.TimeoutScale <= 0 {
+		config.TimeoutScale = 1.0
 	}
 
 	return nil
 }
 
-func LoadConfig() Config {
+func LoadConfig() *Config {
 	if loadedConfig != nil {
-		return *loadedConfig
+		return loadedConfig
 	}
 
-	var config Config
-
-	err := Load(ConfigPath(), &config)
+	loadedConfig = &defaults
+	err := Load(ConfigPath(), loadedConfig)
 	if err != nil {
 		panic(err)
 	}
-
-	loadedConfig = &config
-	return config
+	return loadedConfig
 }
 
 func (c Config) Protocol() string {
