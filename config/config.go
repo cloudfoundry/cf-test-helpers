@@ -121,7 +121,7 @@ var defaults = Config{
 	NamePrefix: "CATS",
 }
 
-func (c Config) ScaledTimeout(timeout time.Duration) time.Duration {
+func (c Config) GetScaledTimeout(timeout time.Duration) time.Duration {
 	return time.Duration(float64(timeout) * c.TimeoutScale)
 }
 
@@ -228,4 +228,62 @@ func (c *Config) BrokerStartTimeoutDuration() time.Duration {
 
 func (c *Config) AsyncServiceOperationTimeoutDuration() time.Duration {
 	return time.Duration(c.AsyncServiceOperationTimeout) * time.Minute
+}
+
+func (c *Config) GetAppsDomain() string {
+	return c.AppsDomain
+}
+
+func (c *Config) GetSkipSSLValidation() bool {
+	return c.SkipSSLValidation
+}
+
+func (c *Config) GetArtifactsDirectory() string {
+	return c.ArtifactsDirectory
+}
+
+func (c *Config) GetPersistentAppSpace() string {
+	return c.PersistentAppSpace
+}
+func (c *Config) GetPersistentAppOrg() string {
+	return c.PersistentAppOrg
+}
+func (c *Config) GetPersistentAppQuotaName() string {
+	return c.PersistentAppQuotaName
+}
+
+func (c *Config) GetNamePrefix() string {
+	return c.NamePrefix
+}
+
+func (c *Config) GetUseExistingUser() bool {
+	return c.UseExistingUser
+}
+
+func (c *Config) GetExistingUser() string {
+	return c.ExistingUser
+}
+
+func (c *Config) GetExistingUserPassword() string {
+	return c.ExistingUserPassword
+}
+
+func (c *Config) GetConfigurableTestPassword() string {
+	return c.ConfigurableTestPassword
+}
+
+func (c *Config) GetShouldKeepUser() bool {
+	return c.ShouldKeepUser
+}
+
+func (c *Config) GetAdminUser() string {
+	return c.AdminUser
+}
+
+func (c *Config) GetAdminPassword() string {
+	return c.AdminPassword
+}
+
+func (c *Config) GetApiEndpoint() string {
+	return c.ApiEndpoint
 }

@@ -25,7 +25,7 @@ var _ = Describe("Artifacts", func() {
 		})
 
 		It("Sets the CF_TRACE variable correctly", func() {
-			EnableCFTrace(config, componentName)
+			EnableCFTrace(&config, componentName)
 			Expect(os.Getenv("CF_TRACE")).To(Equal(fmt.Sprintf("%s/CATS-TRACE-%s-%d.txt", config.ArtifactsDirectory, componentName, expectedGinkgoNode)))
 		})
 
@@ -34,7 +34,7 @@ var _ = Describe("Artifacts", func() {
 				componentName = "fake component name"
 			})
 			It("replaces them with underscores", func() {
-				EnableCFTrace(config, componentName)
+				EnableCFTrace(&config, componentName)
 				Expect(os.Getenv("CF_TRACE")).To(Equal(fmt.Sprintf("%s/CATS-TRACE-fake_component_name-%d.txt", config.ArtifactsDirectory, expectedGinkgoNode)))
 			})
 		})
@@ -45,7 +45,7 @@ var _ = Describe("Artifacts", func() {
 			})
 
 			It("uses the current directory", func() {
-				EnableCFTrace(config, componentName)
+				EnableCFTrace(&config, componentName)
 				Expect(os.Getenv("CF_TRACE")).To(Equal(fmt.Sprintf("CATS-TRACE-%s-%d.txt", componentName, expectedGinkgoNode)))
 			})
 		})

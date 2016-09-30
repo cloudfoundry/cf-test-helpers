@@ -9,7 +9,7 @@ import (
 )
 
 var _ = Describe("User", func() {
-	var cfg config.Config
+	var cfg *config.Config
 
 	Describe("NewTestUser", func() {
 		var existingUser, existingUserPassword string
@@ -22,7 +22,7 @@ var _ = Describe("User", func() {
 		})
 
 		JustBeforeEach(func() {
-			cfg = config.Config{
+			cfg = &config.Config{
 				NamePrefix:               "UNIT-TESTS",
 				UseExistingUser:          useExistingUser,
 				ExistingUser:             existingUser,
@@ -66,12 +66,12 @@ var _ = Describe("User", func() {
 
 	Describe("NewAdminUser", func() {
 		It("copies the username and password from the config", func() {
-			cfg := config.Config{AdminUser: "admin", AdminPassword: "admin-password"}
+			cfg := &config.Config{AdminUser: "admin", AdminPassword: "admin-password"}
 			user := NewAdminUser(cfg, &fakes.FakeCmdStarter{})
 			Expect(user.Username()).To(Equal("admin"))
 			Expect(user.Password()).To(Equal("admin-password"))
 
-			cfg = config.Config{AdminUser: "admin-user-2", AdminPassword: "admin-password-2"}
+			cfg = &config.Config{AdminUser: "admin-user-2", AdminPassword: "admin-password-2"}
 			user = NewAdminUser(cfg, &fakes.FakeCmdStarter{})
 			Expect(user.Username()).To(Equal("admin-user-2"))
 			Expect(user.Password()).To(Equal("admin-password-2"))
@@ -89,7 +89,7 @@ var _ = Describe("User", func() {
 		})
 
 		JustBeforeEach(func() {
-			cfg = config.Config{
+			cfg = &config.Config{
 				TimeoutScale:         timeoutScale,
 				UseExistingUser:      true,
 				ExistingUser:         "my-username",
@@ -162,7 +162,7 @@ var _ = Describe("User", func() {
 		})
 
 		JustBeforeEach(func() {
-			cfg = config.Config{
+			cfg = &config.Config{
 				TimeoutScale: timeoutScale,
 			}
 			user = NewTestUser(cfg, fakeStarter)
@@ -220,7 +220,7 @@ var _ = Describe("User", func() {
 		})
 
 		JustBeforeEach(func() {
-			cfg = config.Config{
+			cfg = &config.Config{
 				TimeoutScale:   timeoutScale,
 				ShouldKeepUser: shouldKeepUser,
 			}

@@ -21,7 +21,7 @@ var _ = Describe("AppUriCreator", func() {
 			AppsDomain: appsDomain,
 			UseHttp:    useHttp,
 		}
-		uriCreator = &AppUriCreator{Config: cfg}
+		uriCreator = &AppUriCreator{CurlConfig: &cfg}
 	})
 
 	Describe("AppUri", func() {

@@ -21,8 +21,8 @@ var _ = Describe("UserContext", func() {
 		var testSpace *internal.TestSpace
 		var testUser *internal.TestUser
 		BeforeEach(func() {
-			testSpace = internal.NewRegularTestSpace(config.Config{}, "10G")
-			testUser = internal.NewTestUser(config.Config{}, &fakes.FakeCmdStarter{})
+			testSpace = internal.NewRegularTestSpace(&config.Config{}, "10G")
+			testUser = internal.NewTestUser(&config.Config{}, &fakes.FakeCmdStarter{})
 		})
 
 		var createUser = func() workflowhelpers.UserContext {
@@ -78,9 +78,9 @@ var _ = Describe("UserContext", func() {
 			timeout = 1 * time.Second
 
 			fakeStarter = fakes.NewFakeCmdStarter()
-			testSpace = internal.NewRegularTestSpace(config.Config{}, "10G")
+			testSpace = internal.NewRegularTestSpace(&config.Config{}, "10G")
 
-			testUser = internal.NewTestUser(config.Config{}, &fakes.FakeCmdStarter{})
+			testUser = internal.NewTestUser(&config.Config{}, &fakes.FakeCmdStarter{})
 		})
 
 		JustBeforeEach(func() {
@@ -227,11 +227,11 @@ var _ = Describe("UserContext", func() {
 		var testUser *internal.TestUser
 
 		BeforeEach(func() {
-			testSpace = internal.NewRegularTestSpace(config.Config{}, "10G")
+			testSpace = internal.NewRegularTestSpace(&config.Config{}, "10G")
 			timeout = 1 * time.Second
 			fakeStarter = fakes.NewFakeCmdStarter()
 
-			testUser = internal.NewTestUser(config.Config{}, &fakes.FakeCmdStarter{})
+			testUser = internal.NewTestUser(&config.Config{}, &fakes.FakeCmdStarter{})
 		})
 
 		JustBeforeEach(func() {
@@ -299,9 +299,9 @@ var _ = Describe("UserContext", func() {
 		BeforeEach(func() {
 			timeout = 1 * time.Second
 			fakeStarter = fakes.NewFakeCmdStarter()
-			testSpace = internal.NewRegularTestSpace(config.Config{NamePrefix: "UNIT-TESTS"}, "10G")
+			testSpace = internal.NewRegularTestSpace(&config.Config{NamePrefix: "UNIT-TESTS"}, "10G")
 
-			testUser = internal.NewTestUser(config.Config{}, &fakes.FakeCmdStarter{})
+			testUser = internal.NewTestUser(&config.Config{}, &fakes.FakeCmdStarter{})
 		})
 
 		JustBeforeEach(func() {
@@ -387,8 +387,8 @@ var _ = Describe("UserContext", func() {
 		BeforeEach(func() {
 			timeout = 1 * time.Second
 			fakeStarter = fakes.NewFakeCmdStarter()
-			testSpace = internal.NewRegularTestSpace(config.Config{}, "10G")
-			testUser = internal.NewTestUser(config.Config{}, &fakes.FakeCmdStarter{})
+			testSpace = internal.NewRegularTestSpace(&config.Config{}, "10G")
+			testUser = internal.NewTestUser(&config.Config{}, &fakes.FakeCmdStarter{})
 		})
 
 		JustBeforeEach(func() {
@@ -443,8 +443,8 @@ var _ = Describe("UserContext", func() {
 		var testUser *internal.TestUser
 
 		BeforeEach(func() {
-			testSpace = internal.NewRegularTestSpace(config.Config{}, "10G")
-			testUser = internal.NewTestUser(config.Config{}, &fakes.FakeCmdStarter{})
+			testSpace = internal.NewRegularTestSpace(&config.Config{}, "10G")
+			testUser = internal.NewTestUser(&config.Config{}, &fakes.FakeCmdStarter{})
 			userContext = workflowhelpers.NewUserContext("", testUser, testSpace, false, 1*time.Minute)
 		})
 

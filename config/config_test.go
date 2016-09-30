@@ -2,7 +2,6 @@ package config_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
@@ -47,7 +46,6 @@ var _ = Describe("Config", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		os.Setenv("CONFIG", tmpFile.Name())
-		fmt.Println(tmpFile.Name())
 		config = cfg.LoadConfig()
 	})
 
@@ -94,5 +92,12 @@ var _ = Describe("Config", func() {
 		Expect(cfg.AsyncServiceOperationTimeoutDuration()).To(Equal(90 * time.Minute))
 		Expect(cfg.DetectTimeoutDuration()).To(Equal(100 * time.Minute))
 		Expect(cfg.SleepTimeoutDuration()).To(Equal(101 * time.Second))
+	})
+
+	It("should have a function to get the AppsDomain", func() {
+		cfg := cfg.Config{
+			AppsDomain: "abc.com",
+		}
+		Expect(cfg.GetAppsDomain()).To(Equal("abc.com"))
 	})
 })

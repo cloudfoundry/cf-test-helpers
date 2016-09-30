@@ -26,22 +26,22 @@ var _ = Describe("TestSpace", func() {
 
 	Describe("NewRegularTestSpace", func() {
 		It("generates a quotaDefinitionName", func() {
-			testSpace := NewRegularTestSpace(cfg, quotaLimit)
+			testSpace := NewRegularTestSpace(&cfg, quotaLimit)
 			Expect(testSpace.QuotaDefinitionName).To(MatchRegexp("%s-[0-9]-QUOTA-.*", namePrefix))
 		})
 
 		It("generates an organizationName", func() {
-			testSpace := NewRegularTestSpace(cfg, quotaLimit)
+			testSpace := NewRegularTestSpace(&cfg, quotaLimit)
 			Expect(testSpace.OrganizationName()).To(MatchRegexp("%s-[0-9]-ORG-.*", namePrefix))
 		})
 
 		It("generates a spaceName", func() {
-			testSpace := NewRegularTestSpace(cfg, quotaLimit)
+			testSpace := NewRegularTestSpace(&cfg, quotaLimit)
 			Expect(testSpace.SpaceName()).To(MatchRegexp("%s-[0-9]-SPACE-.*", namePrefix))
 		})
 
 		It("sets a timeout for cf commands", func() {
-			testSpace := NewRegularTestSpace(cfg, quotaLimit)
+			testSpace := NewRegularTestSpace(&cfg, quotaLimit)
 			Expect(testSpace.Timeout).To(Equal(1 * time.Minute))
 		})
 
@@ -54,13 +54,13 @@ var _ = Describe("TestSpace", func() {
 			})
 
 			It("scales the timeout for cf commands", func() {
-				testSpace := NewRegularTestSpace(cfg, quotaLimit)
+				testSpace := NewRegularTestSpace(&cfg, quotaLimit)
 				Expect(testSpace.Timeout).To(Equal(2 * time.Minute))
 			})
 		})
 
 		It("uses default values for the quota (except for QuotaDefinitionTotalMemoryLimit)", func() {
-			testSpace := NewRegularTestSpace(cfg, quotaLimit)
+			testSpace := NewRegularTestSpace(&cfg, quotaLimit)
 			Expect(testSpace.QuotaDefinitionInstanceMemoryLimit).To(Equal("-1"))
 			Expect(testSpace.QuotaDefinitionRoutesLimit).To(Equal("1000"))
 			Expect(testSpace.QuotaDefinitionAppInstanceLimit).To(Equal("-1"))
@@ -69,12 +69,12 @@ var _ = Describe("TestSpace", func() {
 		})
 
 		It("uses the provided QuotaDefinitionTotalMemoryLimit", func() {
-			testSpace := NewRegularTestSpace(cfg, quotaLimit)
+			testSpace := NewRegularTestSpace(&cfg, quotaLimit)
 			Expect(testSpace.QuotaDefinitionTotalMemoryLimit).To(Equal(quotaLimit))
 		})
 
 		It("makes the space ephemeral", func() {
-			testSpace := NewRegularTestSpace(cfg, quotaLimit)
+			testSpace := NewRegularTestSpace(&cfg, quotaLimit)
 			Expect(testSpace.ShouldRemain()).To(BeFalse())
 		})
 	})
@@ -93,22 +93,22 @@ var _ = Describe("TestSpace", func() {
 		})
 
 		It("gets the quota definition name from the config", func() {
-			testSpace := NewPersistentAppTestSpace(cfg)
+			testSpace := NewPersistentAppTestSpace(&cfg)
 			Expect(testSpace.QuotaDefinitionName).To(Equal(quotaDefinitionName))
 		})
 
 		It("gets the org name from the config", func() {
-			testSpace := NewPersistentAppTestSpace(cfg)
+			testSpace := NewPersistentAppTestSpace(&cfg)
 			Expect(testSpace.OrganizationName()).To(Equal(organizationName))
 		})
 
 		It("gets the space name from the config", func() {
-			testSpace := NewPersistentAppTestSpace(cfg)
+			testSpace := NewPersistentAppTestSpace(&cfg)
 			Expect(testSpace.SpaceName()).To(Equal(spaceName))
 		})
 
 		It("uses default values for the quota", func() {
-			testSpace := NewPersistentAppTestSpace(cfg)
+			testSpace := NewPersistentAppTestSpace(&cfg)
 			Expect(testSpace.QuotaDefinitionTotalMemoryLimit).To(Equal("10G"))
 			Expect(testSpace.QuotaDefinitionInstanceMemoryLimit).To(Equal("-1"))
 			Expect(testSpace.QuotaDefinitionRoutesLimit).To(Equal("1000"))
@@ -118,7 +118,7 @@ var _ = Describe("TestSpace", func() {
 		})
 
 		It("makes the space persistent", func() {
-			testSpace := NewPersistentAppTestSpace(cfg)
+			testSpace := NewPersistentAppTestSpace(&cfg)
 			Expect(testSpace.ShouldRemain()).To(Equal(true))
 		})
 	})
