@@ -194,7 +194,7 @@ var _ = Describe("UserContext", func() {
 		})
 
 		It("creates a temporary directory and sets CF_HOME to point to it", func() {
-			tmpDirRegexp := fmt.Sprintf("\\/var\\/folders\\/.*\\/.*\\/T\\/cf_home_%d", ginkgoconfig.GinkgoConfig.ParallelNode)
+			tmpDirRegexp := fmt.Sprintf("(\\/var\\/folders\\/.*\\/.*\\/T|\\/tmp)\\/cf_home_%d", ginkgoconfig.GinkgoConfig.ParallelNode)
 
 			userContext.SetCfHomeDir()
 			cfHome := os.Getenv("CF_HOME")
