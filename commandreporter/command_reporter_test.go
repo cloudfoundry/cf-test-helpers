@@ -66,6 +66,7 @@ var _ = Describe("CommandReporter", func() {
 			reporter = commandreporter.NewCommandReporter(writer)
 			t = time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 			timestampRegex = "\\[2009-11-10 23:00:00.00 \\(UTC\\)\\]>"
+			config.DefaultReporterConfig.NoColor = false
 		})
 
 		It("prints the timestamp and command in green", func() {
