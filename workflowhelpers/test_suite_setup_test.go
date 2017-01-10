@@ -76,6 +76,11 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			Expect(setup.TestSpace).To(Equal(testSpace))
 		})
 
+		It("sets the OrganizationName to the testSpace's organiation name", func() {
+			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext)
+
+			Expect(setup.GetOrganizationName()).To(Equal(testSpace.OrganizationName()))
+		})
 	})
 
 	Describe("NewTestSuiteSetup", func() {
@@ -305,7 +310,8 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 	})
 
 	Describe("Setup", func() {
-		var testSpace, testUser *fakes.FakeRemoteResource
+		var testSpace *fakes.FakeSpace
+		var testUser *fakes.FakeRemoteResource
 		var fakeRegularUserValues, fakeAdminUserValues *fakes.FakeUserValues
 		var fakeSpaceValues *fakes.FakeSpaceValues
 		var regularUserCmdStarter, adminUserCmdStarter *starterFakes.FakeCmdStarter
@@ -316,7 +322,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 
 		BeforeEach(func() {
 			apiUrl = "api-url.com"
-			testSpace = &fakes.FakeRemoteResource{}
+			testSpace = &fakes.FakeSpace{}
 			testUser = &fakes.FakeRemoteResource{}
 
 			regularUserCmdStarter = starterFakes.NewFakeCmdStarter()
@@ -398,7 +404,8 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 	})
 
 	Describe("TearDown", func() {
-		var testSpace, testUser *fakes.FakeRemoteResource
+		var testSpace *fakes.FakeSpace
+		var testUser *fakes.FakeRemoteResource
 		var fakeRegularUserValues, fakeAdminUserValues *fakes.FakeUserValues
 		var fakeSpaceValues *fakes.FakeSpaceValues
 		var regularUserCmdStarter, adminUserCmdStarter *starterFakes.FakeCmdStarter
@@ -409,7 +416,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 
 		BeforeEach(func() {
 			apiUrl = "api-url.com"
-			testSpace = &fakes.FakeRemoteResource{}
+			testSpace = &fakes.FakeSpace{}
 			testUser = &fakes.FakeRemoteResource{}
 
 			regularUserCmdStarter = starterFakes.NewFakeCmdStarter()
@@ -492,7 +499,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 
 		Context("when the space should remain", func() {
 			BeforeEach(func() {
-				testSpace.ShouldRemainReturns = true
+				testSpace.ShouldRemainReturns(true)
 			})
 
 			It("does not destroy the user", func() {
