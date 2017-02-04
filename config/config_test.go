@@ -56,6 +56,8 @@ var _ = Describe("Config", func() {
 
 	It("should have the right defaults", func() {
 		Expect(config.IncludeApps).To(BeTrue())
+		Expect(config.UseExistingOrganization).To(BeFalse())
+		Expect(config.ExistingOrganization).To(BeEmpty())
 		Expect(config.DefaultTimeout).To(Equal(30))
 		Expect(config.DefaultTimeoutDuration()).To(Equal(30 * time.Second))
 		Expect(config.CfPushTimeout).To(Equal(2))

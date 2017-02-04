@@ -77,6 +77,32 @@ var _ = Describe("TestSpace", func() {
 			testSpace := NewRegularTestSpace(&cfg, quotaLimit)
 			Expect(testSpace.ShouldRemain()).To(BeFalse())
 		})
+
+		Context("when the config specifies that an existing organization should be used", func() {
+			BeforeEach(func() {
+				cfg = config.Config{
+					UseExistingOrganization: true,
+					ExistingOrganization:    "existing-org",
+				}
+			})
+			It("uses the provided existing organization name", func() {
+				testSpace := NewRegularTestSpace(&cfg, quotaLimit)
+				Expect(testSpace.OrganizationName()).To(Equal("existing-org"))
+			})
+			Context("when the config does not specify the existing organization name", func() {
+				BeforeEach(func() {
+					cfg = config.Config{
+						UseExistingOrganization: true,
+					}
+				})
+				It("panics", func() {
+					Expect(func() {
+						NewRegularTestSpace(&cfg, quotaLimit)
+					}).Should(Panic())
+				})
+			})
+		})
+
 	})
 
 	Describe("NewPersistentAppTestSpace", func() {
@@ -128,7 +154,7 @@ var _ = Describe("TestSpace", func() {
 		var fakeStarter *fakes.FakeCmdStarter
 
 		var spaceName, orgName, quotaName, quotaLimit string
-		var isPersistent bool
+		var isPersistent, isExistingOrganization bool
 		var timeout time.Duration
 
 		BeforeEach(func() {
@@ -137,12 +163,13 @@ var _ = Describe("TestSpace", func() {
 			quotaName = "quota"
 			quotaLimit = "10G"
 			isPersistent = false
+			isExistingOrganization = false
 			timeout = 1 * time.Second
 			fakeStarter = fakes.NewFakeCmdStarter()
 		})
 
 		JustBeforeEach(func() {
-			testSpace = NewBaseTestSpace(spaceName, orgName, quotaName, quotaLimit, isPersistent, timeout, fakeStarter)
+			testSpace = NewBaseTestSpace(spaceName, orgName, quotaName, quotaLimit, isPersistent, isExistingOrganization, timeout, fakeStarter)
 		})
 
 		It("creates a quota", func() {
@@ -165,6 +192,18 @@ var _ = Describe("TestSpace", func() {
 			Expect(len(fakeStarter.CalledWith)).To(BeNumerically(">", 1))
 			Expect(fakeStarter.CalledWith[1].Executable).To(Equal("cf"))
 			Expect(fakeStarter.CalledWith[1].Args).To(Equal([]string{"create-org", testSpace.OrganizationName()}))
+		})
+
+		Context("when the config specifies that an existing organization should be used", func() {
+			BeforeEach(func() {
+				isExistingOrganization = true
+			})
+			It("does not create the org", func() {
+				testSpace.Create()
+				for _, calls := range fakeStarter.CalledWith {
+					Expect(calls.Args).ToNot(ContainElement("create-org"))
+				}
+			})
 		})
 
 		It("sets quota", func() {
@@ -239,6 +278,7 @@ var _ = Describe("TestSpace", func() {
 		var fakeStarter *fakes.FakeCmdStarter
 		var spaceName, orgName, quotaName, quotaLimit string
 		var isPersistent bool
+		var isExistingOrganization bool
 		var timeout time.Duration
 		BeforeEach(func() {
 			fakeStarter = fakes.NewFakeCmdStarter()
@@ -248,6 +288,7 @@ var _ = Describe("TestSpace", func() {
 			quotaName = "quota"
 			quotaLimit = "10G"
 			isPersistent = false
+			isExistingOrganization = false
 			timeout = 1 * time.Second
 		})
 
@@ -258,6 +299,7 @@ var _ = Describe("TestSpace", func() {
 				quotaName,
 				quotaLimit,
 				isPersistent,
+				isExistingOrganization,
 				timeout,
 				fakeStarter,
 			)
@@ -270,11 +312,37 @@ var _ = Describe("TestSpace", func() {
 			Expect(fakeStarter.CalledWith[0].Args).To(Equal([]string{"delete-org", "-f", testSpace.OrganizationName()}))
 		})
 
-		It("deletes the space", func() {
+		It("deletes the quota", func() {
 			testSpace.Destroy()
 			Expect(len(fakeStarter.CalledWith)).To(BeNumerically(">", 1))
 			Expect(fakeStarter.CalledWith[1].Executable).To(Equal("cf"))
 			Expect(fakeStarter.CalledWith[1].Args).To(Equal([]string{"delete-quota", "-f", testSpace.QuotaDefinitionName}))
+		})
+
+		Context("when the config specifies that an existing organization should be used", func() {
+			BeforeEach(func() {
+				isExistingOrganization = true
+			})
+			It("does not delete the org", func() {
+				testSpace.Destroy()
+				for _, calls := range fakeStarter.CalledWith {
+					Expect(calls.Args).ToNot(ContainElement("delete-org"))
+				}
+			})
+			It("restores the default quota", func() {
+				testSpace.Destroy()
+				Expect(len(fakeStarter.CalledWith)).To(BeNumerically(">", 0))
+				Expect(fakeStarter.CalledWith[0].Executable).To(Equal("cf"))
+				Expect(fakeStarter.CalledWith[0].Args).To(Equal(
+					[]string{"set-quota", testSpace.OrganizationName(), "default"}))
+			})
+			It("deletes the space", func() {
+				testSpace.Destroy()
+				Expect(len(fakeStarter.CalledWith)).To(BeNumerically(">", 1))
+				Expect(fakeStarter.CalledWith[1].Executable).To(Equal("cf"))
+				Expect(fakeStarter.CalledWith[1].Args).To(Equal(
+					[]string{"delete-space", "-f", "-o", testSpace.OrganizationName(), testSpace.SpaceName()}))
+			})
 		})
 
 		Describe("failure cases", func() {
@@ -329,7 +397,7 @@ var _ = Describe("TestSpace", func() {
 		var testSpace *TestSpace
 		var isPersistent bool
 		JustBeforeEach(func() {
-			testSpace = NewBaseTestSpace("", "", "", "", isPersistent, 1*time.Second, nil)
+			testSpace = NewBaseTestSpace("", "", "", "", isPersistent, false, 1*time.Second, nil)
 		})
 		Context("when the space is constructed to be ephemeral", func() {
 			BeforeEach(func() {
@@ -358,7 +426,7 @@ var _ = Describe("TestSpace", func() {
 		})
 
 		It("returns the organization name", func() {
-			testSpace = NewBaseTestSpace("", "my-org", "", "", false, 1*time.Second, nil)
+			testSpace = NewBaseTestSpace("", "my-org", "", "", false, false, 1*time.Second, nil)
 			Expect(testSpace.OrganizationName()).To(Equal("my-org"))
 		})
 
@@ -376,7 +444,7 @@ var _ = Describe("TestSpace", func() {
 		})
 
 		It("returns the organization name", func() {
-			testSpace = NewBaseTestSpace("my-space", "", "", "", false, 1*time.Second, nil)
+			testSpace = NewBaseTestSpace("my-space", "", "", "", false, false, 1*time.Second, nil)
 			Expect(testSpace.SpaceName()).To(Equal("my-space"))
 		})
 
