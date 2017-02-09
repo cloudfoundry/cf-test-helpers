@@ -154,9 +154,7 @@ func (ts *TestSpace) ShouldRemain() bool {
 
 func organizationName(cfg spaceConfig) (string, bool) {
 	if cfg.GetUseExistingOrganization() {
-		if len(cfg.GetExistingOrganization()) == 0 {
-			panic("existing organization name must be specified")
-		}
+		Expect(cfg.GetExistingOrganization()).To(Not(BeEmpty()), "existing_organization must be specified")
 		return cfg.GetExistingOrganization(), true
 	}
 	return generator.PrefixedRandomName(cfg.GetNamePrefix(), "ORG"), false

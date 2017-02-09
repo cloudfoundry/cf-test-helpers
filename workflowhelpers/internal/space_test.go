@@ -95,10 +95,11 @@ var _ = Describe("TestSpace", func() {
 						UseExistingOrganization: true,
 					}
 				})
-				It("panics", func() {
-					Expect(func() {
+				It("fails with a ginkgo error", func() {
+					failures := InterceptGomegaFailures(func() {
 						NewRegularTestSpace(&cfg, quotaLimit)
-					}).Should(Panic())
+					})
+					Expect(failures).To(ContainElement(ContainSubstring("existing_organization must be specified")))
 				})
 			})
 		})
