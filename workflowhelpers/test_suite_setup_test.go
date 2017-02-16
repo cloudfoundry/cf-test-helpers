@@ -75,12 +75,6 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext)
 			Expect(setup.TestSpace).To(Equal(testSpace))
 		})
-
-		It("sets the OrganizationName to the testSpace's organiation name", func() {
-			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext)
-
-			Expect(setup.GetOrganizationName()).To(Equal(testSpace.OrganizationName()))
-		})
 	})
 
 	Describe("NewTestSuiteSetup", func() {
