@@ -195,7 +195,7 @@ var _ = Describe("TestSpace", func() {
 				Expect(fakeStarter.CalledWith[1].Executable).To(Equal("cf"))
 				Expect(fakeStarter.CalledWith[1].Args).To(Equal([]string{
 					"create-org",
-					testSpace.OrganizationName()
+					testSpace.OrganizationName(),
 				}))
 			})
 
@@ -206,7 +206,7 @@ var _ = Describe("TestSpace", func() {
 				Expect(fakeStarter.CalledWith[2].Args).To(Equal([]string{
 					"set-quota",
 					testSpace.OrganizationName(),
-					testSpace.QuotaDefinitionName
+					testSpace.QuotaDefinitionName,
 				}))
 			})
 
@@ -218,7 +218,7 @@ var _ = Describe("TestSpace", func() {
 					"create-space",
 					"-o",
 					testSpace.OrganizationName(),
-					testSpace.SpaceName()
+					testSpace.SpaceName(),
 				}))
 			})
 		})
@@ -230,12 +230,13 @@ var _ = Describe("TestSpace", func() {
 
 			It("creates the space, but not the org or the quota, and does not set the quota", func() {
 				testSpace.Create()
-				Expect(len(fakeStarter.CalledWith).To(Equal(1))
-			  Expect(fakeStarter.CalledWith[0]).To(Equal([]string{
+				Expect(len(fakeStarter.CalledWith)).To(BeNumerically("==", 1))
+				Expect(fakeStarter.CalledWith[0].Executable).To(Equal("cf"))
+				Expect(fakeStarter.CalledWith[0].Args).To(Equal([]string{
 					"create-space",
 					"-o",
-					testSpace.organizationName,
-					testSpace.spaceName,
+					testSpace.OrganizationName(),
+					testSpace.SpaceName(),
 				}))
 			})
 		})
@@ -345,7 +346,7 @@ var _ = Describe("TestSpace", func() {
 
 			It("deletes the space, but does not delete the org or quota", func() {
 				testSpace.Destroy()
-				Expect(len(fakeStarter.CalledWith).To(Equal(1))
+				Expect(len(fakeStarter.CalledWith)).To(BeNumerically("==", 1))
 				Expect(fakeStarter.CalledWith[0].Executable).To(Equal("cf"))
 				Expect(fakeStarter.CalledWith[0].Args).To(Equal(
 					[]string{"delete-space", "-f", "-o", testSpace.OrganizationName(), testSpace.SpaceName()}))
