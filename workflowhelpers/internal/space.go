@@ -89,7 +89,6 @@ func NewBaseTestSpace(spaceName, organizationName, quotaDefinitionName, quotaDef
 		isExistingOrganization:               isExistingOrganization,
 	}
 	return testSpace
-
 }
 
 func (ts *TestSpace) Create() {
@@ -104,16 +103,16 @@ func (ts *TestSpace) Create() {
 		ts.QuotaDefinitionAllowPaidServicesFlag,
 	}
 
-	createQuota := internal.Cf(ts.CommandStarter, args...)
-	EventuallyWithOffset(1, createQuota, ts.Timeout).Should(Exit(0))
-
 	if !ts.isExistingOrganization {
+		createQuota := internal.Cf(ts.CommandStarter, args...)
+		EventuallyWithOffset(1, createQuota, ts.Timeout).Should(Exit(0))
+
 		createOrg := internal.Cf(ts.CommandStarter, "create-org", ts.organizationName)
 		EventuallyWithOffset(1, createOrg, ts.Timeout).Should(Exit(0))
-	}
 
-	setQuota := internal.Cf(ts.CommandStarter, "set-quota", ts.organizationName, ts.QuotaDefinitionName)
-	EventuallyWithOffset(1, setQuota, ts.Timeout).Should(Exit(0))
+		setQuota := internal.Cf(ts.CommandStarter, "set-quota", ts.organizationName, ts.QuotaDefinitionName)
+		EventuallyWithOffset(1, setQuota, ts.Timeout).Should(Exit(0))
+	}
 
 	createSpace := internal.Cf(ts.CommandStarter, "create-space", "-o", ts.organizationName, ts.spaceName)
 	EventuallyWithOffset(1, createSpace, ts.Timeout).Should(Exit(0))
@@ -121,17 +120,15 @@ func (ts *TestSpace) Create() {
 
 func (ts *TestSpace) Destroy() {
 	if ts.isExistingOrganization {
-		setDefaultQuota := internal.Cf(ts.CommandStarter, "set-quota", ts.organizationName, "default")
-		EventuallyWithOffset(1, setDefaultQuota, ts.Timeout).Should(Exit(0))
-
 		deleteSpace := internal.Cf(ts.CommandStarter, "delete-space", "-f", "-o", ts.organizationName, ts.spaceName)
 		EventuallyWithOffset(1, deleteSpace, ts.Timeout).Should(Exit(0))
 	} else {
 		deleteOrg := internal.Cf(ts.CommandStarter, "delete-org", "-f", ts.organizationName)
 		EventuallyWithOffset(1, deleteOrg, ts.Timeout).Should(Exit(0))
+
+		deleteQuota := internal.Cf(ts.CommandStarter, "delete-quota", "-f", ts.QuotaDefinitionName)
+		EventuallyWithOffset(1, deleteQuota, ts.Timeout).Should(Exit(0))
 	}
-	deleteQuota := internal.Cf(ts.CommandStarter, "delete-quota", "-f", ts.QuotaDefinitionName)
-	EventuallyWithOffset(1, deleteQuota, ts.Timeout).Should(Exit(0))
 }
 
 func (ts *TestSpace) OrganizationName() string {
