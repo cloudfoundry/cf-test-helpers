@@ -64,6 +64,7 @@ type Config struct {
 	PythonBuildpackName     string `json:"python_buildpack_name"`
 	PhpBuildpackName        string `json:"php_buildpack_name"`
 	BinaryBuildpackName     string `json:"binary_buildpack_name"`
+	DotnetCoreBuildpackName string `json:"dotnet_core_buildpack_name"`
 
 	IncludeApps                       bool `json:"include_apps"`
 	IncludeBackendCompatiblity        bool `json:"include_backend_compatibility"`
@@ -97,6 +98,7 @@ var defaults = Config{
 	PythonBuildpackName:     "python_buildpack",
 	PhpBuildpackName:        "php_buildpack",
 	BinaryBuildpackName:     "binary_buildpack",
+	DotnetCoreBuildpackName: "dotnet_core_buildpack",
 
 	IncludeApps:                true,
 	IncludeBackendCompatiblity: true,
