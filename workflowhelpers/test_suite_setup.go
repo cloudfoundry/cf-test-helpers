@@ -110,10 +110,6 @@ func NewBaseTestSuiteSetup(config testSuiteConfig, testSpace internal.Space, tes
 	}
 }
 
-func (testSetup ReproducibleTestSuiteSetup) GetOrganizationName() string {
-	return testSetup.TestSpace.OrganizationName()
-}
-
 func (testSetup ReproducibleTestSuiteSetup) ShortTimeout() time.Duration {
 	return testSetup.shortTimeout
 }
