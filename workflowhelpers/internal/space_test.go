@@ -66,6 +66,7 @@ var _ = Describe("TestSpace", func() {
 			Expect(testSpace.QuotaDefinitionAppInstanceLimit).To(Equal("-1"))
 			Expect(testSpace.QuotaDefinitionServiceInstanceLimit).To(Equal("100"))
 			Expect(testSpace.QuotaDefinitionAllowPaidServicesFlag).To(Equal("--allow-paid-service-plans"))
+			Expect(testSpace.QuotaDefinitionReservedRoutePorts).To(Equal("20"))
 		})
 
 		It("uses the provided QuotaDefinitionTotalMemoryLimit", func() {
@@ -185,6 +186,7 @@ var _ = Describe("TestSpace", func() {
 					"-r", testSpace.QuotaDefinitionRoutesLimit,
 					"-a", testSpace.QuotaDefinitionAppInstanceLimit,
 					"-s", testSpace.QuotaDefinitionServiceInstanceLimit,
+					"--reserved-route-ports", testSpace.QuotaDefinitionReservedRoutePorts,
 					testSpace.QuotaDefinitionAllowPaidServicesFlag,
 				}))
 			})
