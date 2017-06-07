@@ -23,6 +23,7 @@ type TestSpace struct {
 	QuotaDefinitionAppInstanceLimit      string
 	QuotaDefinitionServiceInstanceLimit  string
 	QuotaDefinitionAllowPaidServicesFlag string
+	QuotaDefinitionReservedRoutePorts    string
 	CommandStarter                       internal.Starter
 	Timeout                              time.Duration
 }
@@ -81,6 +82,7 @@ func NewBaseTestSpace(spaceName, organizationName, quotaDefinitionName, quotaDef
 		QuotaDefinitionAppInstanceLimit:      "-1",
 		QuotaDefinitionServiceInstanceLimit:  "100",
 		QuotaDefinitionAllowPaidServicesFlag: "--allow-paid-service-plans",
+		QuotaDefinitionReservedRoutePorts:    "20",
 		organizationName:                     organizationName,
 		spaceName:                            spaceName,
 		CommandStarter:                       cmdStarter,
@@ -100,6 +102,7 @@ func (ts *TestSpace) Create() {
 		"-r", ts.QuotaDefinitionRoutesLimit,
 		"-a", ts.QuotaDefinitionAppInstanceLimit,
 		"-s", ts.QuotaDefinitionServiceInstanceLimit,
+		"--reserved-route-ports", ts.QuotaDefinitionReservedRoutePorts,
 		ts.QuotaDefinitionAllowPaidServicesFlag,
 	}
 
