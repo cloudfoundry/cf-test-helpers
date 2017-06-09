@@ -127,7 +127,9 @@ func (ts *TestSpace) Create() {
 }
 
 func (ts *TestSpace) Destroy() {
-	if ts.isExistingOrganization {
+	if ts.isExistingSpace {
+		return
+	} else if ts.isExistingOrganization {
 		deleteSpace := internal.Cf(ts.CommandStarter, "delete-space", "-f", "-o", ts.organizationName, ts.spaceName)
 		EventuallyWithOffset(1, deleteSpace, ts.Timeout).Should(Exit(0))
 	} else {

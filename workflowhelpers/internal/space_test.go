@@ -156,7 +156,7 @@ var _ = Describe("TestSpace", func() {
 		var fakeStarter *fakes.FakeCmdStarter
 
 		var spaceName, orgName, quotaName, quotaLimit string
-		var isPersistent, isExistingOrganization bool
+		var isPersistent, isExistingOrganization, isExistingSpace bool
 		var timeout time.Duration
 
 		BeforeEach(func() {
@@ -166,12 +166,13 @@ var _ = Describe("TestSpace", func() {
 			quotaLimit = "10G"
 			isPersistent = false
 			isExistingOrganization = false
+			isExistingSpace = false
 			timeout = 1 * time.Second
 			fakeStarter = fakes.NewFakeCmdStarter()
 		})
 
 		JustBeforeEach(func() {
-			testSpace = NewBaseTestSpace(spaceName, orgName, quotaName, quotaLimit, isPersistent, isExistingOrganization, timeout, fakeStarter)
+			testSpace = NewBaseTestSpace(spaceName, orgName, quotaName, quotaLimit, isPersistent, isExistingOrganization, isExistingSpace, timeout, fakeStarter)
 		})
 
 		Context("when the organization name is not specified", func() {
@@ -364,7 +365,7 @@ var _ = Describe("TestSpace", func() {
 				isExistingSpace = true
 			})
 
-			It("deletes the space, but does not delete the org or quota", func() {
+			It("doesn't delete the space, the org, or the quota", func() {
 				testSpace.Destroy()
 				Expect(len(fakeStarter.CalledWith)).To(BeNumerically("==", 0))
 			})
@@ -422,7 +423,7 @@ var _ = Describe("TestSpace", func() {
 		var testSpace *TestSpace
 		var isPersistent bool
 		JustBeforeEach(func() {
-			testSpace = NewBaseTestSpace("", "", "", "", isPersistent, false, 1*time.Second, nil)
+			testSpace = NewBaseTestSpace("", "", "", "", isPersistent, false, false, 1*time.Second, nil)
 		})
 		Context("when the space is constructed to be ephemeral", func() {
 			BeforeEach(func() {
@@ -451,7 +452,7 @@ var _ = Describe("TestSpace", func() {
 		})
 
 		It("returns the organization name", func() {
-			testSpace = NewBaseTestSpace("", "my-org", "", "", false, false, 1*time.Second, nil)
+			testSpace = NewBaseTestSpace("", "my-org", "", "", false, false, false, 1*time.Second, nil)
 			Expect(testSpace.OrganizationName()).To(Equal("my-org"))
 		})
 
@@ -469,7 +470,7 @@ var _ = Describe("TestSpace", func() {
 		})
 
 		It("returns the organization name", func() {
-			testSpace = NewBaseTestSpace("my-space", "", "", "", false, false, 1*time.Second, nil)
+			testSpace = NewBaseTestSpace("my-space", "", "", "", false, false, false, 1*time.Second, nil)
 			Expect(testSpace.SpaceName()).To(Equal("my-space"))
 		})
 
