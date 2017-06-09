@@ -57,9 +57,15 @@ type ReproducibleTestSuiteSetup struct {
 const RUNAWAY_QUOTA_MEM_LIMIT = "99999G"
 
 func NewTestSuiteSetup(config testSuiteConfig) *ReproducibleTestSuiteSetup {
-	testSpace := internal.NewRegularTestSpace(config, "10G")
-	testUser := internal.NewTestUser(config, commandstarter.NewCommandStarter())
-	adminUser := internal.NewAdminUser(config, commandstarter.NewCommandStarter())
+	var testSpace *internal.TestSpace
+	var testUser *internal.TestUser
+	var adminUser *internal.TestUser
+
+	testSpace = internal.NewRegularTestSpace(config, "10G")
+	if !config.GetUseExistingUser() {
+		testUser = internal.NewTestUser(config, commandstarter.NewCommandStarter())
+		adminUser = internal.NewAdminUser(config, commandstarter.NewCommandStarter())
+	}
 
 	shortTimeout := config.GetScaledTimeout(1 * time.Minute)
 	regularUserContext := NewUserContext(config.GetApiEndpoint(), testUser, testSpace, config.GetSkipSSLValidation(), shortTimeout)
@@ -69,9 +75,15 @@ func NewTestSuiteSetup(config testSuiteConfig) *ReproducibleTestSuiteSetup {
 }
 
 func NewPersistentAppTestSuiteSetup(config testSuiteConfig) *ReproducibleTestSuiteSetup {
-	testSpace := internal.NewPersistentAppTestSpace(config)
-	testUser := internal.NewTestUser(config, commandstarter.NewCommandStarter())
-	adminUser := internal.NewAdminUser(config, commandstarter.NewCommandStarter())
+	var testSpace *internal.TestSpace
+	var testUser *internal.TestUser
+	var adminUser *internal.TestUser
+
+	testSpace = internal.NewPersistentAppTestSpace(config)
+	if !config.GetUseExistingUser() {
+		testUser = internal.NewTestUser(config, commandstarter.NewCommandStarter())
+		adminUser = internal.NewAdminUser(config, commandstarter.NewCommandStarter())
+	}
 
 	shortTimeout := config.GetScaledTimeout(1 * time.Minute)
 	regularUserContext := NewUserContext(config.GetApiEndpoint(), testUser, testSpace, config.GetSkipSSLValidation(), shortTimeout)
@@ -129,17 +141,6 @@ func (testSetup *ReproducibleTestSuiteSetup) Setup() {
 		testSetup.TestUser.Create()
 		testSetup.regularUserContext.AddUserToSpace()
 	})
-	testSetup.initializeRegularUser()
-}
-
-func (testSetup *ReproducibleTestSuiteSetup) SetupWithRegularUser() {
-	AsUser(testSetup.RegularUserContext(), testSetup.shortTimeout, func() {
-		testSetup.TestSpace.Create()
-	})
-	testSetup.initializeRegularUser()
-}
-
-func (testSetup *ReproducibleTestSuiteSetup) initializeRegularUser() {
 	testSetup.originalCfHomeDir, testSetup.currentCfHomeDir = testSetup.regularUserContext.SetCfHomeDir()
 	testSetup.regularUserContext.Login()
 	testSetup.regularUserContext.TargetSpace()
@@ -148,21 +149,8 @@ func (testSetup *ReproducibleTestSuiteSetup) initializeRegularUser() {
 func (testSetup *ReproducibleTestSuiteSetup) Teardown() {
 	testSetup.regularUserContext.Logout()
 	testSetup.regularUserContext.UnsetCfHomeDir(testSetup.originalCfHomeDir, testSetup.currentCfHomeDir)
-	testSetup.tearDownUserAndSpace(testSetup.adminUserContext)
-}
 
-func (testSetup *ReproducibleTestSuiteSetup) TeardownWithRegularUser() {
-	testSetup.regularUserContext.UnsetCfHomeDir(testSetup.originalCfHomeDir, testSetup.currentCfHomeDir)
-
-	AsUser(testSetup.regularUserContext, testSetup.shortTimeout, func() {
-		if !testSetup.TestSpace.ShouldRemain() {
-			testSetup.TestSpace.Destroy()
-		}
-	})
-}
-
-func (testSetup *ReproducibleTestSuiteSetup) tearDownUserAndSpace(userContext UserContext) {
-	AsUser(userContext, testSetup.shortTimeout, func() {
+	AsUser(testSetup.AdminUserContext(), testSetup.shortTimeout, func() {
 		if !testSetup.TestUser.ShouldRemain() {
 			testSetup.TestUser.Destroy()
 		}
