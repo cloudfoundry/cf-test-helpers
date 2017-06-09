@@ -123,12 +123,24 @@ func (testSetup ReproducibleTestSuiteSetup) LongTimeout() time.Duration {
 }
 
 func (testSetup *ReproducibleTestSuiteSetup) Setup() {
-	AsUser(testSetup.AdminUserContext(), testSetup.shortTimeout, func() {
+	testSetup.createTestSpaceAndUser(testSetup.AdminUserContext())
+	testSetup.initializeRegularUser()
+}
+
+func (testSetup *ReproducibleTestSuiteSetup) SetupWithRegularUser() {
+	testSetup.createTestSpaceAndUser(testSetup.RegularUserContext())
+	testSetup.initializeRegularUser()
+}
+
+func (testSetup *ReproducibleTestSuiteSetup) createTestSpaceAndUser(userContext UserContext) {
+	AsUser(userContext, testSetup.shortTimeout, func() {
 		testSetup.TestSpace.Create()
 		testSetup.TestUser.Create()
 		testSetup.regularUserContext.AddUserToSpace()
 	})
+}
 
+func (testSetup *ReproducibleTestSuiteSetup) initializeRegularUser() {
 	testSetup.originalCfHomeDir, testSetup.currentCfHomeDir = testSetup.regularUserContext.SetCfHomeDir()
 	testSetup.regularUserContext.Login()
 	testSetup.regularUserContext.TargetSpace()
@@ -137,7 +149,16 @@ func (testSetup *ReproducibleTestSuiteSetup) Setup() {
 func (testSetup *ReproducibleTestSuiteSetup) Teardown() {
 	testSetup.regularUserContext.Logout()
 	testSetup.regularUserContext.UnsetCfHomeDir(testSetup.originalCfHomeDir, testSetup.currentCfHomeDir)
-	AsUser(testSetup.AdminUserContext(), testSetup.shortTimeout, func() {
+	testSetup.tearDownUserAndSpace(testSetup.adminUserContext)
+}
+
+func (testSetup *ReproducibleTestSuiteSetup) TeardownWithRegularUser() {
+	testSetup.regularUserContext.UnsetCfHomeDir(testSetup.originalCfHomeDir, testSetup.currentCfHomeDir)
+	testSetup.tearDownUserAndSpace(testSetup.regularUserContext)
+}
+
+func (testSetup *ReproducibleTestSuiteSetup) tearDownUserAndSpace(userContext UserContext) {
+	AsUser(userContext, testSetup.shortTimeout, func() {
 		if !testSetup.TestUser.ShouldRemain() {
 			testSetup.TestUser.Destroy()
 		}

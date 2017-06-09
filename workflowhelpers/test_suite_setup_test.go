@@ -367,6 +367,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 		It("creates the user on the remote CF Api", func() {
 			testSetup.Setup()
 			Expect(testUser.CreateCallCount()).To(Equal(1))
+			Expect(adminUserCmdStarter.TotalCallsToStart).To(Equal(3))
 		})
 
 		It("creates the space on the remote CF api", func() {
@@ -400,6 +401,102 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			Expect(regularUserCmdStarter.CalledWith[4].Args).To(Equal([]string{"auth", fakeRegularUserValues.Username(), fakeRegularUserValues.Password()}))
 			Expect(regularUserCmdStarter.CalledWith[5].Executable).To(Equal("cf"))
 			Expect(regularUserCmdStarter.CalledWith[5].Args).To(Equal([]string{"target", "-o", fakeSpaceValues.OrganizationName(), "-s", fakeSpaceValues.SpaceName()}))
+		})
+	})
+
+	Describe("SetupWithRegularUser", func() {
+		var testSpace *fakes.FakeSpace
+		var testUser *fakes.FakeRemoteResource
+		var fakeRegularUserValues, fakeAdminUserValues *fakes.FakeUserValues
+		var fakeSpaceValues *fakes.FakeSpaceValues
+		var regularUserCmdStarter, adminUserCmdStarter *starterFakes.FakeCmdStarter
+		var regularUserContext, adminUserContext UserContext
+		var cfg config.Config
+		var apiUrl string
+		var testSetup *ReproducibleTestSuiteSetup
+
+		BeforeEach(func() {
+			apiUrl = "api-url.com"
+			testSpace = &fakes.FakeSpace{}
+			testUser = &fakes.FakeRemoteResource{}
+
+			regularUserCmdStarter = starterFakes.NewFakeCmdStarter()
+			adminUserCmdStarter = starterFakes.NewFakeCmdStarter()
+
+			fakeRegularUserValues = fakes.NewFakeUserValues("username", "password")
+			fakeAdminUserValues = fakes.NewFakeUserValues("admin", "admin")
+			fakeSpaceValues = fakes.NewFakeSpaceValues("org", "space")
+
+			regularUserContext = UserContext{
+				ApiUrl:         apiUrl,
+				CommandStarter: regularUserCmdStarter,
+				TestUser:       fakeRegularUserValues,
+				Timeout:        2 * time.Second,
+				TestSpace:      fakeSpaceValues,
+			}
+
+			adminUserContext = UserContext{
+				ApiUrl:         apiUrl,
+				CommandStarter: adminUserCmdStarter,
+				TestUser:       fakeAdminUserValues,
+				Timeout:        2 * time.Second,
+			}
+			cfg = config.Config{}
+		})
+
+		JustBeforeEach(func() {
+			testSetup = NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext)
+		})
+
+		It("logs in as the regular user", func() {
+			testSetup.SetupWithRegularUser()
+			Expect(regularUserCmdStarter.TotalCallsToStart).To(BeNumerically(">=", 2))
+
+			Expect(regularUserCmdStarter.CalledWith[0].Executable).To(Equal("cf"))
+			Expect(regularUserCmdStarter.CalledWith[0].Args).To(Equal([]string{"api", apiUrl}))
+
+			Expect(regularUserCmdStarter.CalledWith[1].Executable).To(Equal("cf"))
+			Expect(regularUserCmdStarter.CalledWith[1].Args).To(Equal([]string{"auth", "username", "password"}))
+		})
+
+		It("creates the user on the remote CF Api", func() {
+			testSetup.SetupWithRegularUser()
+			Expect(testUser.CreateCallCount()).To(Equal(1))
+			Expect(regularUserCmdStarter.TotalCallsToStart).To(BeNumerically(">", 0))
+			Expect(adminUserCmdStarter.TotalCallsToStart).To(Equal(0))
+		})
+
+		It("creates the space on the remote CF api", func() {
+			testSetup.SetupWithRegularUser()
+			Expect(testSpace.CreateCallCount()).To(Equal(1))
+		})
+
+		It("adds the user to the space", func() {
+			testSetup.SetupWithRegularUser()
+			Expect(regularUserCmdStarter.TotalCallsToStart).To(BeNumerically(">=", 3))
+
+			Expect(regularUserCmdStarter.CalledWith[3].Executable).To(Equal("cf"))
+			Expect(regularUserCmdStarter.CalledWith[3].Args).To(Equal([]string{"set-space-role", fakeRegularUserValues.Username(), fakeSpaceValues.OrganizationName(), fakeSpaceValues.SpaceName(), "SpaceManager"}))
+			Expect(regularUserCmdStarter.CalledWith[4].Executable).To(Equal("cf"))
+			Expect(regularUserCmdStarter.CalledWith[4].Args).To(Equal([]string{"set-space-role", fakeRegularUserValues.Username(), fakeSpaceValues.OrganizationName(), fakeSpaceValues.SpaceName(), "SpaceDeveloper"}))
+			Expect(regularUserCmdStarter.CalledWith[5].Executable).To(Equal("cf"))
+			Expect(regularUserCmdStarter.CalledWith[5].Args).To(Equal([]string{"set-space-role", fakeRegularUserValues.Username(), fakeSpaceValues.OrganizationName(), fakeSpaceValues.SpaceName(), "SpaceAuditor"}))
+		})
+
+		It("logs in as the regular user in a unique CF_HOME and targets the correct space", func() {
+			originalCfHomeDir := "originl-cf-home-dir"
+			os.Setenv("CF_HOME", originalCfHomeDir)
+			testSetup.SetupWithRegularUser()
+			Expect(os.Getenv("CF_HOME")).To(MatchRegexp("cf_home_.*"))
+			Expect(os.Getenv("CF_HOME")).NotTo(Equal(originalCfHomeDir))
+
+			Expect(regularUserCmdStarter.TotalCallsToStart).To(BeNumerically(">=", 6))
+			Expect(regularUserCmdStarter.CalledWith[0].Executable).To(Equal("cf"))
+			Expect(regularUserCmdStarter.CalledWith[0].Args).To(Equal([]string{"api", apiUrl}))
+			Expect(regularUserCmdStarter.CalledWith[1].Executable).To(Equal("cf"))
+			Expect(regularUserCmdStarter.CalledWith[1].Args).To(Equal([]string{"auth", fakeRegularUserValues.Username(), fakeRegularUserValues.Password()}))
+			Expect(regularUserCmdStarter.CalledWith[2].Executable).To(Equal("cf"))
+			Expect(regularUserCmdStarter.CalledWith[2].Args).To(Equal([]string{"target", "-o", fakeSpaceValues.OrganizationName(), "-s", fakeSpaceValues.SpaceName()}))
 		})
 	})
 
@@ -507,9 +604,97 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 				Expect(testSpace.DestroyCallCount()).To(Equal(0))
 			})
 		})
+	})
 
-		Context("when config.ShouldKeepUser is false", func() {
-			It("deletes the user", func() {
+	Describe("TearDownWithRegularUser", func() {
+		var testSpace *fakes.FakeSpace
+		var testUser *fakes.FakeRemoteResource
+		var fakeRegularUserValues, fakeAdminUserValues *fakes.FakeUserValues
+		var fakeSpaceValues *fakes.FakeSpaceValues
+		var regularUserCmdStarter, adminUserCmdStarter *starterFakes.FakeCmdStarter
+		var regularUserContext, adminUserContext UserContext
+		var cfg config.Config
+		var apiUrl string
+		var testSetup *ReproducibleTestSuiteSetup
+
+		BeforeEach(func() {
+			apiUrl = "api-url.com"
+			testSpace = &fakes.FakeSpace{}
+			testUser = &fakes.FakeRemoteResource{}
+
+			regularUserCmdStarter = starterFakes.NewFakeCmdStarter()
+			adminUserCmdStarter = starterFakes.NewFakeCmdStarter()
+
+			fakeRegularUserValues = fakes.NewFakeUserValues("username", "password")
+			fakeAdminUserValues = fakes.NewFakeUserValues("admin", "admin")
+			fakeSpaceValues = fakes.NewFakeSpaceValues("org", "space")
+
+			regularUserContext = UserContext{
+				ApiUrl:         apiUrl,
+				CommandStarter: regularUserCmdStarter,
+				TestUser:       fakeRegularUserValues,
+				Timeout:        2 * time.Second,
+				TestSpace:      fakeSpaceValues,
+			}
+
+			adminUserContext = UserContext{
+				ApiUrl:         apiUrl,
+				CommandStarter: adminUserCmdStarter,
+				TestUser:       fakeAdminUserValues,
+				Timeout:        2 * time.Second,
+			}
+			cfg = config.Config{}
+		})
+
+		JustBeforeEach(func() {
+			testSetup = NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext)
+		})
+
+		It("restores cf home directory", func() {
+			originalCfHomeDir := "originl-cf-home-dir"
+			os.Setenv("CF_HOME", originalCfHomeDir)
+
+			testSetup.Setup()
+			Expect(os.Getenv("CF_HOME")).NotTo(Equal(originalCfHomeDir))
+
+			testSetup.TeardownWithRegularUser()
+			Expect(os.Getenv("CF_HOME")).To(Equal(originalCfHomeDir))
+		})
+
+		It("doesn't log in as an admin", func() {
+			testSetup.TeardownWithRegularUser()
+			Expect(adminUserCmdStarter.TotalCallsToStart).To(Equal(0))
+		})
+
+		It("destroys the user", func() {
+			testSetup.TeardownWithRegularUser()
+			Expect(testUser.DestroyCallCount()).To(Equal(1))
+		})
+
+		Context("when the user should remain", func() {
+			BeforeEach(func() {
+				testUser.ShouldRemainReturns = true
+			})
+
+			It("does not destroy the user", func() {
+				testSetup.TeardownWithRegularUser()
+				Expect(testUser.DestroyCallCount()).To(Equal(0))
+			})
+		})
+
+		It("destroys the space", func() {
+			testSetup.TeardownWithRegularUser()
+			Expect(testSpace.DestroyCallCount()).To(Equal(1))
+		})
+
+		Context("when the space should remain", func() {
+			BeforeEach(func() {
+				testSpace.ShouldRemainReturns(true)
+			})
+
+			It("does not destroy the user", func() {
+				testSetup.TeardownWithRegularUser()
+				Expect(testSpace.DestroyCallCount()).To(Equal(0))
 			})
 		})
 	})
