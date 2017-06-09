@@ -62,10 +62,8 @@ func NewTestSuiteSetup(config testSuiteConfig) *ReproducibleTestSuiteSetup {
 	var adminUser *internal.TestUser
 
 	testSpace = internal.NewRegularTestSpace(config, "10G")
-	if !config.GetUseExistingUser() {
-		testUser = internal.NewTestUser(config, commandstarter.NewCommandStarter())
-		adminUser = internal.NewAdminUser(config, commandstarter.NewCommandStarter())
-	}
+	testUser = internal.NewTestUser(config, commandstarter.NewCommandStarter())
+	adminUser = internal.NewAdminUser(config, commandstarter.NewCommandStarter())
 
 	shortTimeout := config.GetScaledTimeout(1 * time.Minute)
 	regularUserContext := NewUserContext(config.GetApiEndpoint(), testUser, testSpace, config.GetSkipSSLValidation(), shortTimeout)
@@ -80,10 +78,8 @@ func NewPersistentAppTestSuiteSetup(config testSuiteConfig) *ReproducibleTestSui
 	var adminUser *internal.TestUser
 
 	testSpace = internal.NewPersistentAppTestSpace(config)
-	if !config.GetUseExistingUser() {
-		testUser = internal.NewTestUser(config, commandstarter.NewCommandStarter())
-		adminUser = internal.NewAdminUser(config, commandstarter.NewCommandStarter())
-	}
+	testUser = internal.NewTestUser(config, commandstarter.NewCommandStarter())
+	adminUser = internal.NewAdminUser(config, commandstarter.NewCommandStarter())
 
 	shortTimeout := config.GetScaledTimeout(1 * time.Minute)
 	regularUserContext := NewUserContext(config.GetApiEndpoint(), testUser, testSpace, config.GetSkipSSLValidation(), shortTimeout)
