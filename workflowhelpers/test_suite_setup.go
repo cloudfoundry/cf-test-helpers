@@ -27,6 +27,7 @@ type testSuiteConfig interface {
 	GetUseExistingUser() bool
 	GetAdminUser() string
 	GetUseExistingOrganization() bool
+	GetUseExistingSpace() bool
 	GetExistingOrganization() string
 	GetSkipSSLValidation() bool
 	GetNamePrefix() string
@@ -123,21 +124,19 @@ func (testSetup ReproducibleTestSuiteSetup) LongTimeout() time.Duration {
 }
 
 func (testSetup *ReproducibleTestSuiteSetup) Setup() {
-	testSetup.createTestSpaceAndUser(testSetup.AdminUserContext())
-	testSetup.initializeRegularUser()
-}
-
-func (testSetup *ReproducibleTestSuiteSetup) SetupWithRegularUser() {
-	testSetup.createTestSpaceAndUser(testSetup.RegularUserContext())
-	testSetup.initializeRegularUser()
-}
-
-func (testSetup *ReproducibleTestSuiteSetup) createTestSpaceAndUser(userContext UserContext) {
-	AsUser(userContext, testSetup.shortTimeout, func() {
+	AsUser(testSetup.AdminUserContext(), testSetup.shortTimeout, func() {
 		testSetup.TestSpace.Create()
 		testSetup.TestUser.Create()
 		testSetup.regularUserContext.AddUserToSpace()
 	})
+	testSetup.initializeRegularUser()
+}
+
+func (testSetup *ReproducibleTestSuiteSetup) SetupWithRegularUser() {
+	AsUser(testSetup.RegularUserContext(), testSetup.shortTimeout, func() {
+		testSetup.TestSpace.Create()
+	})
+	testSetup.initializeRegularUser()
 }
 
 func (testSetup *ReproducibleTestSuiteSetup) initializeRegularUser() {
@@ -154,7 +153,12 @@ func (testSetup *ReproducibleTestSuiteSetup) Teardown() {
 
 func (testSetup *ReproducibleTestSuiteSetup) TeardownWithRegularUser() {
 	testSetup.regularUserContext.UnsetCfHomeDir(testSetup.originalCfHomeDir, testSetup.currentCfHomeDir)
-	testSetup.tearDownUserAndSpace(testSetup.regularUserContext)
+
+	AsUser(testSetup.regularUserContext, testSetup.shortTimeout, func() {
+		if !testSetup.TestSpace.ShouldRemain() {
+			testSetup.TestSpace.Destroy()
+		}
+	})
 }
 
 func (testSetup *ReproducibleTestSuiteSetup) tearDownUserAndSpace(userContext UserContext) {

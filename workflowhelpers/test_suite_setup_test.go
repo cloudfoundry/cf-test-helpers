@@ -459,28 +459,9 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			Expect(regularUserCmdStarter.CalledWith[1].Args).To(Equal([]string{"auth", "username", "password"}))
 		})
 
-		It("creates the user on the remote CF Api", func() {
-			testSetup.SetupWithRegularUser()
-			Expect(testUser.CreateCallCount()).To(Equal(1))
-			Expect(regularUserCmdStarter.TotalCallsToStart).To(BeNumerically(">", 0))
-			Expect(adminUserCmdStarter.TotalCallsToStart).To(Equal(0))
-		})
-
 		It("creates the space on the remote CF api", func() {
 			testSetup.SetupWithRegularUser()
 			Expect(testSpace.CreateCallCount()).To(Equal(1))
-		})
-
-		It("adds the user to the space", func() {
-			testSetup.SetupWithRegularUser()
-			Expect(regularUserCmdStarter.TotalCallsToStart).To(BeNumerically(">=", 3))
-
-			Expect(regularUserCmdStarter.CalledWith[3].Executable).To(Equal("cf"))
-			Expect(regularUserCmdStarter.CalledWith[3].Args).To(Equal([]string{"set-space-role", fakeRegularUserValues.Username(), fakeSpaceValues.OrganizationName(), fakeSpaceValues.SpaceName(), "SpaceManager"}))
-			Expect(regularUserCmdStarter.CalledWith[4].Executable).To(Equal("cf"))
-			Expect(regularUserCmdStarter.CalledWith[4].Args).To(Equal([]string{"set-space-role", fakeRegularUserValues.Username(), fakeSpaceValues.OrganizationName(), fakeSpaceValues.SpaceName(), "SpaceDeveloper"}))
-			Expect(regularUserCmdStarter.CalledWith[5].Executable).To(Equal("cf"))
-			Expect(regularUserCmdStarter.CalledWith[5].Args).To(Equal([]string{"set-space-role", fakeRegularUserValues.Username(), fakeSpaceValues.OrganizationName(), fakeSpaceValues.SpaceName(), "SpaceAuditor"}))
 		})
 
 		It("logs in as the regular user in a unique CF_HOME and targets the correct space", func() {
@@ -666,20 +647,9 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			Expect(adminUserCmdStarter.TotalCallsToStart).To(Equal(0))
 		})
 
-		It("destroys the user", func() {
+		It("doesn't destroy the user", func() {
 			testSetup.TeardownWithRegularUser()
-			Expect(testUser.DestroyCallCount()).To(Equal(1))
-		})
-
-		Context("when the user should remain", func() {
-			BeforeEach(func() {
-				testUser.ShouldRemainReturns = true
-			})
-
-			It("does not destroy the user", func() {
-				testSetup.TeardownWithRegularUser()
-				Expect(testUser.DestroyCallCount()).To(Equal(0))
-			})
+			Expect(testUser.DestroyCallCount()).To(Equal(0))
 		})
 
 		It("destroys the space", func() {

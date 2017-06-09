@@ -26,6 +26,9 @@ type Config struct {
 	UseExistingOrganization bool   `json:"use_existing_organization"`
 	ExistingOrganization    string `json:"existing_organization"`
 
+	UseExistingSpace bool   `json:"use_existing_space"`
+	ExistingSpace    string `json:"existing_space"`
+
 	PersistentAppHost      string `json:"persistent_app_host"`
 	PersistentAppSpace     string `json:"persistent_app_space"`
 	PersistentAppOrg       string `json:"persistent_app_org"`
@@ -250,6 +253,10 @@ func (c *Config) GetNamePrefix() string {
 
 func (c *Config) GetUseExistingUser() bool {
 	return c.UseExistingUser
+}
+
+func (c *Config) GetUseExistingSpace() bool {
+	return c.UseExistingSpace
 }
 
 func (c *Config) GetExistingUser() string {

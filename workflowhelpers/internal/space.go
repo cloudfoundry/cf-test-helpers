@@ -17,6 +17,7 @@ type TestSpace struct {
 	spaceName                            string
 	isPersistent                         bool
 	isExistingOrganization               bool
+	isExistingSpace                      bool
 	QuotaDefinitionTotalMemoryLimit      string
 	QuotaDefinitionInstanceMemoryLimit   string
 	QuotaDefinitionRoutesLimit           string
@@ -35,6 +36,7 @@ type spaceConfig interface {
 	GetPersistentAppQuotaName() string
 	GetNamePrefix() string
 	GetUseExistingOrganization() bool
+	GetUseExistingSpace() bool
 	GetExistingOrganization() string
 }
 
@@ -46,14 +48,15 @@ type Space interface {
 }
 
 func NewRegularTestSpace(cfg spaceConfig, quotaLimit string) *TestSpace {
-	organizationName, isExistingOrganization := organizationName(cfg)
+	organizationName, _ := organizationName(cfg)
 	return NewBaseTestSpace(
 		generator.PrefixedRandomName(cfg.GetNamePrefix(), "SPACE"),
 		organizationName,
 		generator.PrefixedRandomName(cfg.GetNamePrefix(), "QUOTA"),
 		quotaLimit,
 		false,
-		isExistingOrganization,
+		cfg.GetUseExistingOrganization(),
+		cfg.GetUseExistingSpace(),
 		cfg.GetScaledTimeout(1*time.Minute),
 		commandstarter.NewCommandStarter(),
 	)
@@ -67,13 +70,14 @@ func NewPersistentAppTestSpace(cfg spaceConfig) *TestSpace {
 		"10G",
 		true,
 		cfg.GetUseExistingOrganization(),
+		cfg.GetUseExistingSpace(),
 		cfg.GetScaledTimeout(1*time.Minute),
 		commandstarter.NewCommandStarter(),
 	)
 	return baseTestSpace
 }
 
-func NewBaseTestSpace(spaceName, organizationName, quotaDefinitionName, quotaDefinitionTotalMemoryLimit string, isPersistent bool, isExistingOrganization bool, timeout time.Duration, cmdStarter internal.Starter) *TestSpace {
+func NewBaseTestSpace(spaceName, organizationName, quotaDefinitionName, quotaDefinitionTotalMemoryLimit string, isPersistent bool, isExistingOrganization bool, isExistingSpace bool, timeout time.Duration, cmdStarter internal.Starter) *TestSpace {
 	testSpace := &TestSpace{
 		QuotaDefinitionName:                  quotaDefinitionName,
 		QuotaDefinitionTotalMemoryLimit:      quotaDefinitionTotalMemoryLimit,
@@ -89,6 +93,7 @@ func NewBaseTestSpace(spaceName, organizationName, quotaDefinitionName, quotaDef
 		Timeout:                              timeout,
 		isPersistent:                         isPersistent,
 		isExistingOrganization:               isExistingOrganization,
+		isExistingSpace:                      isExistingSpace,
 	}
 	return testSpace
 }

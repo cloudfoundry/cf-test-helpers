@@ -301,6 +301,7 @@ var _ = Describe("TestSpace", func() {
 		var spaceName, orgName, quotaName, quotaLimit string
 		var isPersistent bool
 		var isExistingOrganization bool
+		var isExistingSpace bool
 		var timeout time.Duration
 		BeforeEach(func() {
 			fakeStarter = fakes.NewFakeCmdStarter()
@@ -311,6 +312,7 @@ var _ = Describe("TestSpace", func() {
 			quotaLimit = "10G"
 			isPersistent = false
 			isExistingOrganization = false
+			isExistingSpace = false
 			timeout = 1 * time.Second
 		})
 
@@ -322,6 +324,7 @@ var _ = Describe("TestSpace", func() {
 				quotaLimit,
 				isPersistent,
 				isExistingOrganization,
+				isExistingSpace,
 				timeout,
 				fakeStarter,
 			)
@@ -352,6 +355,18 @@ var _ = Describe("TestSpace", func() {
 				Expect(fakeStarter.CalledWith[0].Executable).To(Equal("cf"))
 				Expect(fakeStarter.CalledWith[0].Args).To(Equal(
 					[]string{"delete-space", "-f", "-o", testSpace.OrganizationName(), testSpace.SpaceName()}))
+			})
+		})
+
+		Context("when the config specifies that an existing space should be used", func() {
+			BeforeEach(func() {
+				isExistingOrganization = true
+				isExistingSpace = true
+			})
+
+			It("deletes the space, but does not delete the org or quota", func() {
+				testSpace.Destroy()
+				Expect(len(fakeStarter.CalledWith)).To(BeNumerically("==", 0))
 			})
 		})
 
