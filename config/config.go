@@ -291,6 +291,10 @@ func (c *Config) GetExistingOrganization() string {
 	return c.ExistingOrganization
 }
 
+func (c *Config) GetExistingSpace() string {
+	return c.ExistingSpace
+}
+
 func (c *Config) GetApiEndpoint() string {
 	return c.ApiEndpoint
 }

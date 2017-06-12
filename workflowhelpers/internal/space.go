@@ -38,6 +38,7 @@ type spaceConfig interface {
 	GetUseExistingOrganization() bool
 	GetUseExistingSpace() bool
 	GetExistingOrganization() string
+	GetExistingSpace() string
 }
 
 type Space interface {
@@ -49,8 +50,9 @@ type Space interface {
 
 func NewRegularTestSpace(cfg spaceConfig, quotaLimit string) *TestSpace {
 	organizationName, _ := organizationName(cfg)
+	spaceName := spaceName(cfg)
 	return NewBaseTestSpace(
-		generator.PrefixedRandomName(cfg.GetNamePrefix(), "SPACE"),
+		spaceName,
 		organizationName,
 		generator.PrefixedRandomName(cfg.GetNamePrefix(), "QUOTA"),
 		quotaLimit,
@@ -122,8 +124,10 @@ func (ts *TestSpace) Create() {
 		EventuallyWithOffset(1, setQuota, ts.Timeout).Should(Exit(0))
 	}
 
-	createSpace := internal.Cf(ts.CommandStarter, "create-space", "-o", ts.organizationName, ts.spaceName)
-	EventuallyWithOffset(1, createSpace, ts.Timeout).Should(Exit(0))
+	if !ts.isExistingSpace {
+		createSpace := internal.Cf(ts.CommandStarter, "create-space", "-o", ts.organizationName, ts.spaceName)
+		EventuallyWithOffset(1, createSpace, ts.Timeout).Should(Exit(0))
+	}
 }
 
 func (ts *TestSpace) Destroy() {
@@ -165,4 +169,12 @@ func organizationName(cfg spaceConfig) (string, bool) {
 		return cfg.GetExistingOrganization(), true
 	}
 	return generator.PrefixedRandomName(cfg.GetNamePrefix(), "ORG"), false
+}
+
+func spaceName(cfg spaceConfig) string {
+	if cfg.GetUseExistingSpace() {
+		Expect(cfg.GetExistingSpace()).ToNot(BeEmpty(), "existing_space must be specified")
+		return cfg.GetExistingSpace()
+	}
+	return generator.PrefixedRandomName(cfg.GetNamePrefix(), "SPACE")
 }

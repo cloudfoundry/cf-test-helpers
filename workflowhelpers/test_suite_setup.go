@@ -29,6 +29,7 @@ type testSuiteConfig interface {
 	GetUseExistingOrganization() bool
 	GetUseExistingSpace() bool
 	GetExistingOrganization() string
+	GetExistingSpace() string
 	GetSkipSSLValidation() bool
 	GetNamePrefix() string
 }
