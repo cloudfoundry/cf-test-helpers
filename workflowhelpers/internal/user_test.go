@@ -132,6 +132,19 @@ var _ = Describe("User", func() {
 					Expect(failures).To(BeEmpty())
 				})
 			})
+
+			Context("and the output mentions that the user could not be created", func() {
+				BeforeEach(func() {
+					fakeStarter.ToReturn[0].Output = "Insufficient scope for this resource"
+				})
+
+				It("considers the command successful and does not fail", func() {
+					failures := InterceptGomegaFailures(func() {
+						user.Create()
+					})
+					Expect(failures).To(BeEmpty())
+				})
+			})
 		})
 
 		Context("when 'cf create-user' takes longer than the short timeout", func() {
