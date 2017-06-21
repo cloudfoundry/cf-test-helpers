@@ -148,7 +148,7 @@ var _ = Describe("User", func() {
 				})
 			})
 
-			FContext("and it redacts the password", func() {
+			Context("and it redacts the password", func() {
 				JustBeforeEach(func() {
 					fakeStarter.ToReturn[0].Output = fmt.Sprintf("blah blah %s %s", cfg.ExistingUser, cfg.ExistingUserPassword)
 				})
@@ -157,7 +157,7 @@ var _ = Describe("User", func() {
 					failures := InterceptGomegaFailures(func() {
 						user.Create()
 					})
-					Expect(failures[0]).NotTo(ContainSubstring("password"))
+					Expect(failures[0]).NotTo(ContainSubstring(cfg.ExistingUserPassword))
 					Expect(failures[0]).To(ContainSubstring("[REDACTED]"))
 				})
 			})

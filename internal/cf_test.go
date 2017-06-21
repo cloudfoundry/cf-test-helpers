@@ -1,7 +1,9 @@
 package internal_test
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -13,43 +15,65 @@ import (
 	"github.com/cloudfoundry-incubator/cf-test-helpers/internal/fakes"
 )
 
-var _ = Describe("Cf", func() {
-	var starter *fakes.FakeCmdStarter
+var _ = Describe("cf", func() {
+	var (
+		starter *fakes.FakeCmdStarter
+	)
 	BeforeEach(func() {
 		starter = fakes.NewFakeCmdStarter()
 	})
 
-	It("calls the cf cli with the correct command and args", func() {
-		Eventually(internal.Cf(starter, "app", "my-app"), 1*time.Second).Should(Exit(0))
-
-		Expect(starter.CalledWith[0].Executable).To(Equal("cf"))
-		Expect(starter.CalledWith[0].Args).To(Equal([]string{"app", "my-app"}))
+	Describe("Cf", func() {
+		It("uses a default reporter", func() {
+			Eventually(internal.Cf(starter, "app", "my-app"), 1*time.Second).Should(Exit(0))
+			Expect(starter.CalledWith[0].Reporter).To(BeAssignableToTypeOf(commandreporter.NewCommandReporter()))
+		})
 	})
 
-	It("uses a default reporter", func() {
-		Eventually(internal.Cf(starter, "app", "my-app"), 1*time.Second).Should(Exit(0))
-		Expect(starter.CalledWith[0].Reporter).To(BeAssignableToTypeOf(commandreporter.NewCommandReporter()))
-	})
-
-	Context("when the exit code is non-zero", func() {
+	Describe("CfWithCustomReporter", func() {
+		var (
+			buffer            *bytes.Buffer
+			fakeRedactor      *fakes.FakeRedactor
+			redactingReporter internal.Reporter
+		)
 		BeforeEach(func() {
-			starter.ToReturn[0].ExitCode = 42
+			buffer = &bytes.Buffer{}
+			fakeRedactor = &fakes.FakeRedactor{}
+			redactingReporter = internal.NewRedactingReporter(buffer, fakeRedactor)
 		})
 
-		It("returns the exit code anyway", func() {
-			Eventually(internal.Cf(starter, "app", "my-app"), 1*time.Second).Should(Exit(42))
-		})
-	})
+		It("calls the cf cli with the correct command and args", func() {
+			Eventually(internal.CfWithCustomReporter(starter, redactingReporter, "app", "my-app"), 1*time.Second).Should(Exit(0))
 
-	Context("when there is an error", func() {
-		BeforeEach(func() {
-			starter.ToReturn[0].Err = fmt.Errorf("failing now")
+			Expect(starter.CalledWith[0].Executable).To(Equal("cf"))
+			Expect(starter.CalledWith[0].Args).To(Equal([]string{"app", "my-app"}))
 		})
 
-		It("panics", func() {
-			Expect(func() {
-				internal.Cf(starter, "fail")
-			}).To(Panic())
+		It("uses the specified reporter", func() {
+			Eventually(internal.CfWithCustomReporter(starter, redactingReporter, "app", "my-app"), 1*time.Second).Should(Exit(0))
+			Expect(starter.CalledWith[0].Reporter).To(BeAssignableToTypeOf(internal.NewRedactingReporter(ioutil.Discard, fakeRedactor)))
+		})
+
+		Context("when the exit code is non-zero", func() {
+			BeforeEach(func() {
+				starter.ToReturn[0].ExitCode = 42
+			})
+
+			It("returns the exit code anyway", func() {
+				Eventually(internal.CfWithCustomReporter(starter, redactingReporter, "app", "my-app"), 1*time.Second).Should(Exit(42))
+			})
+		})
+
+		Context("when there is an error", func() {
+			BeforeEach(func() {
+				starter.ToReturn[0].Err = fmt.Errorf("failing now")
+			})
+
+			It("panics", func() {
+				Expect(func() {
+					internal.CfWithCustomReporter(starter, redactingReporter, "fail")
+				}).To(Panic())
+			})
 		})
 	})
 })

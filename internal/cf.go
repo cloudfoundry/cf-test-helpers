@@ -9,7 +9,7 @@ func Cf(cmdStarter Starter, args ...string) *gexec.Session {
 	return CfWithCustomReporter(cmdStarter, commandreporter.NewCommandReporter(), args...)
 }
 
-func CfWithCustomReporter(cmdStarter Starter, reporter *commandreporter.CommandReporter, args ...string) *gexec.Session {
+func CfWithCustomReporter(cmdStarter Starter, reporter Reporter, args ...string) *gexec.Session {
 	request, err := cmdStarter.Start(reporter, "cf", args...)
 	if err != nil {
 		panic(err)
