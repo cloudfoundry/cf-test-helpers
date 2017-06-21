@@ -1,6 +1,8 @@
 package internal_test
 
 import (
+	"fmt"
+
 	"github.com/cloudfoundry-incubator/cf-test-helpers/config"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/internal/fakes"
 	. "github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
@@ -143,6 +145,20 @@ var _ = Describe("User", func() {
 						user.Create()
 					})
 					Expect(failures).To(BeEmpty())
+				})
+			})
+
+			FContext("and it redacts the password", func() {
+				JustBeforeEach(func() {
+					fakeStarter.ToReturn[0].Output = fmt.Sprintf("blah blah %s %s", cfg.ExistingUser, cfg.ExistingUserPassword)
+				})
+
+				It("redactos", func() {
+					failures := InterceptGomegaFailures(func() {
+						user.Create()
+					})
+					Expect(failures[0]).NotTo(ContainSubstring("password"))
+					Expect(failures[0]).To(ContainSubstring("[REDACTED]"))
 				})
 			})
 
