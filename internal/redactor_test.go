@@ -40,6 +40,18 @@ var _ = Describe("Redactor", func() {
 			Expect(out).To(Equal("blah [REDACTED]"))
 		})
 
+		It("strings with spaces", func() {
+			redactor := internal.NewRedactor("sensitive secret")
+			in := "command sensitive secret other"
+
+			out := redactor.Redact(in)
+
+			Expect(out).NotTo(ContainSubstring("sensitive"))
+			Expect(out).NotTo(ContainSubstring("secret"))
+			Expect(out).To(Equal("command [REDACTED] other"))
+
+		})
+
 		It("multiple values", func() {
 			redactor := internal.NewRedactor("secret", "sensitive")
 			in := "command sensitive secret other"
