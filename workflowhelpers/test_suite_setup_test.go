@@ -47,37 +47,37 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 		})
 
 		It("sets ShortTimeout to 1 Minute, scaled by the config", func() {
-			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext)
+			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext, false)
 			Expect(setup.ShortTimeout()).To(Equal(time.Duration(cfg.TimeoutScale * float64(1*time.Minute))))
 		})
 
 		It("sets LongTimeout to 5 Minutes, scaled by the config", func() {
-			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext)
+			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext, false)
 			Expect(setup.LongTimeout()).To(Equal(time.Duration(cfg.TimeoutScale * float64(5*time.Minute))))
 		})
 
 		It("sets the regularUserContext", func() {
-			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext)
+			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext, false)
 			Expect(setup.RegularUserContext()).To(Equal(regularUserContext))
 		})
 
 		It("sets the adminUserContext", func() {
-			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext)
+			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext, false)
 			Expect(setup.AdminUserContext()).To(Equal(adminUserContext))
 		})
 
 		It("sets the TestUser", func() {
-			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext)
+			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext, false)
 			Expect(setup.TestUser).To(Equal(testUser))
 		})
 
 		It("sets the TestSpace", func() {
-			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext)
+			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext, false)
 			Expect(setup.TestSpace).To(Equal(testSpace))
 		})
 
 		It("sets the OrganizationName to the testSpace's organiation name", func() {
-			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext)
+			setup := NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext, false)
 
 			Expect(setup.GetOrganizationName()).To(Equal(testSpace.OrganizationName()))
 		})
@@ -239,6 +239,75 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 		})
 	})
 
+	Describe("NewSmokeTestSuiteSetup", func() {
+		var cfg config.Config
+		var apiEndpoint string
+		var skipSSLValidation bool
+
+		BeforeEach(func() {
+			apiEndpoint = "api-endpoint.com"
+			skipSSLValidation = false
+		})
+
+		JustBeforeEach(func() {
+			cfg = config.Config{
+				TimeoutScale:      2.0,
+				NamePrefix:        "UNIT-TESTS",
+				ApiEndpoint:       apiEndpoint,
+				SkipSSLValidation: skipSSLValidation,
+				AdminUser:         "smoke-user",
+				AdminPassword:     "smoke-user-password",
+			}
+		})
+
+		Describe("its RegularUserContext", func() {
+			It("has a regular TestSpace", func() {
+				setup := NewSmokeTestSuiteSetup(&cfg)
+				testSpace, ok := setup.TestSpace.(*internal.TestSpace)
+				Expect(ok).To(BeTrue())
+
+				Expect(testSpace.OrganizationName()).To(MatchRegexp("UNIT-TESTS-[0-9]+-ORG-.*"))
+				Expect(testSpace.SpaceName()).To(MatchRegexp("UNIT-TESTS-[0-9]+-SPACE-.*"))
+				Expect(testSpace.ShouldRemain()).To(BeFalse())
+			})
+
+			It("has a regular TestUser", func() {
+				setup := NewSmokeTestSuiteSetup(&cfg)
+				Expect(setup.RegularUserContext().TestUser.Username()).To(MatchRegexp("UNIT-TESTS-USER-[0-9]+-.*"))
+				Expect(setup.RegularUserContext().TestUser.Password()).To(Equal("meow"))
+			})
+
+			It("configures a smoke test setup", func() {
+				setup := NewSmokeTestSuiteSetup(&cfg)
+				Expect(setup.RegularUserContext().ApiUrl).To(Equal(apiEndpoint))
+				Expect(setup.RegularUserContext().SkipSSLValidation).To(Equal(skipSSLValidation))
+
+				cfg.ApiEndpoint = "api.other-cf.com"
+				cfg.SkipSSLValidation = true
+				setup = NewSmokeTestSuiteSetup(&cfg)
+				Expect(setup.RegularUserContext().ApiUrl).To(Equal("api.other-cf.com"))
+				Expect(setup.RegularUserContext().SkipSSLValidation).To(BeTrue())
+				Expect(setup.SkipUserCreation).To(BeTrue())
+			})
+
+			It("uses the short timeout", func() {
+				setup := NewSmokeTestSuiteSetup(&cfg)
+				Expect(setup.RegularUserContext().Timeout).To(Equal(setup.ShortTimeout()))
+			})
+		})
+
+		It("creates an AdminUserContext from the config", func() {
+			setup := NewSmokeTestSuiteSetup(&cfg)
+			adminUserContext := setup.AdminUserContext()
+			Expect(adminUserContext.ApiUrl).To(Equal(cfg.ApiEndpoint))
+			Expect(adminUserContext.Username).To(Equal(cfg.AdminUser))
+			Expect(adminUserContext.Password).To(Equal(cfg.AdminPassword))
+			Expect(adminUserContext.TestSpace).To(BeNil())
+			Expect(adminUserContext.SkipSSLValidation).To(Equal(cfg.SkipSSLValidation))
+			Expect(adminUserContext.Timeout).To(Equal(cfg.GetScaledTimeout(1 * time.Minute)))
+		})
+	})
+
 	Describe("NewRunawayAppTestSetup", func() {
 		var cfg config.Config
 		var apiEndpoint string
@@ -350,7 +419,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 		})
 
 		JustBeforeEach(func() {
-			testSetup = NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext)
+			testSetup = NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext, false)
 		})
 
 		It("logs in as the admin", func() {
@@ -402,6 +471,12 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			Expect(regularUserCmdStarter.CalledWith[5].Executable).To(Equal("cf"))
 			Expect(regularUserCmdStarter.CalledWith[5].Args).To(Equal([]string{"target", "-o", fakeSpaceValues.OrganizationName(), "-s", fakeSpaceValues.SpaceName()}))
 		})
+
+		It("skips creating the user when called with skipUserCreation on", func() {
+			testSetup = NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext, true)
+			testSetup.Setup()
+			Expect(testUser.CreateCallCount()).To(Equal(0))
+		})
 	})
 
 	Describe("TearDown", func() {
@@ -445,7 +520,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 		})
 
 		JustBeforeEach(func() {
-			testSetup = NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext)
+			testSetup = NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext, false)
 		})
 
 		It("logs out the regular user", func() {
@@ -485,6 +560,17 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 		Context("when the user should remain", func() {
 			BeforeEach(func() {
 				testUser.ShouldRemainReturns = true
+			})
+
+			It("does not destroy the user", func() {
+				testSetup.Teardown()
+				Expect(testUser.DestroyCallCount()).To(Equal(0))
+			})
+
+		})
+		Context("when the user was not created", func() {
+			JustBeforeEach(func() {
+				testSetup = NewBaseTestSuiteSetup(&cfg, testSpace, testUser, regularUserContext, adminUserContext, true)
 			})
 
 			It("does not destroy the user", func() {
