@@ -36,7 +36,7 @@ var _ = Describe("User", func() {
 		It("has a random username and hard-coded password", func() {
 			user := NewTestUser(cfg, &fakes.FakeCmdStarter{})
 			Expect(user.Username()).To(MatchRegexp("UNIT-TESTS-USER-[0-9]+-.*"))
-			Expect(user.Password()).To(Equal("meow"))
+			Expect(user.Password()).To(Equal("Meoooooooooow!1"))
 		})
 
 		Context("when the config specifies that an existing user should be used", func() {

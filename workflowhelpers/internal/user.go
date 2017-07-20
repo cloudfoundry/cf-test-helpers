@@ -41,7 +41,7 @@ func NewTestUser(config userConfig, cmdStarter internal.Starter) *TestUser {
 
 	var regUser, regUserPass string
 	regUser = fmt.Sprintf("%s-USER-%d-%s", config.GetNamePrefix(), node, timeTag)
-	regUserPass = "meow"
+	regUserPass = "Meoooooooooow!1"
 
 	if config.GetUseExistingUser() {
 		regUser = config.GetExistingUser()
