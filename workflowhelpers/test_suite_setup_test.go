@@ -129,7 +129,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			It("has a regular TestUser", func() {
 				setup := NewTestSuiteSetup(&cfg)
 				Expect(setup.RegularUserContext().TestUser.Username()).To(MatchRegexp("UNIT-TESTS-USER-[0-9]+-.*"))
-				Expect(setup.RegularUserContext().TestUser.Password()).To(Equal("meow"))
+				Expect(setup.RegularUserContext().TestUser.Password()).To(Equal("Meoooooooooow!1"))
 			})
 
 			It("uses the api endpoint and SkipSSLValidation from the config", func() {
@@ -206,7 +206,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			It("has a regular TestUser", func() {
 				setup := NewPersistentAppTestSuiteSetup(&cfg)
 				Expect(setup.RegularUserContext().TestUser.Username()).To(MatchRegexp("UNIT-TESTS-USER-[0-9]+-.*"))
-				Expect(setup.RegularUserContext().TestUser.Password()).To(Equal("meow"))
+				Expect(setup.RegularUserContext().TestUser.Password()).To(Equal("Meoooooooooow!1"))
 			})
 
 			It("uses the api endpoint and SkipSSLValidation from the config", func() {
@@ -274,7 +274,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			It("has a regular TestUser", func() {
 				setup := NewSmokeTestSuiteSetup(&cfg)
 				Expect(setup.RegularUserContext().TestUser.Username()).To(MatchRegexp("UNIT-TESTS-USER-[0-9]+-.*"))
-				Expect(setup.RegularUserContext().TestUser.Password()).To(Equal("meow"))
+				Expect(setup.RegularUserContext().TestUser.Password()).To(Equal("Meoooooooooow!1"))
 			})
 
 			It("configures a smoke test setup", func() {
@@ -345,7 +345,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			It("has a regular TestUser", func() {
 				setup := NewRunawayAppTestSuiteSetup(&cfg)
 				Expect(setup.RegularUserContext().TestUser.Username()).To(MatchRegexp("UNIT-TESTS-USER-[0-9]+-.*"))
-				Expect(setup.RegularUserContext().TestUser.Password()).To(Equal("meow"))
+				Expect(setup.RegularUserContext().TestUser.Password()).To(Equal("Meoooooooooow!1"))
 			})
 
 			It("uses the api endpoint and SkipSSLValidation from the config", func() {
