@@ -445,6 +445,26 @@ var _ = Describe("TestSpace", func() {
 		})
 	})
 
+	Describe("QuotaName", func() {
+
+		var testSpace *TestSpace
+		BeforeEach(func() {
+			testSpace = nil
+		})
+
+		It("returns the quota name", func() {
+			testSpace = NewBaseTestSpace("", "", "my-quota", "", false, false, false, 1*time.Second, nil)
+			Expect(testSpace.QuotaName()).To(Equal("my-quota"))
+		})
+
+		Context("when the TestSpace is nil", func() {
+			It("returns the empty string", func() {
+				Expect(testSpace.QuotaName()).To(BeEmpty())
+			})
+		})
+
+	})
+
 	Describe("OrganizationName", func() {
 		var testSpace *TestSpace
 		BeforeEach(func() {

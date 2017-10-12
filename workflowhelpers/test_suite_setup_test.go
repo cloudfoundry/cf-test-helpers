@@ -194,13 +194,12 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 		Describe("its RegularUserContext", func() {
 			It("has a PersistentAppTestSpace", func() {
 				setup := NewPersistentAppTestSuiteSetup(&cfg)
-				testSpace, ok := setup.TestSpace.(*internal.TestSpace)
-				Expect(ok).To(BeTrue())
-
+				testSpace := setup.TestSpace
 				Expect(testSpace.OrganizationName()).To(Equal(orgName))
-				Expect(testSpace.SpaceName()).To(Equal(spaceName))
-				Expect(testSpace.QuotaDefinitionName).To(Equal(quotaName))
+				Expect(testSpace.QuotaName()).To(Equal(quotaName))
 				Expect(testSpace.ShouldRemain()).To(BeTrue())
+				Expect(testSpace.SpaceName()).To(Equal(spaceName))
+
 			})
 
 			It("has a regular TestUser", func() {
