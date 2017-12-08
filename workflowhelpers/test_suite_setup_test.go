@@ -85,6 +85,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 
 	Describe("NewTestSuiteSetup", func() {
 		var cfg config.Config
+		var existingUserCfg config.Config
 		var useExistingUser bool
 		var existingUser, existingUserPassword string
 		var configurableTestPassword string
@@ -112,6 +113,12 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 				ApiEndpoint:              apiEndpoint,
 				AdminUser:                "admin",
 				AdminPassword:            "admin-password",
+			}
+
+			existingUserCfg = config.Config{
+				UseExistingUser:          true,
+				ExistingUser:             "existing-user",
+				ExistingUserPassword:     "existing-user-password",
 			}
 		})
 
@@ -161,10 +168,18 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			Expect(adminUserContext.Timeout).To(Equal(cfg.GetScaledTimeout(1 * time.Minute)))
 		})
 
+		It("uses the existing user", func() {
+			setup := NewTestSuiteSetup(&existingUserCfg)
+			regularUserContext := setup.RegularUserContext()
+			Expect(setup.SkipUserCreation).To(Equal(existingUserCfg.UseExistingUser))
+			Expect(regularUserContext.TestUser.Username()).To(Equal(existingUserCfg.ExistingUser))
+			Expect(regularUserContext.TestUser.Password()).To(Equal(existingUserCfg.ExistingUserPassword))
+		})
 	})
 
 	Describe("NewPersistentAppTestSuiteSetup", func() {
 		var cfg config.Config
+		var existingUserCfg config.Config
 		var orgName, quotaName, spaceName string
 		var apiEndpoint string
 		var skipSSLValidation bool
@@ -188,6 +203,12 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 				SkipSSLValidation:      skipSSLValidation,
 				AdminUser:              "admin",
 				AdminPassword:          "admin-password",
+			}
+
+			existingUserCfg = config.Config{
+				UseExistingUser:          true,
+				ExistingUser:             "existing-user",
+				ExistingUserPassword:     "existing-user-password",
 			}
 		})
 
@@ -235,6 +256,14 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			Expect(adminUserContext.TestSpace).To(BeNil())
 			Expect(adminUserContext.SkipSSLValidation).To(Equal(cfg.SkipSSLValidation))
 			Expect(adminUserContext.Timeout).To(Equal(cfg.GetScaledTimeout(1 * time.Minute)))
+		})
+
+		It("uses the existing user", func() {
+			setup := NewPersistentAppTestSuiteSetup(&existingUserCfg)
+			regularUserContext := setup.RegularUserContext()
+			Expect(setup.SkipUserCreation).To(Equal(existingUserCfg.UseExistingUser))
+			Expect(regularUserContext.TestUser.Username()).To(Equal(existingUserCfg.ExistingUser))
+			Expect(regularUserContext.TestUser.Password()).To(Equal(existingUserCfg.ExistingUserPassword))
 		})
 	})
 
@@ -309,6 +338,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 
 	Describe("NewRunawayAppTestSetup", func() {
 		var cfg config.Config
+		var existingUserCfg config.Config
 		var apiEndpoint string
 		var skipSSLValidation bool
 
@@ -325,6 +355,12 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 				SkipSSLValidation: skipSSLValidation,
 				AdminUser:         "admin",
 				AdminPassword:     "admin-password",
+			}
+
+			existingUserCfg = config.Config{
+				UseExistingUser:          true,
+				ExistingUser:             "existing-user",
+				ExistingUserPassword:     "existing-user-password",
 			}
 		})
 
@@ -374,6 +410,14 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			Expect(adminUserContext.TestSpace).To(BeNil())
 			Expect(adminUserContext.SkipSSLValidation).To(Equal(cfg.SkipSSLValidation))
 			Expect(adminUserContext.Timeout).To(Equal(cfg.GetScaledTimeout(1 * time.Minute)))
+		})
+
+		It("uses the existing user", func() {
+			setup := NewRunawayAppTestSuiteSetup(&existingUserCfg)
+			regularUserContext := setup.RegularUserContext()
+			Expect(setup.SkipUserCreation).To(Equal(existingUserCfg.UseExistingUser))
+			Expect(regularUserContext.TestUser.Username()).To(Equal(existingUserCfg.ExistingUser))
+			Expect(regularUserContext.TestUser.Password()).To(Equal(existingUserCfg.ExistingUserPassword))
 		})
 	})
 
