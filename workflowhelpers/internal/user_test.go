@@ -33,10 +33,16 @@ var _ = Describe("User", func() {
 			}
 		})
 
-		It("has a random username and hard-coded password", func() {
+		It("has a username and password", func() {
 			user := NewTestUser(cfg, &fakes.FakeCmdStarter{})
 			Expect(user.Username()).To(MatchRegexp("UNIT-TESTS-USER-[0-9]+-.*"))
-			Expect(user.Password()).To(Equal("meow"))
+			Expect(len(user.Password())).To(Equal(20))
+		})
+
+		It("has a unique random password", func() {
+			password1 := NewTestUser(cfg, &fakes.FakeCmdStarter{}).Password()
+			password2 := NewTestUser(cfg, &fakes.FakeCmdStarter{}).Password()
+			Expect(password1).ToNot(Equal(password2))
 		})
 
 		Context("when the config specifies that an existing user should be used", func() {
