@@ -111,7 +111,7 @@ func generateUserName(prefix string) string {
 	return fmt.Sprintf("%s-USER-%d-%s", prefix, node, timeTag)
 }
 
-// The key think that makes a password secure is the _entropy_ that comes from a
+// The key thing that makes a password secure is the _entropy_ that comes from a
 // generator of true random numbers.  But many password rules require a mixure
 // of cases, numbers and special characters.  Here we meet these rules by starting
 // the password with the required upper/lower case, number and special.  Then we make
