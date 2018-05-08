@@ -116,9 +116,9 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			}
 
 			existingUserCfg = config.Config{
-				UseExistingUser:          true,
-				ExistingUser:             "existing-user",
-				ExistingUserPassword:     "existing-user-password",
+				UseExistingUser:      true,
+				ExistingUser:         "existing-user",
+				ExistingUserPassword: "existing-user-password",
 			}
 		})
 
@@ -135,7 +135,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 
 			It("has a regular TestUser", func() {
 				setup := NewTestSuiteSetup(&cfg)
-				Expect(setup.RegularUserContext().TestUser.Username()).To(MatchRegexp("UNIT-TESTS-USER-[0-9]+-.*"))
+				Expect(setup.RegularUserContext().TestUser.Username()).To(MatchRegexp("UNIT-TESTS-[0-9]+-USER-.*"))
 				Expect(len(setup.RegularUserContext().TestUser.Password())).To(Equal(20))
 			})
 
@@ -206,9 +206,9 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			}
 
 			existingUserCfg = config.Config{
-				UseExistingUser:          true,
-				ExistingUser:             "existing-user",
-				ExistingUserPassword:     "existing-user-password",
+				UseExistingUser:      true,
+				ExistingUser:         "existing-user",
+				ExistingUserPassword: "existing-user-password",
 			}
 		})
 
@@ -225,7 +225,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 
 			It("has a regular TestUser", func() {
 				setup := NewPersistentAppTestSuiteSetup(&cfg)
-				Expect(setup.RegularUserContext().TestUser.Username()).To(MatchRegexp("UNIT-TESTS-USER-[0-9]+-.*"))
+				Expect(setup.RegularUserContext().TestUser.Username()).To(MatchRegexp("UNIT-TESTS-[0-9]+-USER-.*"))
 				Expect(len(setup.RegularUserContext().TestUser.Password())).To(Equal(20))
 			})
 
@@ -301,7 +301,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 
 			It("has a regular TestUser", func() {
 				setup := NewSmokeTestSuiteSetup(&cfg)
-				Expect(setup.RegularUserContext().TestUser.Username()).To(MatchRegexp("UNIT-TESTS-USER-[0-9]+-.*"))
+				Expect(setup.RegularUserContext().TestUser.Username()).To(MatchRegexp("UNIT-TESTS-[0-9]+-USER-.*"))
 				Expect(len(setup.RegularUserContext().TestUser.Password())).To(Equal(20))
 			})
 
@@ -358,9 +358,9 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			}
 
 			existingUserCfg = config.Config{
-				UseExistingUser:          true,
-				ExistingUser:             "existing-user",
-				ExistingUserPassword:     "existing-user-password",
+				UseExistingUser:      true,
+				ExistingUser:         "existing-user",
+				ExistingUserPassword: "existing-user-password",
 			}
 		})
 
@@ -379,7 +379,7 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 
 			It("has a regular TestUser", func() {
 				setup := NewRunawayAppTestSuiteSetup(&cfg)
-				Expect(setup.RegularUserContext().TestUser.Username()).To(MatchRegexp("UNIT-TESTS-USER-[0-9]+-.*"))
+				Expect(setup.RegularUserContext().TestUser.Username()).To(MatchRegexp("UNIT-TESTS-[0-9]+-USER-.*"))
 				Expect(len(setup.RegularUserContext().TestUser.Password())).To(Equal(20))
 			})
 

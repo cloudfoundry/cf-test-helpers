@@ -33,9 +33,9 @@ var _ = Describe("User", func() {
 			}
 		})
 
-		It("has a username and password", func() {
+		It("has a username with the name prefix and a password with default length", func() {
 			user := NewTestUser(cfg, &fakes.FakeCmdStarter{})
-			Expect(user.Username()).To(MatchRegexp("UNIT-TESTS-USER-[0-9]+-.*"))
+			Expect(user.Username()).To(MatchRegexp("UNIT-TESTS-[0-9]+-USER-.*"))
 			Expect(len(user.Password())).To(Equal(20))
 		})
 
@@ -66,7 +66,7 @@ var _ = Describe("User", func() {
 
 			It("uses the a random user name and the ConfigurableTestPassword", func() {
 				user := NewTestUser(cfg, &fakes.FakeCmdStarter{})
-				Expect(user.Username()).To(MatchRegexp("UNIT-TESTS-USER-[0-9]+-.*"))
+				Expect(user.Username()).To(MatchRegexp("UNIT-TESTS-[0-9]+-USER-.*"))
 				Expect(user.Password()).To(Equal(configurableTestPassword))
 			})
 		})
