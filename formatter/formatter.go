@@ -3,17 +3,15 @@ package formatter
 import (
 	"fmt"
 	"strings"
-
-	"github.com/onsi/gomega/gexec"
 )
 
-func CliErrorMessage(session *gexec.Session) string {
+func CliErrorMessage(args []string) string {
 	var command string
 
-	if strings.EqualFold(session.Command.Args[1], "auth") {
-		command = strings.Join(session.Command.Args[:2], " ")
+	if strings.EqualFold(args[1], "auth") {
+		command = strings.Join(args[:2], " ")
 	} else {
-		command = strings.Join(session.Command.Args, " ")
+		command = strings.Join(args, " ")
 	}
 
 	return fmt.Sprintf("\n>>> [ %s ] exited with an error \n", command)
