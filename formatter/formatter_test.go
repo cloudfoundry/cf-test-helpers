@@ -39,31 +39,4 @@ var _ = Describe("CliErrorMessage", func() {
 		helpfulMessage := fmt.Sprintf("\n>>> [ %s ] exited with an error \n", argsAsString)
 		Expect(formatter.CliErrorMessage(session)).To(Equal(helpfulMessage))
 	})
-
-	It("panics if the session is empty", func() {
-		session := &gexec.Session{}
-
-		defer func() {
-			if r := recover(); r != nil {
-				Expect(r).To(Equal("session was nil!"))
-			}
-		}()
-
-		formatter.CliErrorMessage(session)
-	})
-
-	It("panics if the command is empty", func() {
-		command := &exec.Cmd{}
-		session := &gexec.Session{
-			Command: command,
-		}
-
-		defer func() {
-			if r := recover(); r != nil {
-				Expect(r).To(Equal("command was nil!"))
-			}
-		}()
-
-		formatter.CliErrorMessage(session)
-	})
 })
