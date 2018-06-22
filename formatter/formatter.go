@@ -1,5 +1,10 @@
 package formatter
 
+// We might not end up using this code
+// We found a way to put the actual error message from the CLI into our Gomega annotations
+// We haven't yet removed it, pending PM review
+// But if you're looking at this later and don't know why it's here, just delete it
+
 import (
 	"fmt"
 	"strings"
