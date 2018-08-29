@@ -147,9 +147,47 @@ var _ = Describe("UserContext", func() {
 
 		})
 
-		Context("when the 'cf auth' call fails", func() {
+		Context("when 'cf auth' takes >5 sec twice in a row", func() {
 			BeforeEach(func() {
-				fakeStarter.ToReturn[1].ExitCode = 1
+				fakeStarter.ToReturn[1].SleepTime = 6
+				fakeStarter.ToReturn[2].SleepTime = 6
+			})
+
+			It("fails with a ginkgo error", func() {
+				failures := InterceptGomegaFailures(func() {
+					userContext.Login()
+				})
+
+				Expect(fakeStarter.CalledWith).To(HaveLen(3))
+				Expect(fakeStarter.CalledWith[0].Args).To(Equal([]string{"api", target}))
+				Expect(fakeStarter.CalledWith[1].Executable).To(Equal("cf"))
+				Expect(fakeStarter.CalledWith[2].Executable).To(Equal("cf"))
+
+				Expect(failures).To(HaveLen(2))
+				Expect(failures[0]).To(MatchRegexp("Timed out after 5.*"))
+			})
+		})
+
+		Context("when 'cf auth' takes >5 sec first time, but works on second try", func() {
+			BeforeEach(func() {
+				fakeStarter.ToReturn[1].SleepTime = 6
+			})
+
+			It("Succeeds", func() {
+				failures := InterceptGomegaFailures(func() {
+					userContext.Login()
+				})
+
+				Expect(failures).To(HaveLen(0))
+			})
+		})
+
+		Context("when the 'cf auth' call fails on the first try, and the second try", func() {
+			BeforeEach(func() {
+				fakeStarter.ToReturn[0].ExitCode = 0 // `cf api` succeeds
+				fakeStarter.ToReturn[1].ExitCode = 1 // `cf auth` fails
+				fakeStarter.ToReturn[2].ExitCode = 1 // `cf auth` fails
+
 			})
 
 			It("fails with a ginkgo error", func() {
@@ -162,21 +200,30 @@ var _ = Describe("UserContext", func() {
 			})
 		})
 
-		Context("when the 'cf auth' times out", func() {
+		Context("when the 'cf auth' call fails on the first try, but works on second try", func() {
 			BeforeEach(func() {
-				timeout = 2 * time.Second
-				fakeStarter.ToReturn[1].SleepTime = 3
+				fakeStarter.ToReturn[2].ExitCode = 0 // `cf api` succeeds
+				fakeStarter.ToReturn[1].ExitCode = 1 // `cf auth` fails
+				fakeStarter.ToReturn[2].ExitCode = 0 // `cf auth` succeeds
 			})
 
-			It("fails with a ginkgo error", func() {
+			It("succeeds after retrying the 'cf auth'", func() {
 				failures := InterceptGomegaFailures(func() {
 					userContext.Login()
 				})
 
-				Expect(failures).To(HaveLen(1))
-				Expect(failures[0]).To(MatchRegexp("Timed out after 2.*"))
+				Expect(fakeStarter.CalledWith).To(HaveLen(3))
+				Expect(fakeStarter.CalledWith[0].Args).To(Equal([]string{"api", target}))
+
+				Expect(fakeStarter.CalledWith[1].Executable).To(Equal("cf"))
+				Expect(fakeStarter.CalledWith[1].Args).To(Equal([]string{"auth", testUser.Username(), testUser.Password()}))
+				Expect(fakeStarter.CalledWith[2].Executable).To(Equal("cf"))
+				Expect(fakeStarter.CalledWith[2].Args).To(Equal([]string{"auth", testUser.Username(), testUser.Password()}))
+
+				Expect(failures).To(HaveLen(0))
 			})
 		})
+
 	})
 
 	Describe("SetCfHomeDir", func() {
