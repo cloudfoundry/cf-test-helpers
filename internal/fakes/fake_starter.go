@@ -16,7 +16,7 @@ type callToStartMethod struct {
 	Reporter   internal.Reporter
 }
 
-type StartMethodStub struct {
+type startMethodStub struct {
 	Output    string
 	Stderr    string
 	Err       error
@@ -26,14 +26,14 @@ type StartMethodStub struct {
 
 type FakeCmdStarter struct {
 	CalledWith        []callToStartMethod
-	ToReturn          []StartMethodStub
+	ToReturn          []startMethodStub
 	TotalCallsToStart int
 }
 
 func NewFakeCmdStarter() *FakeCmdStarter {
 	return &FakeCmdStarter{
 		CalledWith: []callToStartMethod{},
-		ToReturn:   make([]StartMethodStub, 10),
+		ToReturn:   make([]startMethodStub, 10),
 	}
 }
 
