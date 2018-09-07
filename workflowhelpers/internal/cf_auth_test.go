@@ -2,6 +2,7 @@ package internal_test
 
 import (
 	"fmt"
+	"os"
 
 	"bytes"
 
@@ -52,6 +53,22 @@ var _ = Describe("CfAuth", func() {
 			Expect(func() {
 				CfAuth(cmdStarter, redactingReporter, "user", password).Wait()
 			}).To(Panic())
+		})
+	})
+
+	Context("when the secret debug enviornment variable is set", func() {
+		BeforeEach(func() {
+			os.Setenv(VerboseAuth, "true")
+		})
+
+		AfterEach(func() {
+			os.Unsetenv(VerboseAuth)
+		})
+
+		It("does not reveal the password", func() {
+			CfAuth(cmdStarter, redactingReporter, "user", password).Wait()
+			Expect(cmdStarter.CalledWith[0].Executable).To(Equal("cf"))
+			Expect(cmdStarter.CalledWith[0].Args).To(Equal([]string{"auth", "user", "foobar", "-v"}))
 		})
 	})
 })
