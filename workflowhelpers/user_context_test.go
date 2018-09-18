@@ -59,7 +59,7 @@ var _ = Describe("UserContext", func() {
 	})
 
 	Describe("Login", func() {
-		var target, username, password, org, space string
+		var target string
 		var skipSslValidation bool
 		var timeout time.Duration
 		var fakeStarter *fakes.FakeCmdStarter
@@ -70,10 +70,6 @@ var _ = Describe("UserContext", func() {
 
 		BeforeEach(func() {
 			target = "http://FAKE_API.example.com"
-			username = "FAKE_USERNAME"
-			password = "FAKE_PASSWORD"
-			org = "FAKE_ORG"
-			space = "FAKE_SPACE"
 			skipSslValidation = false
 			timeout = 1 * time.Second
 
