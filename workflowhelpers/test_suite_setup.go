@@ -17,6 +17,8 @@ type testSuiteConfig interface {
 	internal.AdminUserConfig
 	internal.SpaceAndOrgConfig
 	internal.UserConfig
+	internal.AdminClientConfig
+	internal.ClientConfig
 
 	GetApiEndpoint() string
 	GetSkipSSLValidation() bool
