@@ -311,7 +311,9 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 				TestUser:       fakeAdminUserValues,
 				Timeout:        2 * time.Second,
 			}
-			cfg = config.Config{}
+			cfg = config.Config{
+				AddExistingUserToExistingSpace: true,
+			}
 		})
 
 		JustBeforeEach(func() {
