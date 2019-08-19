@@ -1,6 +1,8 @@
 package commandstarter_test
 
 import (
+	"bytes"
+	"io"
 	"os/exec"
 	"time"
 
@@ -8,6 +10,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/gbytes"
 )
 
 type fakeReporter struct {
@@ -32,7 +35,25 @@ var _ = Describe("CommandStarter", func() {
 	})
 
 	It("reports the command that it's running", func() {
-		cmdStarter.Start(reporter, "bash", "-c", "echo \"hello world\"")
+		session, err := cmdStarter.Start(reporter, "bash", "-c", "echo \"hello world\"")
+		Expect(err).To(Succeed())
 		Expect(reporter.calledWith.cmd.Args).To(Equal([]string{"bash", "-c", "echo \"hello world\""}))
+		Eventually(session).Should(Say("hello world"))
+	})
+
+	When("created with stdin", func() {
+		var stdin io.Reader
+
+		BeforeEach(func() {
+			stdin = bytes.NewBufferString("name from input")
+			cmdStarter = commandstarter.NewCommandStarterWithStdin(stdin)
+		})
+
+		It("reports what command is running and sends the input to the command", func() {
+			session, err := cmdStarter.Start(reporter, "bash", "-c", `echo "hello $(cat -)"`)
+			Expect(err).To(Succeed())
+			Expect(reporter.calledWith.cmd.Args).To(Equal([]string{"bash", "-c", `echo "hello $(cat -)"`}))
+			Eventually(session).Should(Say("hello name from input"))
+		})
 	})
 })
