@@ -20,6 +20,7 @@ import (
 type userValues interface {
 	Username() string
 	Password() string
+	Origin()   string
 }
 
 type spaceValues interface {
@@ -41,6 +42,7 @@ type UserContext struct {
 	Password string
 	Org      string
 	Space    string
+	Origin   string
 
 	UseClientCredentials bool
 }
