@@ -23,6 +23,7 @@ type Config struct {
 	ShouldKeepUser       bool   `json:"keep_user_at_suite_end"`
 	ExistingUser         string `json:"existing_user"`
 	ExistingUserPassword string `json:"existing_user_password"`
+	ExistingUserOrigin   string `json:"existing_user_origin"`
 
 	ExistingClient       string `json:"existing_client"`
 	ExistingClientSecret string `json:"existing_client_secret"`
@@ -256,6 +257,10 @@ func (c *Config) GetExistingUser() string {
 
 func (c *Config) GetExistingUserPassword() string {
 	return c.ExistingUserPassword
+}
+
+func (c *Config) GetExistingUserOrigin() string {
+	return c.ExistingUserOrigin
 }
 
 func (c *Config) GetConfigurableTestPassword() string {

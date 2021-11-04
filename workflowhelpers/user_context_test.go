@@ -45,6 +45,10 @@ var _ = Describe("UserContext", func() {
 			Expect(createUser().Password).To(Equal(testUser.Password()))
 		})
 
+		It("sets UserContext.Origin", func() {
+			Expect(createUser().Origin).To(Equal(testUser.Origin()))
+		})
+
 		It("sets UserContext.Org", func() {
 			Expect(createUser().Org).To(Equal(testSpace.OrganizationName()))
 		})
@@ -121,6 +125,20 @@ var _ = Describe("UserContext", func() {
 
 				Expect(fakeStarter.CalledWith[1].Executable).To(Equal("cf"))
 				Expect(fakeStarter.CalledWith[1].Args).To(Equal([]string{"auth", testUser.Username(), testUser.Password(), "--client-credentials"}))
+			})
+		})
+
+		Context("when Origin is set", func() {
+			BeforeEach(func() {
+				testUser = internal.NewTestUser(&config.Config{ExistingUserOrigin: "origin", UseExistingUser: true}, &fakes.FakeCmdStarter{})
+			})
+			It("uses --origin auth method", func() {
+				userContext.Login()
+
+				Expect(fakeStarter.CalledWith).To(HaveLen(2))
+
+				Expect(fakeStarter.CalledWith[1].Executable).To(Equal("cf"))
+				Expect(fakeStarter.CalledWith[1].Args).To(Equal([]string{"auth", testUser.Username(), testUser.Password(), "--origin", testUser.Origin()}))
 			})
 		})
 

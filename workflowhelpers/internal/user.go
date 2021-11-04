@@ -17,6 +17,7 @@ import (
 type TestUser struct {
 	username       string
 	password       string
+	origin         string
 	cmdStarter     internal.Starter
 	timeout        time.Duration
 	shouldKeepUser bool
@@ -26,6 +27,7 @@ type UserConfig interface {
 	GetUseExistingUser() bool
 	GetExistingUser() string
 	GetExistingUserPassword() string
+	GetExistingUserOrigin() string
 	GetShouldKeepUser() bool
 	GetConfigurableTestPassword() string
 }
@@ -53,11 +55,13 @@ type AdminClientConfig interface {
 }
 
 func NewTestUser(config userConfig, cmdStarter internal.Starter) *TestUser {
-	var regUser, regUserPass string
+	var regUser, regUserPass, regUserOrigin string
 
 	if config.GetUseExistingUser() {
 		regUser = config.GetExistingUser()
 		regUserPass = config.GetExistingUserPassword()
+		regUserOrigin = config.GetExistingUserOrigin()
+
 	} else {
 		regUser = generator.PrefixedRandomName(config.GetNamePrefix(), "USER")
 		regUserPass = generatePassword()
@@ -70,6 +74,7 @@ func NewTestUser(config userConfig, cmdStarter internal.Starter) *TestUser {
 	return &TestUser{
 		username:       regUser,
 		password:       regUserPass,
+		origin:         regUserOrigin,
 		cmdStarter:     cmdStarter,
 		timeout:        config.GetScaledTimeout(1 * time.Minute),
 		shouldKeepUser: config.GetShouldKeepUser(),
@@ -123,6 +128,10 @@ func (user *TestUser) Username() string {
 
 func (user *TestUser) Password() string {
 	return user.password
+}
+
+func (user *TestUser) Origin() string {
+	return user.origin
 }
 
 func (user *TestUser) ShouldRemain() bool {
