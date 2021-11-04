@@ -20,6 +20,7 @@ import (
 type userValues interface {
 	Username() string
 	Password() string
+	Origin()   string
 }
 
 type spaceValues interface {
@@ -41,6 +42,7 @@ type UserContext struct {
 	Password string
 	Org      string
 	Space    string
+	Origin   string
 
 	UseClientCredentials bool
 }
@@ -75,6 +77,7 @@ func NewUserContext(apiUrl string, testUser userValues, testSpace spaceValues, s
 		ApiUrl:            apiUrl,
 		Username:          testUser.Username(),
 		Password:          testUser.Password(),
+		Origin:            testUser.Origin(),
 		TestSpace:         testSpace,
 		TestUser:          testUser,
 		Org:               org,
@@ -101,7 +104,7 @@ func (uc UserContext) Login() {
 	if uc.UseClientCredentials {
 		err = workflowhelpersinternal.CfClientAuth(uc.CommandStarter, redactingReporter, uc.TestUser.Username(), uc.TestUser.Password(), uc.Timeout)
 	} else {
-		err = workflowhelpersinternal.CfAuth(uc.CommandStarter, redactingReporter, uc.TestUser.Username(), uc.TestUser.Password(), uc.Timeout)
+		err = workflowhelpersinternal.CfAuth(uc.CommandStarter, redactingReporter, uc.TestUser.Username(), uc.TestUser.Password(), uc.TestUser.Origin(), uc.Timeout)
 	}
 
 	Expect(err).NotTo(HaveOccurred())
