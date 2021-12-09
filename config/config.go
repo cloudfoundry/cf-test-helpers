@@ -15,6 +15,7 @@ type Config struct {
 
 	AdminUser     string `json:"admin_user"`
 	AdminPassword string `json:"admin_password"`
+	AdminOrigin   string `json:"admin_origin"`
 
 	AdminClient       string `json:"admin_client"`
 	AdminClientSecret string `json:"admin_client_secret"`
@@ -277,6 +278,10 @@ func (c *Config) GetAdminUser() string {
 
 func (c *Config) GetAdminPassword() string {
 	return c.AdminPassword
+}
+
+func (c *Config) GetAdminOrigin() string {
+	return c.AdminOrigin
 }
 
 func (c *Config) GetUseExistingOrganization() bool {

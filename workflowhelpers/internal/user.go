@@ -42,6 +42,7 @@ type userConfig interface {
 type AdminUserConfig interface {
 	GetAdminUser() string
 	GetAdminPassword() string
+	GetAdminOrigin() string
 }
 
 type ClientConfig interface {
@@ -65,6 +66,7 @@ func NewTestUser(config userConfig, cmdStarter internal.Starter) *TestUser {
 	} else {
 		regUser = generator.PrefixedRandomName(config.GetNamePrefix(), "USER")
 		regUserPass = generatePassword()
+		// FIXME should we configure an origin here?
 	}
 
 	if config.GetConfigurableTestPassword() != "" {
@@ -85,6 +87,7 @@ func NewAdminUser(config AdminUserConfig, cmdStarter internal.Starter) *TestUser
 	return &TestUser{
 		username:   config.GetAdminUser(),
 		password:   config.GetAdminPassword(),
+		origin:     config.GetAdminOrigin(),
 		cmdStarter: cmdStarter,
 	}
 }
