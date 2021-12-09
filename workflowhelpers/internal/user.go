@@ -27,7 +27,7 @@ type UserConfig interface {
 	GetUseExistingUser() bool
 	GetExistingUser() string
 	GetExistingUserPassword() string
-	GetExistingUserOrigin() string
+	GetUserOrigin() string
 	GetShouldKeepUser() bool
 	GetConfigurableTestPassword() string
 }
@@ -61,12 +61,11 @@ func NewTestUser(config userConfig, cmdStarter internal.Starter) *TestUser {
 	if config.GetUseExistingUser() {
 		regUser = config.GetExistingUser()
 		regUserPass = config.GetExistingUserPassword()
-		regUserOrigin = config.GetExistingUserOrigin()
-
+		regUserOrigin = config.GetUserOrigin()
 	} else {
 		regUser = generator.PrefixedRandomName(config.GetNamePrefix(), "USER")
 		regUserPass = generatePassword()
-		// FIXME should we configure an origin here?
+		regUserOrigin = config.GetUserOrigin()
 	}
 
 	if config.GetConfigurableTestPassword() != "" {

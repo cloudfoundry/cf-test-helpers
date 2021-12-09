@@ -130,7 +130,7 @@ var _ = Describe("UserContext", func() {
 
 		Context("when Origin is set", func() {
 			BeforeEach(func() {
-				testUser = internal.NewTestUser(&config.Config{ExistingUserOrigin: "origin", UseExistingUser: true}, &fakes.FakeCmdStarter{})
+				testUser = internal.NewTestUser(&config.Config{UserOrigin: "origin", UseExistingUser: true}, &fakes.FakeCmdStarter{})
 			})
 			It("uses --origin auth method", func() {
 				userContext.Login()
