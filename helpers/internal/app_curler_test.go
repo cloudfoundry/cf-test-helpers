@@ -5,8 +5,8 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/config"
-	. "github.com/cloudfoundry-incubator/cf-test-helpers/helpers/internal"
+	"github.com/cloudfoundry/cf-test-helpers/config"
+	. "github.com/cloudfoundry/cf-test-helpers/helpers/internal"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
