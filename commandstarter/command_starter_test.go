@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/commandstarter"
+	"github.com/cloudfoundry/cf-test-helpers/commandstarter"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

@@ -4,11 +4,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/config"
-	starterFakes "github.com/cloudfoundry-incubator/cf-test-helpers/internal/fakes"
-	. "github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal/fakes"
+	"github.com/cloudfoundry/cf-test-helpers/config"
+	starterFakes "github.com/cloudfoundry/cf-test-helpers/internal/fakes"
+	. "github.com/cloudfoundry/cf-test-helpers/workflowhelpers"
+	"github.com/cloudfoundry/cf-test-helpers/workflowhelpers/internal"
+	"github.com/cloudfoundry/cf-test-helpers/workflowhelpers/internal/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

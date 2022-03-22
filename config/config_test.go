@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	cfg "github.com/cloudfoundry-incubator/cf-test-helpers/config"
+	cfg "github.com/cloudfoundry/cf-test-helpers/config"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

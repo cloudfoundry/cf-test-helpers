@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/config"
-	. "github.com/cloudfoundry-incubator/cf-test-helpers/helpers"
+	"github.com/cloudfoundry/cf-test-helpers/config"
+	. "github.com/cloudfoundry/cf-test-helpers/helpers"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 
 	. "github.com/onsi/ginkgo"
