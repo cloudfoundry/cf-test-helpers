@@ -1,9 +1,8 @@
-module github.com/cloudfoundry-incubator/cf-test-helpers
+module github.com/cloudfoundry/cf-test-helpers
 
 go 1.17
 
 require (
-	github.com/cloudfoundry/cf-test-helpers v1.0.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.18.1
 	gopkg.in/yaml.v2 v2.4.0
