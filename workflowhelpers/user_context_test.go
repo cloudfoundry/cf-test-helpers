@@ -8,8 +8,8 @@ import (
 	"github.com/cloudfoundry-incubator/cf-test-helpers/config"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
 
-	. "github.com/onsi/ginkgo"
-	ginkgoconfig "github.com/onsi/ginkgo/config"
+	. "github.com/onsi/ginkgo/v2"
+	ginkgoconfig "github.com/onsi/ginkgo/v2/config"
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/internal/fakes"

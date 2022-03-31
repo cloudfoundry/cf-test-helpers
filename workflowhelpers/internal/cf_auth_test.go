@@ -11,7 +11,7 @@ import (
 	"github.com/cloudfoundry-incubator/cf-test-helpers/internal"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/internal/fakes"
 	. "github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 

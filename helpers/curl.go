@@ -4,7 +4,7 @@ import (
 	"github.com/cloudfoundry-incubator/cf-test-helpers/commandstarter"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/helpers/internal"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/internal"
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega/gexec"
 )
 

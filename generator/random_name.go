@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/onsi/ginkgo/config"
+	"github.com/onsi/ginkgo/v2/config"
 )
 
 func randomName() string {

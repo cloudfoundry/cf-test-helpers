@@ -9,6 +9,6 @@ mkdir -p $FIRST_GOPATH/bin
 export PATH=$FIRST_GOPATH/bin:$PATH
 
 go get -t -v ./...
-go install github.com/onsi/ginkgo/ginkgo
+go install github.com/onsi/ginkgo/v2/ginkgo
 
 ginkgo -failOnPending -randomizeAllSpecs -race -trace -r

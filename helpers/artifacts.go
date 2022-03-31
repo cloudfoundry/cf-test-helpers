@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	ginkgoconfig "github.com/onsi/ginkgo/config"
-	"github.com/onsi/ginkgo/reporters"
+	ginkgoconfig "github.com/onsi/ginkgo/v2/config"
+	"github.com/onsi/ginkgo/v2/reporters"
 )
 
 type artifactsDirectoryConfig interface {
