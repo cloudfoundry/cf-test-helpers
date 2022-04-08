@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/internal"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/internal"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega/gexec"
 )
@@ -27,7 +27,7 @@ func NewCommandStarterWithStdin(stdin io.Reader) *CommandStarter {
 func (r *CommandStarter) Start(reporter internal.Reporter, executable string, args ...string) (*gexec.Session, error) {
 	cmd := exec.Command(executable, args...)
 	cmd.Stdin = r.stdin
-	_,reporterConf := ginkgo.GinkgoConfiguration()
+	_, reporterConf := ginkgo.GinkgoConfiguration()
 	reporter.Report(!reporterConf.NoColor, time.Now(), cmd)
 	return gexec.Start(cmd, ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
 }

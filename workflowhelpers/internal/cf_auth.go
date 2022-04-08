@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/internal"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/internal"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 )

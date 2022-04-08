@@ -4,7 +4,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/commandreporter"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/commandreporter"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -27,7 +27,7 @@ var _ = Describe("CommandReporter", func() {
 		It("prints the timestamp and command in green", func() {
 			cmd := exec.Command("executable", "arg1", "arg2")
 			reporter.Report(true, t, cmd)
-			Expect(writer).To(gbytes.Say("\n\u001B\\[32m%s \u001B\\[32;1mexecutable arg1 arg2 \u001B\\[0m\\n",  timestampRegex))
+			Expect(writer).To(gbytes.Say("\n\u001B\\[32m%s \u001B\\[32;1mexecutable arg1 arg2 \u001B\\[0m\\n", timestampRegex))
 		})
 
 		Context("when NoColor is specified", func() {

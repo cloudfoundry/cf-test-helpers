@@ -7,9 +7,9 @@ import (
 
 	"bytes"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/internal"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/internal/fakes"
-	. "github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/internal"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/internal/fakes"
+	. "github.com/cloudfoundry-incubator/cf-test-helpers/v2/workflowhelpers/internal"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/commandstarter"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/internal"
-	workflowhelpersinternal "github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/commandstarter"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/internal"
+	workflowhelpersinternal "github.com/cloudfoundry-incubator/cf-test-helpers/v2/workflowhelpers/internal"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -19,7 +19,7 @@ import (
 type userValues interface {
 	Username() string
 	Password() string
-	Origin()   string
+	Origin() string
 }
 
 type spaceValues interface {

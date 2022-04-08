@@ -25,5 +25,5 @@ jobs:
           
       - name: Test
         run: |
-          ginkgo  --fail-on-pending --randomize-all --race --cover --trace -r
+          ginkgo -p --fail-on-pending --randomize-all --race --cover --trace -r
 
