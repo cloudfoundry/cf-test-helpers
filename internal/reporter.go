@@ -6,5 +6,5 @@ import (
 )
 
 type Reporter interface {
-	Report(time.Time, *exec.Cmd)
+	Report(bool, time.Time, *exec.Cmd)
 }

@@ -7,8 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/config"
+	"github.com/onsi/ginkgo/v2"
 )
 
 const timeFormat = "2006-01-02 15:04:05.00 (MST)"
@@ -25,7 +24,7 @@ func NewCommandReporter(writers ...io.Writer) *CommandReporter {
 	case 1:
 		writer = writers[0]
 	default:
-		panic("NewCommandReporter should only take one writer")
+		panic("newCommandReporter can only take one writer")
 	}
 
 	return &CommandReporter{
@@ -33,20 +32,26 @@ func NewCommandReporter(writers ...io.Writer) *CommandReporter {
 	}
 }
 
-func (r *CommandReporter) Report(startTime time.Time, cmd *exec.Cmd) {
+func (r *CommandReporter) Report(withColour bool, startTime time.Time, cmd *exec.Cmd) {
+	PrintCommand(withColour, startTime, r.Writer, strings.Join(cmd.Args, " "))
+}
+
+func PrintCommand(withColour bool, startTime time.Time, writer io.Writer, command string) {
 	startColor := ""
 	endColor := ""
-	if !config.DefaultReporterConfig.NoColor {
+	startBold := ""
+	if withColour {
 		startColor = "\x1b[32m"
+		startBold = "\x1b[32;1m"
 		endColor = "\x1b[0m"
 	}
-
-	fmt.Fprintf(
-		r.Writer,
-		"\n%s[%s]> %s %s\n",
+	_, _ = fmt.Fprintf(
+		writer,
+		"\n%s[%s]> %s%s %s\n",
 		startColor,
 		startTime.UTC().Format(timeFormat),
-		strings.Join(cmd.Args, " "),
+		startBold,
+		command,
 		endColor,
 	)
 }

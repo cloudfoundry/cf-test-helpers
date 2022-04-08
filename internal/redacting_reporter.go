@@ -1,17 +1,12 @@
 package internal
 
 import (
-	"fmt"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/commandreporter"
+	"io"
 	"os/exec"
 	"strings"
 	"time"
-
-	"io"
-
-	"github.com/onsi/ginkgo/config"
 )
-
-const timeFormat string = "2006-01-02 15:04:05.00 (MST)"
 
 type RedactingReporter struct {
 	writer   io.Writer
@@ -27,20 +22,6 @@ func NewRedactingReporter(writer io.Writer, redactor Redactor) *RedactingReporte
 	}
 }
 
-func (r *RedactingReporter) Report(startTime time.Time, cmd *exec.Cmd) {
-	startColor := ""
-	endColor := ""
-	if !config.DefaultReporterConfig.NoColor {
-		startColor = "\x1b[32m"
-		endColor = "\x1b[0m"
-	}
-
-	fmt.Fprintf(
-		r.writer,
-		"\n%s[%s]> %s %s\n",
-		startColor,
-		startTime.UTC().Format(timeFormat),
-		r.redactor.Redact(strings.Join(cmd.Args, " ")),
-		endColor,
-	)
+func (r *RedactingReporter) Report(withColour bool, startTime time.Time, cmd *exec.Cmd) {
+	commandreporter.PrintCommand(withColour, startTime, r.writer, r.redactor.Redact(strings.Join(cmd.Args, " ")))
 }

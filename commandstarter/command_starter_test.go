@@ -6,9 +6,9 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/commandstarter"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/commandstarter"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gbytes"
 )
@@ -20,7 +20,7 @@ type fakeReporter struct {
 	}
 }
 
-func (f *fakeReporter) Report(t time.Time, cmd *exec.Cmd) {
+func (f *fakeReporter) Report(b bool, t time.Time, cmd *exec.Cmd) {
 	f.calledWith.time = t
 	f.calledWith.cmd = cmd
 }

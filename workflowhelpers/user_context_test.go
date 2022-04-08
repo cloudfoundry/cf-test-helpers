@@ -5,15 +5,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/config"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/config"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/workflowhelpers/internal"
 
-	. "github.com/onsi/ginkgo"
-	ginkgoconfig "github.com/onsi/ginkgo/config"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/internal/fakes"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/internal/fakes"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/workflowhelpers"
 )
 
 var _ = Describe("UserContext", func() {
@@ -159,17 +158,15 @@ var _ = Describe("UserContext", func() {
 
 		Context("when 'cf api' times out", func() {
 			BeforeEach(func() {
-				timeout = 2 * time.Second
-				fakeStarter.ToReturn[0].SleepTime = 3
+				timeout = 300 * time.Millisecond
+				fakeStarter.ToReturn[0].SleepTime = 500 * time.Millisecond
 			})
 
 			It("fails with a ginkgo error", func() {
-				failures := InterceptGomegaFailures(func() {
-					userContext.Login()
-				})
+				failures := InterceptGomegaFailures(func() { userContext.Login() })
 
 				Expect(failures).To(HaveLen(1))
-				Expect(failures[0]).To(MatchRegexp("Timed out after 2.*"))
+				Expect(failures[0]).To(MatchRegexp("Timed out after .*"))
 			})
 		})
 	})
@@ -179,17 +176,17 @@ var _ = Describe("UserContext", func() {
 		var previousCfHome string
 		BeforeEach(func() {
 			previousCfHome = "my-cf-home-dir"
-			os.Setenv("CF_HOME", previousCfHome)
+			_ = os.Setenv("CF_HOME", previousCfHome)
 
 			userContext = workflowhelpers.UserContext{}
 		})
 
 		AfterEach(func() {
-			os.Unsetenv("CF_HOME")
+			_ = os.Unsetenv("CF_HOME")
 		})
 
 		It("creates a temporary directory and sets CF_HOME to point to it", func() {
-			tmpDirRegexp := fmt.Sprintf("(\\/var\\/folders\\/.*\\/.*\\/T|\\/tmp)\\/cf_home_%d", ginkgoconfig.GinkgoConfig.ParallelNode)
+			tmpDirRegexp := fmt.Sprintf("(\\/var\\/folders\\/.*\\/.*\\/T|\\/tmp)\\/cf_home_%d", GinkgoParallelProcess())
 
 			userContext.SetCfHomeDir()
 			cfHome := os.Getenv("CF_HOME")
@@ -254,8 +251,8 @@ var _ = Describe("UserContext", func() {
 
 		Context("when the target command times out", func() {
 			BeforeEach(func() {
-				timeout = 2 * time.Second
-				fakeStarter.ToReturn[0].SleepTime = 3
+				timeout = 100 * time.Millisecond
+				fakeStarter.ToReturn[0].SleepTime = 150 * time.Millisecond
 			})
 
 			It("fails with a ginkgo error", func() {
@@ -264,7 +261,7 @@ var _ = Describe("UserContext", func() {
 				})
 
 				Expect(failures).To(HaveLen(1))
-				Expect(failures[0]).To(MatchRegexp("Timed out after 2.*"))
+				Expect(failures[0]).To(MatchRegexp("Timed out after .*"))
 			})
 		})
 
@@ -350,8 +347,8 @@ var _ = Describe("UserContext", func() {
 			testTimeoutCase := func(callIndex int) func() {
 				return func() {
 					BeforeEach(func() {
-						fakeStarter.ToReturn[callIndex].SleepTime = 5
-						timeout = 2 * time.Second
+						fakeStarter.ToReturn[callIndex].SleepTime = 100 * time.Millisecond
+						timeout = 50 * time.Millisecond
 					})
 
 					It("returns a ginkgo error", func() {
@@ -359,7 +356,7 @@ var _ = Describe("UserContext", func() {
 							userContext.AddUserToSpace()
 						})
 
-						Expect(failures[0]).To(MatchRegexp("Timed out after 2.*"))
+						Expect(failures[0]).To(MatchRegexp("Timed out after .*"))
 					})
 				}
 			}
@@ -414,8 +411,8 @@ var _ = Describe("UserContext", func() {
 
 		Context("when 'cf logout' times out", func() {
 			BeforeEach(func() {
-				timeout = 2 * time.Second
-				fakeStarter.ToReturn[0].SleepTime = 3
+				timeout = 100 * time.Millisecond
+				fakeStarter.ToReturn[0].SleepTime = 150 * time.Millisecond
 			})
 
 			It("fails with a ginkgo error", func() {
@@ -424,7 +421,7 @@ var _ = Describe("UserContext", func() {
 				})
 
 				Expect(failures).To(HaveLen(1))
-				Expect(failures[0]).To(MatchRegexp("Timed out after 2.*"))
+				Expect(failures[0]).To(MatchRegexp(`Timed out after .*`))
 			})
 		})
 	})

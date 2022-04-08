@@ -3,11 +3,11 @@ package internal_test
 import (
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/config"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/internal/fakes"
-	. "github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/config"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/internal/fakes"
+	. "github.com/cloudfoundry-incubator/cf-test-helpers/v2/workflowhelpers/internal"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -27,17 +27,17 @@ var _ = Describe("TestSpace", func() {
 	Describe("NewRegularTestSpace", func() {
 		It("generates a quotaDefinitionName", func() {
 			testSpace := NewRegularTestSpace(&cfg, quotaLimit)
-			Expect(testSpace.QuotaDefinitionName).To(MatchRegexp("%s-[0-9]-QUOTA-.*", namePrefix))
+			Expect(testSpace.QuotaDefinitionName).To(MatchRegexp("%s-[0-9]+-QUOTA-.*", namePrefix))
 		})
 
 		It("generates an organizationName", func() {
 			testSpace := NewRegularTestSpace(&cfg, quotaLimit)
-			Expect(testSpace.OrganizationName()).To(MatchRegexp("%s-[0-9]-ORG-.*", namePrefix))
+			Expect(testSpace.OrganizationName()).To(MatchRegexp("%s-[0-9]+-ORG-.*", namePrefix))
 		})
 
 		It("generates a spaceName", func() {
 			testSpace := NewRegularTestSpace(&cfg, quotaLimit)
-			Expect(testSpace.SpaceName()).To(MatchRegexp("%s-[0-9]-SPACE-.*", namePrefix))
+			Expect(testSpace.SpaceName()).To(MatchRegexp("%s-[0-9]+-SPACE-.*", namePrefix))
 		})
 
 		It("sets a timeout for cf commands", func() {
@@ -219,13 +219,13 @@ var _ = Describe("TestSpace", func() {
 
 		Describe("timing out", func() {
 			BeforeEach(func() {
-				timeout = 2 * time.Second
+				timeout = 100 * time.Millisecond
 			})
 
 			testTimeoutCase := func(callIndex int, errorMsg string) func() {
 				return func() {
 					BeforeEach(func() {
-						fakeStarter.ToReturn[callIndex].SleepTime = 5
+						fakeStarter.ToReturn[callIndex].SleepTime = 150 * time.Millisecond
 					})
 
 					It("returns a ginkgo error", func() {
@@ -234,7 +234,7 @@ var _ = Describe("TestSpace", func() {
 						})
 
 						Expect(failures).To(HaveLen(1))
-						Expect(failures[0]).To(MatchRegexp("(?s)Timed out after 2.*%s", errorMsg))
+						Expect(failures[0]).To(MatchRegexp("(?s)Timed out after .*%s", errorMsg))
 					})
 				}
 			}
@@ -349,13 +349,13 @@ var _ = Describe("TestSpace", func() {
 
 		Describe("timing out", func() {
 			BeforeEach(func() {
-				timeout = 2 * time.Second
+				timeout = 100 * time.Millisecond
 			})
 
 			testTimeoutCase := func(callIndex int, errorMsg string) func() {
 				return func() {
 					BeforeEach(func() {
-						fakeStarter.ToReturn[callIndex].SleepTime = 5
+						fakeStarter.ToReturn[callIndex].SleepTime = 200 * time.Millisecond
 					})
 
 					It("returns a ginkgo error", func() {
@@ -364,7 +364,7 @@ var _ = Describe("TestSpace", func() {
 						})
 
 						Expect(failures).To(HaveLen(1))
-						Expect(failures[0]).To(MatchRegexp("(?s)Timed out after 2.*%s", errorMsg))
+						Expect(failures[0]).To(MatchRegexp("(?s)Timed out after .*%s", errorMsg))
 					})
 				}
 			}

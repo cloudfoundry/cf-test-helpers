@@ -2,12 +2,12 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/onsi/ginkgo/v2"
 	"os"
 	"path/filepath"
 	"strings"
 
-	ginkgoconfig "github.com/onsi/ginkgo/config"
-	"github.com/onsi/ginkgo/reporters"
+	"github.com/onsi/ginkgo/v2/reporters"
 )
 
 type artifactsDirectoryConfig interface {
@@ -15,7 +15,7 @@ type artifactsDirectoryConfig interface {
 }
 
 func EnableCFTrace(config artifactsDirectoryConfig, componentName string) {
-	os.Setenv("CF_TRACE", traceLogFilePath(config, componentName))
+	_ = os.Setenv("CF_TRACE", traceLogFilePath(config, componentName))
 }
 
 func NewJUnitReporter(config artifactsDirectoryConfig, componentName string) *reporters.JUnitReporter {
@@ -31,7 +31,7 @@ func jUnitReportFilePath(config artifactsDirectoryConfig, componentName string) 
 }
 
 func ginkgoNode() int {
-	return ginkgoconfig.GinkgoConfig.ParallelNode
+	return ginkgo.GinkgoParallelProcess()
 }
 
 func sanitizeComponentName(componentName string) string {

@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/config"
-	. "github.com/cloudfoundry-incubator/cf-test-helpers/helpers"
-	ginkgoconfig "github.com/onsi/ginkgo/config"
-
-	. "github.com/onsi/ginkgo"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/config"
+	. "github.com/cloudfoundry-incubator/cf-test-helpers/v2/helpers"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -21,7 +19,7 @@ var _ = Describe("Artifacts", func() {
 		BeforeEach(func() {
 			componentName = "fakeComponentName"
 			config.ArtifactsDirectory = "/some/dir"
-			expectedGinkgoNode = ginkgoconfig.GinkgoConfig.ParallelNode
+			expectedGinkgoNode = GinkgoParallelProcess()
 		})
 
 		It("Sets the CF_TRACE variable correctly", func() {

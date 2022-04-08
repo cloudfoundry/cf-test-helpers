@@ -7,9 +7,9 @@ import (
 
 	"bytes"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/internal"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/internal/fakes"
-	. "github.com/onsi/ginkgo"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/internal"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/internal/fakes"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -33,7 +33,7 @@ var _ = Describe("RedactingReporter", func() {
 			cmd = exec.Command("some-command", "with", "args")
 			reporter = internal.NewRedactingReporter(buffer, fakeRedactor)
 
-			reporter.Report(startTime, cmd)
+			reporter.Report(false, startTime, cmd)
 
 			Expect(buffer.String()).To(ContainSubstring("[0001-01-01 00:00:00.00 (UTC)]>"))
 		})
@@ -42,7 +42,7 @@ var _ = Describe("RedactingReporter", func() {
 			cmd = exec.Command("some-command", "with", "args")
 			reporter = internal.NewRedactingReporter(buffer, fakeRedactor)
 
-			reporter.Report(startTime, cmd)
+			reporter.Report(false, startTime, cmd)
 
 			Expect(fakeRedactor.RedactCallCount()).To(Equal(1))
 		})

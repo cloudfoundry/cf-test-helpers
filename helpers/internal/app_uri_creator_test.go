@@ -3,10 +3,10 @@ package helpersinternal_test
 import (
 	"fmt"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/config"
-	. "github.com/cloudfoundry-incubator/cf-test-helpers/helpers/internal"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/config"
+	. "github.com/cloudfoundry-incubator/cf-test-helpers/v2/helpers/internal"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
