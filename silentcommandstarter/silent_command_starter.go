@@ -21,7 +21,7 @@ func (r *CommandStarter) Start(reporter internal.Reporter, executable string, ar
 	reporter.Report(false, time.Now(), cmd)
 
 	writer := ginkgo.GinkgoWriter
-	writer.Write([]byte("SILENCING COMMAND OUTPUT"))
+	_, _ = writer.Write([]byte("SILENCING COMMAND OUTPUT"))
 
 	return gexec.Start(cmd, nil, nil)
 }
