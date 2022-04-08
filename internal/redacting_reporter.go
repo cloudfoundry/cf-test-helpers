@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/KevinJCross/cf-test-helpers/v2/commandreporter"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/commandreporter"
 	"io"
 	"os/exec"
 	"strings"

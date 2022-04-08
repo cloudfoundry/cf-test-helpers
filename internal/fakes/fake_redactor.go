@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/KevinJCross/cf-test-helpers/v2/internal"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/internal"
 )
 
 type FakeRedactor struct {

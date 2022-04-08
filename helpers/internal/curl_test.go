@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/KevinJCross/cf-test-helpers/v2/commandreporter"
-	"github.com/KevinJCross/cf-test-helpers/v2/helpers/internal"
-	"github.com/KevinJCross/cf-test-helpers/v2/internal"
-	"github.com/KevinJCross/cf-test-helpers/v2/internal/fakes"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/commandreporter"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/helpers/internal"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/internal"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/internal/fakes"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
