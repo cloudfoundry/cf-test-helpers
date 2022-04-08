@@ -12,30 +12,46 @@ import (
 
 const timeFormat = "2006-01-02 15:04:05.00 (MST)"
 
-type StringerStruct struct {
-	Time    string
-	Command string
-	Args    string
-}
-
-// ColorableString for ReportEntry to use
-func (s StringerStruct) ColorableString() string {
-	return fmt.Sprintf("{{green}}[%s]> {{bold}}%s %s{{/}}", s.Time, s.Command, s.Args)
-}
-
-// non-colorable String() is used by go's string formatting support but ignored by ReportEntry
-func (s StringerStruct) String() string {
-	return fmt.Sprintf("[%s]> %s %s", s.Time, s.Command, s.Args)
-}
-
 type CommandReporter struct {
 	Writer io.Writer
 }
 
-func NewCommandReporter() *CommandReporter {
-	return &CommandReporter{}
+func NewCommandReporter(writers ...io.Writer) *CommandReporter {
+	var writer io.Writer
+	switch len(writers) {
+	case 0:
+		writer = ginkgo.GinkgoWriter
+	case 1:
+		writer = writers[0]
+	default:
+		panic("newCommandReporter can only take one writer")
+	}
+
+	return &CommandReporter{
+		Writer: writer,
+	}
 }
 
-func (r *CommandReporter) Report(startTime time.Time, cmd *exec.Cmd) {
-	ginkgo.AddReportEntry("CF", StringerStruct{Time: startTime.UTC().Format(timeFormat), Command: cmd.Args[0], Args: strings.Join(cmd.Args[1:], " ")}, ginkgo.ReportEntryVisibilityFailureOrVerbose)
+func (r *CommandReporter) Report(withColour bool, startTime time.Time, cmd *exec.Cmd) {
+	PrintCommand(withColour, startTime, r.Writer, strings.Join(cmd.Args, " "))
+}
+
+func PrintCommand(withColour bool, startTime time.Time, writer io.Writer, command string) {
+	startColor := ""
+	endColor := ""
+	startBold := ""
+	if withColour {
+		startColor = "\x1b[32m"
+		startBold = "\x1b[32;1m"
+		endColor = "\x1b[0m"
+	}
+	_, _ = fmt.Fprintf(
+		writer,
+		"\n%s[%s]> %s%s %s\n",
+		startColor,
+		startTime.UTC().Format(timeFormat),
+		startBold,
+		command,
+		endColor,
+	)
 }

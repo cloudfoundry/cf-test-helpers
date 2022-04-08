@@ -18,7 +18,7 @@ func NewCommandStarter() *CommandStarter {
 
 func (r *CommandStarter) Start(reporter internal.Reporter, executable string, args ...string) (*gexec.Session, error) {
 	cmd := exec.Command(executable, args...)
-	reporter.Report(time.Now(), cmd)
+	reporter.Report(false, time.Now(), cmd)
 
 	writer := ginkgo.GinkgoWriter
 	writer.Write([]byte("SILENCING COMMAND OUTPUT"))

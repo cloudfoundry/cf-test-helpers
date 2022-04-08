@@ -2,7 +2,6 @@ package internal_test
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"time"
 
@@ -37,7 +36,7 @@ var _ = Describe("cf auth", func() {
 
 	Describe("CfAuth", func() {
 		It("runs the cf auth command", func() {
-			err := CfAuth(cmdStarter, redactingReporter, "user", password, "", 5*time.Second)
+			err := CfAuth(cmdStarter, redactingReporter, "user", password, "", 100*time.Millisecond)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cmdStarter.TotalCallsToStart).To(Equal(1))
@@ -46,7 +45,7 @@ var _ = Describe("cf auth", func() {
 		})
 
 		It("does not reveal the password", func() {
-			err := CfAuth(cmdStarter, redactingReporter, "user", password, origin, 5*time.Second)
+			err := CfAuth(cmdStarter, redactingReporter, "user", password, origin, 100*time.Millisecond)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(reporterOutput.String()).To(ContainSubstring("REDACTED"))
@@ -54,13 +53,13 @@ var _ = Describe("cf auth", func() {
 		})
 
 		It("errors if cf auth takes longer than timeout", func() {
-			timeout := rand.Intn(10)
+			timeout := 50 * time.Millisecond
 			cmdStarter.ToReturn[0].SleepTime = timeout
 			cmdStarter.ToReturn[1].SleepTime = timeout
 
-			err := CfAuth(cmdStarter, redactingReporter, "user", password, origin, time.Duration(timeout)*time.Second)
+			err := CfAuth(cmdStarter, redactingReporter, "user", password, origin, timeout)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Timed out after %d", timeout)))
+			Expect(err.Error()).To(ContainSubstring("Timed out after"))
 		})
 
 		Context("when the starter returns error", func() {
@@ -69,7 +68,7 @@ var _ = Describe("cf auth", func() {
 			})
 
 			It("errors", func() {
-				err := CfAuth(cmdStarter, redactingReporter, "user", password, origin, 5*time.Second)
+				err := CfAuth(cmdStarter, redactingReporter, "user", password, origin, 100*time.Millisecond)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("something went wrong"))
@@ -130,9 +129,9 @@ var _ = Describe("cf auth", func() {
 				})
 
 				It("retries once and succeeds when cf auth times out on the first try and succeeds on the second try", func() {
-					cmdStarter.ToReturn[0].SleepTime = 6
+					cmdStarter.ToReturn[0].SleepTime = 150 * time.Millisecond
 
-					err := CfAuth(cmdStarter, redactingReporter, "user", password, origin, 5*time.Second)
+					err := CfAuth(cmdStarter, redactingReporter, "user", password, origin, 100*time.Millisecond)
 
 					Expect(err).NotTo(HaveOccurred())
 				})
@@ -147,9 +146,9 @@ var _ = Describe("cf auth", func() {
 
 				It("retries once and errors when cf auth times out on the second try", func() {
 					cmdStarter.ToReturn[0].ExitCode = 1
-					cmdStarter.ToReturn[1].SleepTime = 6
+					cmdStarter.ToReturn[1].SleepTime = 150 * time.Millisecond
 
-					err := CfAuth(cmdStarter, redactingReporter, "user", password,origin, 5*time.Second)
+					err := CfAuth(cmdStarter, redactingReporter, "user", password, origin, 100*time.Millisecond)
 
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("cf auth command timed out"))
@@ -178,13 +177,13 @@ var _ = Describe("cf auth", func() {
 			})
 
 			It("errors if cf auth takes longer than timeout", func() {
-				timeout := rand.Intn(10)
+				timeout := 100 * time.Millisecond
 				cmdStarter.ToReturn[0].SleepTime = timeout
 				cmdStarter.ToReturn[1].SleepTime = timeout
 
-				err := CfClientAuth(cmdStarter, redactingReporter, "client", "secret", time.Duration(timeout)*time.Second)
+				err := CfClientAuth(cmdStarter, redactingReporter, "client", "secret", timeout)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Timed out after %d", timeout)))
+				Expect(err.Error()).To(ContainSubstring("Timed out after"))
 			})
 
 			It("errors if cf auth exits with a non-zero code", func() {
@@ -209,10 +208,10 @@ var _ = Describe("cf auth", func() {
 				})
 
 				It("returns the command error before attempting to wait on the session", func() {
-					timeout := rand.Intn(10)
+					timeout := 100 * time.Millisecond
 					cmdStarter.ToReturn[0].SleepTime = timeout
 
-					err := CfClientAuth(cmdStarter, redactingReporter, "client", "secret", time.Duration(timeout)*time.Second)
+					err := CfClientAuth(cmdStarter, redactingReporter, "client", "secret", timeout)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("something went wrong"))
 				})
@@ -220,7 +219,7 @@ var _ = Describe("cf auth", func() {
 			})
 			Context("retries", func() {
 				It("does not retry and succeeds when cf auth is successful on the first try", func() {
-					err := CfClientAuth(cmdStarter, redactingReporter, "client", "secret", 5*time.Second)
+					err := CfClientAuth(cmdStarter, redactingReporter, "client", "secret", 1*time.Second)
 
 					Expect(err).NotTo(HaveOccurred())
 					Expect(cmdStarter.TotalCallsToStart).To(Equal(1))
@@ -238,9 +237,9 @@ var _ = Describe("cf auth", func() {
 					})
 
 					It("retries once and succeeds when cf auth times out on the first try and succeeds on the second try", func() {
-						cmdStarter.ToReturn[0].SleepTime = 6
+						cmdStarter.ToReturn[0].SleepTime = 150 * time.Millisecond
 
-						err := CfClientAuth(cmdStarter, redactingReporter, "client", "secret", 5*time.Second)
+						err := CfClientAuth(cmdStarter, redactingReporter, "client", "secret", 100*time.Millisecond)
 
 						Expect(err).NotTo(HaveOccurred())
 					})
@@ -248,16 +247,16 @@ var _ = Describe("cf auth", func() {
 					It("retries once and succeeds when cf auth exists with a non-zero exit code on the first try and succeeds on the second try", func() {
 						cmdStarter.ToReturn[0].ExitCode = 1
 
-						err := CfClientAuth(cmdStarter, redactingReporter, "client", "secret", 5*time.Second)
+						err := CfClientAuth(cmdStarter, redactingReporter, "client", "secret", 100*time.Millisecond)
 
 						Expect(err).NotTo(HaveOccurred())
 					})
 
 					It("retries once and errors when cf auth times out on the second try", func() {
 						cmdStarter.ToReturn[0].ExitCode = 1
-						cmdStarter.ToReturn[1].SleepTime = 6
+						cmdStarter.ToReturn[1].SleepTime = 150 * time.Millisecond
 
-						err := CfClientAuth(cmdStarter, redactingReporter, "client", "secret", 5*time.Second)
+						err := CfClientAuth(cmdStarter, redactingReporter, "client", "secret", 100*time.Millisecond)
 
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("cf auth command timed out"))
@@ -267,7 +266,7 @@ var _ = Describe("cf auth", func() {
 						cmdStarter.ToReturn[0].ExitCode = 1
 						cmdStarter.ToReturn[1].ExitCode = 5
 
-						err := CfClientAuth(cmdStarter, redactingReporter, "client", "secret", 5*time.Second)
+						err := CfClientAuth(cmdStarter, redactingReporter, "client", "secret", 100*time.Millisecond)
 
 						Expect(err).To(HaveOccurred())
 						Expect(err).To(MatchError("cf auth command exited with 5"))

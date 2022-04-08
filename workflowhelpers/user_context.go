@@ -11,7 +11,6 @@ import (
 	"github.com/cloudfoundry-incubator/cf-test-helpers/internal"
 	workflowhelpersinternal "github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers/internal"
 	"github.com/onsi/ginkgo/v2"
-	ginkgoconfig "github.com/onsi/ginkgo/v2/config"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	. "github.com/onsi/gomega/gexec"
@@ -112,12 +111,12 @@ func (uc UserContext) Login() {
 
 func (uc UserContext) SetCfHomeDir() (string, string) {
 	originalCfHomeDir := os.Getenv("CF_HOME")
-	currentCfHomeDir, err := ioutil.TempDir("", fmt.Sprintf("cf_home_%d", ginkgoconfig.GinkgoConfig.ParallelNode))
+	currentCfHomeDir, err := ioutil.TempDir("", fmt.Sprintf("cf_home_%d", ginkgo.GinkgoParallelProcess()))
 	if err != nil {
 		panic("Error: could not create temporary home directory: " + err.Error())
 	}
 
-	os.Setenv("CF_HOME", currentCfHomeDir)
+	_ = os.Setenv("CF_HOME", currentCfHomeDir)
 	return originalCfHomeDir, currentCfHomeDir
 }
 
@@ -159,6 +158,6 @@ func (uc UserContext) Logout() {
 }
 
 func (uc UserContext) UnsetCfHomeDir(originalCfHomeDir, currentCfHomeDir string) {
-	os.Setenv("CF_HOME", originalCfHomeDir)
-	os.RemoveAll(currentCfHomeDir)
+	_ = os.Setenv("CF_HOME", originalCfHomeDir)
+	_ = os.RemoveAll(currentCfHomeDir)
 }

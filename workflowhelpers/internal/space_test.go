@@ -219,13 +219,13 @@ var _ = Describe("TestSpace", func() {
 
 		Describe("timing out", func() {
 			BeforeEach(func() {
-				timeout = 2 * time.Second
+				timeout = 100 * time.Millisecond
 			})
 
 			testTimeoutCase := func(callIndex int, errorMsg string) func() {
 				return func() {
 					BeforeEach(func() {
-						fakeStarter.ToReturn[callIndex].SleepTime = 5
+						fakeStarter.ToReturn[callIndex].SleepTime = 150 * time.Millisecond
 					})
 
 					It("returns a ginkgo error", func() {
@@ -234,7 +234,7 @@ var _ = Describe("TestSpace", func() {
 						})
 
 						Expect(failures).To(HaveLen(1))
-						Expect(failures[0]).To(MatchRegexp("(?s)Timed out after 2.*%s", errorMsg))
+						Expect(failures[0]).To(MatchRegexp("(?s)Timed out after .*%s", errorMsg))
 					})
 				}
 			}
@@ -349,13 +349,13 @@ var _ = Describe("TestSpace", func() {
 
 		Describe("timing out", func() {
 			BeforeEach(func() {
-				timeout = 2 * time.Second
+				timeout = 100 * time.Millisecond
 			})
 
 			testTimeoutCase := func(callIndex int, errorMsg string) func() {
 				return func() {
 					BeforeEach(func() {
-						fakeStarter.ToReturn[callIndex].SleepTime = 5
+						fakeStarter.ToReturn[callIndex].SleepTime = 200 * time.Millisecond
 					})
 
 					It("returns a ginkgo error", func() {
@@ -364,7 +364,7 @@ var _ = Describe("TestSpace", func() {
 						})
 
 						Expect(failures).To(HaveLen(1))
-						Expect(failures[0]).To(MatchRegexp("(?s)Timed out after 2.*%s", errorMsg))
+						Expect(failures[0]).To(MatchRegexp("(?s)Timed out after .*%s", errorMsg))
 					})
 				}
 			}

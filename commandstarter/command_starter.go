@@ -27,7 +27,7 @@ func NewCommandStarterWithStdin(stdin io.Reader) *CommandStarter {
 func (r *CommandStarter) Start(reporter internal.Reporter, executable string, args ...string) (*gexec.Session, error) {
 	cmd := exec.Command(executable, args...)
 	cmd.Stdin = r.stdin
-	reporter.Report(time.Now(), cmd)
-
+	_,reporterConf := ginkgo.GinkgoConfiguration()
+	reporter.Report(!reporterConf.NoColor, time.Now(), cmd)
 	return gexec.Start(cmd, ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
 }

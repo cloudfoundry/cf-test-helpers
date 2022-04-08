@@ -2,6 +2,7 @@ package internal_test
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/config"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/internal/fakes"
@@ -172,7 +173,7 @@ var _ = Describe("User", func() {
 		Context("when 'cf create-user' takes longer than the short timeout", func() {
 			BeforeEach(func() {
 				timeoutScale = 0.0334 // two-second timeout
-				fakeStarter.ToReturn[0].SleepTime = 3
+				fakeStarter.ToReturn[0].SleepTime = 3 * time.Second
 			})
 
 			It("fails with a ginkgo error", func() {
@@ -228,7 +229,7 @@ var _ = Describe("User", func() {
 		Context("when 'cf delete-user' times out", func() {
 			BeforeEach(func() {
 				timeoutScale = 0.0334 // two second timeout
-				fakeStarter.ToReturn[0].SleepTime = 3
+				fakeStarter.ToReturn[0].SleepTime = 3 * time.Second
 			})
 
 			It("fails with a ginkgo error", func() {

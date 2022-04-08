@@ -20,7 +20,7 @@ type fakeReporter struct {
 	outputBuffer *bytes.Buffer
 }
 
-func (r *fakeReporter) Report(startTime time.Time, cmd *exec.Cmd) {
+func (r *fakeReporter) Report(b bool, startTime time.Time, cmd *exec.Cmd) {
 	r.calledWith.startTime = startTime
 	r.calledWith.cmd = cmd
 

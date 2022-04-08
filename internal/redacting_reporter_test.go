@@ -33,7 +33,7 @@ var _ = Describe("RedactingReporter", func() {
 			cmd = exec.Command("some-command", "with", "args")
 			reporter = internal.NewRedactingReporter(buffer, fakeRedactor)
 
-			reporter.Report(startTime, cmd)
+			reporter.Report(false, startTime, cmd)
 
 			Expect(buffer.String()).To(ContainSubstring("[0001-01-01 00:00:00.00 (UTC)]>"))
 		})
@@ -42,7 +42,7 @@ var _ = Describe("RedactingReporter", func() {
 			cmd = exec.Command("some-command", "with", "args")
 			reporter = internal.NewRedactingReporter(buffer, fakeRedactor)
 
-			reporter.Report(startTime, cmd)
+			reporter.Report(false, startTime, cmd)
 
 			Expect(fakeRedactor.RedactCallCount()).To(Equal(1))
 		})

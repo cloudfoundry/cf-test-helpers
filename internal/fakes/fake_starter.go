@@ -21,7 +21,7 @@ type startMethodStub struct {
 	Stderr    string
 	Err       error
 	ExitCode  int
-	SleepTime int
+	SleepTime time.Duration
 }
 
 type FakeCmdStarter struct {
@@ -59,15 +59,15 @@ func (s *FakeCmdStarter) Start(reporter internal.Reporter, executable string, ar
 	}
 	s.CalledWith = append(s.CalledWith, callToStart)
 
-	reporter.Report(time.Now(), exec.Command(executable, args...))
+	reporter.Report(false, time.Now(), exec.Command(executable, args...))
 	cmd := exec.Command(
 		"bash",
 		"-c",
 		fmt.Sprintf(
-			"echo %s; echo %s > /dev/stderr; sleep %d; exit %d",
+			"echo %[1]s; echo %[2]s > /dev/stderr; [ %[4]d -eq 0 ] && sleep %[3]f; exit %[4]d",
 			output,
 			stderr,
-			sleepTime,
+			sleepTime.Seconds(),
 			exitCode,
 		),
 	)

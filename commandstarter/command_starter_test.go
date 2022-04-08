@@ -20,7 +20,7 @@ type fakeReporter struct {
 	}
 }
 
-func (f *fakeReporter) Report(t time.Time, cmd *exec.Cmd) {
+func (f *fakeReporter) Report(b bool, t time.Time, cmd *exec.Cmd) {
 	f.calledWith.time = t
 	f.calledWith.cmd = cmd
 }
