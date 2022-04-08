@@ -3,12 +3,12 @@ package internal
 import (
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/generator"
+	"github.com/KevinJCross/cf-test-helpers/v2/generator"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/commandstarter"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/internal"
+	"github.com/KevinJCross/cf-test-helpers/v2/commandstarter"
+	"github.com/KevinJCross/cf-test-helpers/v2/internal"
 )
 
 type TestSpace struct {

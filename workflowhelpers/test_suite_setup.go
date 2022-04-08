@@ -3,8 +3,8 @@ package workflowhelpers
 import (
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/commandstarter"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/workflowhelpers/internal"
+	"github.com/KevinJCross/cf-test-helpers/v2/commandstarter"
+	"github.com/KevinJCross/cf-test-helpers/v2/workflowhelpers/internal"
 )
 
 type remoteResource interface {

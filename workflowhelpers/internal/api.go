@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/commandreporter"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/v2/internal"
+	"github.com/KevinJCross/cf-test-helpers/v2/commandreporter"
+	"github.com/KevinJCross/cf-test-helpers/v2/internal"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
 )
