@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"io"
-
-	"github.com/onsi/ginkgo/config"
 )
 
 const timeFormat string = "2006-01-02 15:04:05.00 (MST)"
@@ -30,10 +28,6 @@ func NewRedactingReporter(writer io.Writer, redactor Redactor) *RedactingReporte
 func (r *RedactingReporter) Report(startTime time.Time, cmd *exec.Cmd) {
 	startColor := ""
 	endColor := ""
-	if !config.DefaultReporterConfig.NoColor {
-		startColor = "\x1b[32m"
-		endColor = "\x1b[0m"
-	}
 
 	fmt.Fprintf(
 		r.writer,
