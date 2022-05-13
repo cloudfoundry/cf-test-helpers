@@ -35,6 +35,11 @@ func NewCommandReporter(writers ...io.Writer) *CommandReporter {
 func (r *CommandReporter) Report(startTime time.Time, cmd *exec.Cmd) {
 	startColor := ""
 	endColor := ""
+	_, reporterConfig := ginkgo.GinkgoConfiguration()
+	if !reporterConfig.NoColor {
+		startColor = "\x1b[32m"
+		endColor = "\x1b[0m"
+	}
 
 	fmt.Fprintf(
 		r.Writer,
