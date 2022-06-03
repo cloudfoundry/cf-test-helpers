@@ -6,7 +6,7 @@ import (
 
 	"github.com/cloudfoundry/cf-test-helpers/internal/fakes"
 	. "github.com/cloudfoundry/cf-test-helpers/workflowhelpers/internal"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 

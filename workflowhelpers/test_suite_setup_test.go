@@ -9,7 +9,7 @@ import (
 	. "github.com/cloudfoundry/cf-test-helpers/workflowhelpers"
 	"github.com/cloudfoundry/cf-test-helpers/workflowhelpers/internal"
 	"github.com/cloudfoundry/cf-test-helpers/workflowhelpers/internal/fakes"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
