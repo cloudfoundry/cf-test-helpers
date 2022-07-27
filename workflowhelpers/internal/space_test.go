@@ -3,9 +3,9 @@ package internal_test
 import (
 	"time"
 
-	"github.com/cloudfoundry/cf-test-helpers/config"
-	"github.com/cloudfoundry/cf-test-helpers/internal/fakes"
-	. "github.com/cloudfoundry/cf-test-helpers/workflowhelpers/internal"
+	"github.com/cloudfoundry/cf-test-helpers/v2/config"
+	"github.com/cloudfoundry/cf-test-helpers/v2/internal/fakes"
+	. "github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers/internal"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

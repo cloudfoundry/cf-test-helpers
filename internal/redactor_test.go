@@ -1,7 +1,7 @@
 package internal_test
 
 import (
-	"github.com/cloudfoundry/cf-test-helpers/internal"
+	"github.com/cloudfoundry/cf-test-helpers/v2/internal"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

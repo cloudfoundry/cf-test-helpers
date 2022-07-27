@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloudfoundry/cf-test-helpers/commandstarter"
-	"github.com/cloudfoundry/cf-test-helpers/internal"
-	workflowhelpersinternal "github.com/cloudfoundry/cf-test-helpers/workflowhelpers/internal"
+	"github.com/cloudfoundry/cf-test-helpers/v2/commandstarter"
+	"github.com/cloudfoundry/cf-test-helpers/v2/internal"
+	workflowhelpersinternal "github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers/internal"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"

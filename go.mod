@@ -1,4 +1,4 @@
-module github.com/cloudfoundry/cf-test-helpers
+module github.com/cloudfoundry/cf-test-helpers/v2
 
 go 1.17
 
