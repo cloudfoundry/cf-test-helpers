@@ -31,9 +31,6 @@ type ReproducibleTestSuiteSetup struct {
 	shortTimeout time.Duration
 	longTimeout  time.Duration
 
-	organizationName string
-	spaceName        string
-
 	TestUser  remoteResource
 	TestSpace internal.Space
 

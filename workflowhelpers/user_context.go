@@ -119,8 +119,7 @@ func (uc UserContext) SetCfHomeDir() (string, string) {
 
 func (uc UserContext) TargetSpace() {
 	if uc.TestSpace != nil && uc.TestSpace.OrganizationName() != "" {
-		var session *Session
-		session = internal.Cf(uc.CommandStarter, "target", "-o", uc.TestSpace.OrganizationName(), "-s", uc.TestSpace.SpaceName())
+		session := internal.Cf(uc.CommandStarter, "target", "-o", uc.TestSpace.OrganizationName(), "-s", uc.TestSpace.SpaceName())
 		EventuallyWithOffset(1, session, uc.Timeout).Should(Exit(0), cliErrorMessage(session))
 	}
 }
