@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/cf-test-helpers/v2/commandreporter"
-	"github.com/cloudfoundry/cf-test-helpers/v2/helpers/internal"
+	helpersinternal "github.com/cloudfoundry/cf-test-helpers/v2/helpers/internal"
 	"github.com/cloudfoundry/cf-test-helpers/v2/internal"
 	"github.com/cloudfoundry/cf-test-helpers/v2/internal/fakes"
 
