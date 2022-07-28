@@ -4,7 +4,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/cloudfoundry/cf-test-helpers/commandreporter"
+	"github.com/cloudfoundry/cf-test-helpers/v2/commandreporter"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"

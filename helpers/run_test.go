@@ -3,7 +3,7 @@ package helpers_test
 import (
 	"time"
 
-	"github.com/cloudfoundry/cf-test-helpers/helpers"
+	"github.com/cloudfoundry/cf-test-helpers/v2/helpers"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

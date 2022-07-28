@@ -2,10 +2,11 @@ package commandreporter_test
 
 import (
 	"bytes"
-	"github.com/cloudfoundry/cf-test-helpers/commandreporter"
+	"io"
+
+	"github.com/cloudfoundry/cf-test-helpers/v2/commandreporter"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"io"
 )
 
 var _ = Describe("CommandReporter", func() {

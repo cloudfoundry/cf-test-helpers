@@ -4,7 +4,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/cloudfoundry/cf-test-helpers/internal"
+	"github.com/cloudfoundry/cf-test-helpers/v2/internal"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega/gexec"
 )
@@ -20,8 +20,10 @@ func (r *CommandStarter) Start(reporter internal.Reporter, executable string, ar
 	cmd := exec.Command(executable, args...)
 	reporter.Report(time.Now(), cmd)
 
-	writer := ginkgo.GinkgoWriter
-	writer.Write([]byte("SILENCING COMMAND OUTPUT"))
+	_, err := ginkgo.GinkgoWriter.Write([]byte("SILENCING COMMAND OUTPUT"))
+	if err != nil {
+		return nil, err
+	}
 
 	return gexec.Start(cmd, nil, nil)
 }

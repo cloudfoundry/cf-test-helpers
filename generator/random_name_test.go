@@ -1,7 +1,7 @@
 package generator_test
 
 import (
-	"github.com/cloudfoundry/cf-test-helpers/generator"
+	"github.com/cloudfoundry/cf-test-helpers/v2/generator"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
