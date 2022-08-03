@@ -83,7 +83,7 @@ var _ = Describe("ApiRequest", func() {
 			failures := InterceptGomegaFailures(func() {
 				ApiRequest(starter, "GET", "/v2/info", nil, timeout)
 			})
-			Expect(failures).To(ContainElement(MatchRegexp("Timed out after 0.00[1-2]s.\nExpected process to exit.  It did not.")))
+			Expect(failures).To(ContainElement(MatchRegexp("Timed out after 0.00[1-5]s.\nExpected process to exit.  It did not.")))
 		})
 	})
 
