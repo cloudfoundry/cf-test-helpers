@@ -27,17 +27,17 @@ var _ = Describe("TestSpace", func() {
 	Describe("NewRegularTestSpace", func() {
 		It("generates a quotaDefinitionName", func() {
 			testSpace := NewRegularTestSpace(&cfg, quotaLimit)
-			Expect(testSpace.QuotaDefinitionName).To(MatchRegexp("%s-[0-9]-QUOTA-.*", namePrefix))
+			Expect(testSpace.QuotaDefinitionName).To(MatchRegexp("%s-[0-9]*-QUOTA-.*", namePrefix))
 		})
 
 		It("generates an organizationName", func() {
 			testSpace := NewRegularTestSpace(&cfg, quotaLimit)
-			Expect(testSpace.OrganizationName()).To(MatchRegexp("%s-[0-9]-ORG-.*", namePrefix))
+			Expect(testSpace.OrganizationName()).To(MatchRegexp("%s-[0-9]*-ORG-.*", namePrefix))
 		})
 
 		It("generates a spaceName", func() {
 			testSpace := NewRegularTestSpace(&cfg, quotaLimit)
-			Expect(testSpace.SpaceName()).To(MatchRegexp("%s-[0-9]-SPACE-.*", namePrefix))
+			Expect(testSpace.SpaceName()).To(MatchRegexp("%s-[0-9]*-SPACE-.*", namePrefix))
 		})
 
 		It("sets a timeout for cf commands", func() {
