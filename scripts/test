@@ -8,4 +8,5 @@ go run github.com/onsi/ginkgo/v2/ginkgo \
     --randomize-suites \
     --race \
     --trace \
-    -r
+    -r \
+    -p
