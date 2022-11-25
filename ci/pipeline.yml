@@ -6,6 +6,7 @@ resources:
       uri: git@github.com:cloudfoundry/cf-test-helpers.git
       branch: main
       private_key: ((cf_test_helpers_readwrite_deploy_key.private_key))
+
   - name: cf-test-helpers-version
     type: semver
     source:
@@ -16,31 +17,25 @@ resources:
       git_user: "CF MEGA BOT <cf-mega@pivotal.io>"
       file: cf-test-helpers-version
 
+  - name: runtime-ci
+    type: git
+    icon: github
+    source:
+      uri: https://github.com/cloudfoundry/runtime-ci.git
+
 jobs:
   - name: run-unit-tests
     public: true
     plan:
-      - get: cf-test-helpers-main
-        trigger: true
-      - task: run-unit-tests
-        config:
-          platform: linux
-          image_resource:
-            type: docker-image
-            source:
-              repository: cloudfoundry/cf-deployment-concourse-tasks
-              tag: latest
-          inputs:
-            - name: cf-test-helpers-main
-          run:
-            path: /bin/bash
-            args:
-              - -c
-              - |
-                #!/bin/bash
-                echo "Running tests with GinkGo. Downloading dependencies may take a moment..."
-                cd cf-test-helpers-main
-                ginkgo -r
+      - in_parallel:
+        - get: cf-test-helpers-main
+          trigger: true
+        - get: runtime-ci
+
+      - task: run-cf-test-helpers-unit-tests
+        file: runtime-ci/tasks/run-cf-test-helpers-unit-tests/task.yml
+        input_mapping:
+          cf-test-helpers: cf-test-helpers-main
 
   - name: ship-it-minor
     public: true
