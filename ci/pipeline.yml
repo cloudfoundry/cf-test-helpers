@@ -1,0 +1,85 @@
+resources:
+  - name: cf-test-helpers-main
+    type: git
+    icon: github
+    source:
+      uri: git@github.com:cloudfoundry/cf-test-helpers.git
+      branch: main
+      private_key: ((cf_test_helpers_readwrite_deploy_key.private_key))
+  - name: cf-test-helpers-version
+    type: semver
+    source:
+      driver: git
+      uri: git@github.com:cloudfoundry/cf-relint-ci-semver.git
+      branch: main
+      private_key: ((cf_relint_ci_semver_readwrite_deploy_key.private_key))
+      git_user: "CF MEGA BOT <cf-mega@pivotal.io>"
+      file: cf-test-helpers-version
+
+jobs:
+  - name: run-unit-tests
+    public: true
+    plan:
+      - get: cf-test-helpers-main
+        trigger: true
+      - task: run-unit-tests
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: cloudfoundry/cf-deployment-concourse-tasks
+              tag: latest
+          inputs:
+            - name: cf-test-helpers-main
+          run:
+            path: /bin/bash
+            args:
+              - -c
+              - |
+                #!/bin/bash
+                echo "Running tests with GinkGo. Downloading dependencies may take a moment..."
+                cd cf-test-helpers-main
+                ginkgo -r
+
+  - name: ship-it-minor
+    public: true
+    plan:
+      - in_parallel:
+          - get: cf-test-helpers-version
+            params:
+              bump: minor
+          - get: cf-test-helpers-main
+            passed:
+              - run-unit-tests
+
+      - put: cf-test-helpers-main
+        params:
+          repository: cf-test-helpers-main
+          tag: cf-test-helpers-version/version
+          tag_prefix: v
+
+      - put: cf-test-helpers-version
+        params:
+          bump: minor
+
+  - name: ship-it-major
+    public: true
+    plan:
+      - in_parallel:
+          - get: cf-test-helpers-version
+            params:
+              bump: major
+          - get: cf-test-helpers-main
+            passed:
+              - run-unit-tests
+
+      - put: cf-test-helpers-main
+        params:
+          repository: cf-test-helpers-main
+          tag: cf-test-helpers-version/version
+          tag_prefix: v
+
+      - put: cf-test-helpers-version
+        params:
+          bump: major
