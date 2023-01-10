@@ -14,13 +14,14 @@ var _ = Describe("User", func() {
 	var cfg *config.Config
 
 	Describe("NewTestUser", func() {
-		var existingUser, existingUserPassword string
+		var existingUser, existingUserPassword, userOrigin string
 		var useExistingUser bool
 		var configurableTestPassword string
 
 		BeforeEach(func() {
 			useExistingUser = false
 			configurableTestPassword = ""
+			userOrigin = ""
 		})
 
 		JustBeforeEach(func() {
@@ -28,6 +29,7 @@ var _ = Describe("User", func() {
 				NamePrefix:               "UNIT-TESTS",
 				UseExistingUser:          useExistingUser,
 				ExistingUser:             existingUser,
+				UserOrigin:               userOrigin,
 				ExistingUserPassword:     existingUserPassword,
 				ConfigurableTestPassword: configurableTestPassword,
 			}
@@ -43,6 +45,18 @@ var _ = Describe("User", func() {
 			password1 := NewTestUser(cfg, &fakes.FakeCmdStarter{}).Password()
 			password2 := NewTestUser(cfg, &fakes.FakeCmdStarter{}).Password()
 			Expect(password1).ToNot(Equal(password2))
+		})
+
+		Context("when the user origin is specified", func() {
+			BeforeEach(func() {
+				userOrigin = "my-test-user-origin"
+			})
+
+			It("uses the Origin", func() {
+				user := NewTestUser(cfg, &fakes.FakeCmdStarter{})
+				Expect(user.Origin()).To(Equal(userOrigin))
+			})
+
 		})
 
 		Context("when the config specifies that an existing user should be used", func() {
