@@ -15,6 +15,7 @@ type Config struct {
 
 	AdminUser     string `json:"admin_user"`
 	AdminPassword string `json:"admin_password"`
+	AdminOrigin   string `json:"admin_origin"`
 
 	AdminClient       string `json:"admin_client"`
 	AdminClientSecret string `json:"admin_client_secret"`
@@ -23,6 +24,8 @@ type Config struct {
 	ShouldKeepUser       bool   `json:"keep_user_at_suite_end"`
 	ExistingUser         string `json:"existing_user"`
 	ExistingUserPassword string `json:"existing_user_password"`
+
+	UserOrigin string `json:"user_origin"`
 
 	ExistingClient       string `json:"existing_client"`
 	ExistingClientSecret string `json:"existing_client_secret"`
@@ -258,6 +261,10 @@ func (c *Config) GetExistingUserPassword() string {
 	return c.ExistingUserPassword
 }
 
+func (c *Config) GetUserOrigin() string {
+	return c.UserOrigin
+}
+
 func (c *Config) GetConfigurableTestPassword() string {
 	return c.ConfigurableTestPassword
 }
@@ -272,6 +279,10 @@ func (c *Config) GetAdminUser() string {
 
 func (c *Config) GetAdminPassword() string {
 	return c.AdminPassword
+}
+
+func (c *Config) GetAdminOrigin() string {
+	return c.AdminOrigin
 }
 
 func (c *Config) GetUseExistingOrganization() bool {

@@ -293,8 +293,8 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			regularUserCmdStarter = starterFakes.NewFakeCmdStarter()
 			adminUserCmdStarter = starterFakes.NewFakeCmdStarter()
 
-			fakeRegularUserValues = fakes.NewFakeUserValues("username", "password")
-			fakeAdminUserValues = fakes.NewFakeUserValues("admin", "admin")
+			fakeRegularUserValues = fakes.NewFakeUserValues("username", "password", "")
+			fakeAdminUserValues = fakes.NewFakeUserValues("admin", "admin", "")
 			fakeSpaceValues = fakes.NewFakeSpaceValues("org", "space")
 
 			regularUserContext = UserContext{
@@ -396,8 +396,8 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 			regularUserCmdStarter = starterFakes.NewFakeCmdStarter()
 			adminUserCmdStarter = starterFakes.NewFakeCmdStarter()
 
-			fakeRegularUserValues = fakes.NewFakeUserValues("username", "password")
-			fakeAdminUserValues = fakes.NewFakeUserValues("admin", "admin")
+			fakeRegularUserValues = fakes.NewFakeUserValues("username", "password", "")
+			fakeAdminUserValues = fakes.NewFakeUserValues("admin", "admin", "")
 			fakeSpaceValues = fakes.NewFakeSpaceValues("org", "space")
 
 			regularUserContext = UserContext{
