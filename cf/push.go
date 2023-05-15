@@ -18,6 +18,7 @@ type Manifest struct {
 
 type Application struct {
 	Buildpacks []string `yaml:",omitempty"`
+	Stack      string   `yaml:",omitempty"`
 	Command    string   `yaml:",omitempty"`
 	Instances  int      `yaml:",omitempty"`
 	Memory     string   `yaml:",omitempty"`
@@ -58,6 +59,8 @@ var Push = func(appName string, args ...string) *gexec.Session {
 				panic(err)
 			}
 			app.Path = path
+		case "-s":
+			app.Stack = args[i+1]
 		}
 	}
 
