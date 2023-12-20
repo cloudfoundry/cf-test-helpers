@@ -3,7 +3,7 @@ package internal_test
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -51,7 +51,7 @@ var _ = Describe("cf", func() {
 
 		It("uses the specified reporter", func() {
 			Eventually(internal.CfWithCustomReporter(starter, redactingReporter, "app", "my-app"), 1*time.Second).Should(Exit(0))
-			Expect(starter.CalledWith[0].Reporter).To(BeAssignableToTypeOf(internal.NewRedactingReporter(ioutil.Discard, fakeRedactor)))
+			Expect(starter.CalledWith[0].Reporter).To(BeAssignableToTypeOf(internal.NewRedactingReporter(io.Discard, fakeRedactor)))
 		})
 
 		Context("when the exit code is non-zero", func() {
