@@ -2,7 +2,6 @@ package config_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -35,7 +34,7 @@ var _ = Describe("Config", func() {
 			UseHttp:           true,
 		}
 
-		tmpFile, err = ioutil.TempFile("", "cf-test-helpers-config")
+		tmpFile, err = os.CreateTemp("", "cf-test-helpers-config")
 		Expect(err).NotTo(HaveOccurred())
 
 		encoder := json.NewEncoder(tmpFile)
