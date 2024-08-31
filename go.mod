@@ -1,7 +1,8 @@
 module github.com/cloudfoundry/cf-test-helpers/v2
 
-go 1.21
-toolchain go1.22.5
+go 1.22
+
+toolchain go1.22.6
 
 require (
 	github.com/onsi/ginkgo/v2 v2.20.2
