@@ -5,7 +5,7 @@ toolchain go1.22.6
 
 require (
 	github.com/onsi/ginkgo/v2 v2.21.0
-	github.com/onsi/gomega v1.34.2
+	github.com/onsi/gomega v1.35.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
