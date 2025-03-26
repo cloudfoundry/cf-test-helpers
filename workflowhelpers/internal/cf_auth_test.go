@@ -92,11 +92,13 @@ var _ = Describe("cf auth", func() {
 
 		Context("when the secret debug environment variable is set", func() {
 			BeforeEach(func() {
-				os.Setenv(VerboseAuth, "true")
+				err := os.Setenv(VerboseAuth, "true")
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			AfterEach(func() {
-				os.Unsetenv(VerboseAuth)
+				err := os.Unsetenv(VerboseAuth)
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("does not reveal the password", func() {
