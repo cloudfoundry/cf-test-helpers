@@ -111,7 +111,8 @@ var _ = Describe("AsUser", func() {
 	})
 
 	It("returns CF_HOME to its original value", func() {
-		os.Setenv("CF_HOME", "some-crazy-value")
+		err := os.Setenv("CF_HOME", "some-crazy-value")
+		Expect(err).NotTo(HaveOccurred())
 		workflowhelpers.AsUser(user, timeout, func() {})
 		Expect(os.Getenv("CF_HOME")).To(Equal("some-crazy-value"))
 	})

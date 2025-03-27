@@ -178,13 +178,15 @@ var _ = Describe("UserContext", func() {
 		var previousCfHome string
 		BeforeEach(func() {
 			previousCfHome = "my-cf-home-dir"
-			os.Setenv("CF_HOME", previousCfHome)
+			err := os.Setenv("CF_HOME", previousCfHome)
+			Expect(err).NotTo(HaveOccurred())
 
 			userContext = workflowhelpers.UserContext{}
 		})
 
 		AfterEach(func() {
-			os.Unsetenv("CF_HOME")
+			err := os.Unsetenv("CF_HOME")
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("creates a temporary directory and sets CF_HOME to point to it", func() {

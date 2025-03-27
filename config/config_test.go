@@ -44,7 +44,9 @@ var _ = Describe("Config", func() {
 		err = tmpFile.Close()
 		Expect(err).NotTo(HaveOccurred())
 
-		os.Setenv("CONFIG", tmpFile.Name())
+		err = os.Setenv("CONFIG", tmpFile.Name())
+		Expect(err).NotTo(HaveOccurred())
+
 		config = cfg.LoadConfig()
 	})
 
