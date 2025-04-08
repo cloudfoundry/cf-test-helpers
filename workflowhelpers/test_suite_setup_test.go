@@ -356,7 +356,9 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 
 		It("logs in as the regular user in a unique CF_HOME and targets the correct space", func() {
 			originalCfHomeDir := "originl-cf-home-dir"
-			os.Setenv("CF_HOME", originalCfHomeDir)
+			err := os.Setenv("CF_HOME", originalCfHomeDir)
+			Expect(err).NotTo(HaveOccurred())
+
 			testSetup.Setup()
 			Expect(os.Getenv("CF_HOME")).To(MatchRegexp("cf_home_.*"))
 			Expect(os.Getenv("CF_HOME")).NotTo(Equal(originalCfHomeDir))
@@ -430,7 +432,8 @@ var _ = Describe("ReproducibleTestSuiteSetup", func() {
 
 		It("restores cf home directory", func() {
 			originalCfHomeDir := "originl-cf-home-dir"
-			os.Setenv("CF_HOME", originalCfHomeDir)
+			err := os.Setenv("CF_HOME", originalCfHomeDir)
+			Expect(err).NotTo(HaveOccurred())
 
 			testSetup.Setup()
 			Expect(os.Getenv("CF_HOME")).NotTo(Equal(originalCfHomeDir))
