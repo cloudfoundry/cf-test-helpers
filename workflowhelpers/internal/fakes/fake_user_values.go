@@ -10,7 +10,7 @@ func NewFakeUserValues(username, password, origin string) *FakeUserValues {
 	return &FakeUserValues{
 		username: username,
 		password: password,
-		origin: origin,
+		origin:   origin,
 	}
 }
 
