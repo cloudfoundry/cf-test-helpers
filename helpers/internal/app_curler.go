@@ -36,12 +36,12 @@ func (appCurler *AppCurler) CurlAndWait(cfg CurlConfig, appName string, path str
 }
 
 func (appCurler *AppCurler) CurlWithStatusCode(cfg CurlConfig, appName string, path string, timeout time.Duration, args ...string) string {
-    appUri := appCurler.UriCreator.AppUri(appName, path)
-    curlArgs := append([]string{"-s", "-w", "\n%{http_code}", appUri}, args...)
+	appUri := appCurler.UriCreator.AppUri(appName, path)
+	curlArgs := append([]string{"-s", "-w", "\n%{http_code}", appUri}, args...)
 
-    curlCmd := appCurler.CurlFunc(cfg, curlArgs...).Wait(timeout)
-	
-    gomega.ExpectWithOffset(3, curlCmd).To(gexec.Exit(0))
-    gomega.ExpectWithOffset(3, string(curlCmd.Err.Contents())).To(gomega.HaveLen(0))
-    return string(curlCmd.Out.Contents())
+	curlCmd := appCurler.CurlFunc(cfg, curlArgs...).Wait(timeout)
+
+	gomega.ExpectWithOffset(3, curlCmd).To(gexec.Exit(0))
+	gomega.ExpectWithOffset(3, string(curlCmd.Err.Contents())).To(gomega.HaveLen(0))
+	return string(curlCmd.Out.Contents())
 }
