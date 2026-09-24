@@ -59,7 +59,10 @@ func (s *FakeCmdStarter) Start(reporter internal.Reporter, executable string, ar
 	}
 	s.CalledWith = append(s.CalledWith, callToStart)
 
-	reporter.Report(time.Now(), exec.Command(executable, args...))
+	commandCmd := exec.Command(executable, args...)
+	startTime := time.Now()
+	reporter.Report(startTime, commandCmd)
+
 	cmd := exec.Command(
 		"bash",
 		"-c",
@@ -72,5 +75,13 @@ func (s *FakeCmdStarter) Start(reporter internal.Reporter, executable string, ar
 		),
 	)
 	session, _ := gexec.Start(cmd, ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
+
+	if cr, ok := reporter.(internal.CompletionReporter); ok {
+		go func() {
+			<-session.Exited
+			cr.ReportCompletion(commandCmd, time.Since(startTime), session.ExitCode())
+		}()
+	}
+
 	return session, err
 }
