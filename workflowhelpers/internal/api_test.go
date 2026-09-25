@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cloudfoundry/cf-test-helpers/v2/internal"
 	"github.com/cloudfoundry/cf-test-helpers/v2/internal/fakes"
 	. "github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers/internal"
 	. "github.com/onsi/ginkgo/v2"
@@ -23,6 +24,10 @@ var _ = Describe("ApiRequest", func() {
 		timeout = 1 * time.Second
 	})
 
+	AfterEach(func() {
+		internal.UnregisterObserver()
+	})
+
 	It("sends the request to the current CF target", func() {
 		var response genericResource
 		ApiRequest(starter, "GET", "/v2/info", &response, timeout, "some", "data")
@@ -30,6 +35,16 @@ var _ = Describe("ApiRequest", func() {
 		Expect(starter.CalledWith[0].Args).To(Equal([]string{"curl", "/v2/info", "-X", "GET", "-d", "somedata"}))
 
 		Expect(response.Foo).To(Equal("bar"))
+	})
+
+	It("delivers start and completion to a registered observer", func() {
+		observer := &authObserver{}
+		internal.RegisterObserver(observer)
+
+		var response genericResource
+		ApiRequest(starter, "GET", "/v2/info", &response, timeout)
+
+		Eventually(observer.Starts, 1*time.Second).Should(ConsistOf("cf curl /v2/info -X GET"))
 	})
 
 	Context("when command starter returns a nil response", func() {
