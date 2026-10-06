@@ -6,6 +6,7 @@ import (
 	"os/exec"
 
 	"bytes"
+	"io"
 
 	"github.com/cloudfoundry/cf-test-helpers/v2/internal"
 	"github.com/cloudfoundry/cf-test-helpers/v2/internal/fakes"
@@ -45,6 +46,13 @@ var _ = Describe("RedactingReporter", func() {
 			reporter.Report(startTime, cmd)
 
 			Expect(fakeRedactor.RedactCallCount()).To(Equal(1))
+		})
+	})
+
+	Describe("Redactor", func() {
+		It("exposes its redactor so the observer seam can reuse it", func() {
+			reporter := internal.NewRedactingReporter(io.Discard, internal.NewRedactor("secret"))
+			Expect(reporter.Redactor().Redact("x secret y")).To(Equal("x [REDACTED] y"))
 		})
 	})
 })

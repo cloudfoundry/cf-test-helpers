@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strings"
+	"sync"
 	"time"
 
 	"bytes"
@@ -14,6 +16,38 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
+
+// authObserver is a concurrency-safe CommandObserver; completion is delivered
+// on the starter's goroutine, so reads happen under Eventually.
+type authObserver struct {
+	mu          sync.Mutex
+	starts      []string
+	completions []string
+}
+
+func (o *authObserver) CommandStarted(redactedArgs string, _ time.Time) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	o.starts = append(o.starts, redactedArgs)
+}
+
+func (o *authObserver) CommandCompleted(redactedArgs string, _ time.Duration, _ int) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	o.completions = append(o.completions, redactedArgs)
+}
+
+func (o *authObserver) Starts() []string {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	return append([]string(nil), o.starts...)
+}
+
+func (o *authObserver) Snapshot() string {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	return strings.Join(append(o.starts, o.completions...), " ")
+}
 
 var _ = Describe("cf auth", func() {
 	var (
@@ -36,6 +70,10 @@ var _ = Describe("cf auth", func() {
 		redactingReporter = internal.NewRedactingReporter(reporterOutput, redactor)
 	})
 
+	AfterEach(func() {
+		internal.UnregisterObserver()
+	})
+
 	Describe("CfAuth", func() {
 		It("runs the cf auth command", func() {
 			err := CfAuth(cmdStarter, redactingReporter, "user", password, origin, 5*time.Second)
@@ -52,6 +90,21 @@ var _ = Describe("cf auth", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(reporterOutput.String()).To(ContainSubstring("REDACTED"))
 			Expect(reporterOutput.String()).NotTo(ContainSubstring("foobar"))
+		})
+
+		It("observes every attempt with a redacted identity and never leaks the password", func() {
+			observer := &authObserver{}
+			internal.RegisterObserver(observer)
+			cmdStarter.ToReturn[0].ExitCode = 1
+
+			err := CfAuth(cmdStarter, redactingReporter, "user", password, origin, 5*time.Second)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(observer.Starts, 1*time.Second).Should(Equal([]string{
+				"cf auth user [REDACTED]",
+				"cf auth user [REDACTED]",
+			}))
+			Expect(observer.Snapshot()).NotTo(ContainSubstring("foobar"))
 		})
 
 		It("errors if cf auth takes longer than timeout", func() {
